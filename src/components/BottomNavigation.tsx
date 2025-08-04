@@ -4,9 +4,10 @@ import { cn } from "@/lib/utils";
 interface BottomNavigationProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  onMbtiClick?: () => void;
 }
 
-const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationProps) => {
+const BottomNavigation = ({ activeTab, onTabChange, onMbtiClick }: BottomNavigationProps) => {
   const tabs = [
     { id: "home", label: "홈", icon: Home },
     { id: "mbti", label: "멍BTI", icon: Heart },
@@ -21,7 +22,7 @@ const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationProps) => 
         {tabs.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
-            onClick={() => onTabChange(id)}
+            onClick={() => id === "mbti" && onMbtiClick ? onMbtiClick() : onTabChange(id)}
             className={cn(
               "flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-200",
               "text-xs font-medium min-w-0 flex-1",

@@ -106,7 +106,11 @@ const Index = () => {
         </main>
 
         {/* Bottom Navigation */}
-        <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+        <BottomNavigation 
+          activeTab={activeTab} 
+          onTabChange={setActiveTab} 
+          onMbtiClick={() => navigate("/mbti")}
+        />
       </div>
     );
   }
@@ -165,6 +169,7 @@ const Index = () => {
                 반려견의 성격에 맞는 완벽한 여행지를<br />AI가 추천해드려요
               </p>
               <Button 
+                onClick={() => navigate("/mbti")}
                 className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 <PawPrint className="w-4 h-4 mr-2" />
@@ -182,7 +187,11 @@ const Index = () => {
       </main>
 
       {/* Bottom Navigation */}
-      <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+      <BottomNavigation 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab} 
+        onMbtiClick={() => navigate("/mbti")}
+      />
     </div>
   );
 };
