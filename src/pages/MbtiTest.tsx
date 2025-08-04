@@ -55,45 +55,61 @@ const MbtiTest = () => {
           <div className="space-y-4">
             <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
               <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-              <span className="text-sm font-medium text-gray-700">활동성 vs 휴식성</span>
+              <span className="text-sm font-medium text-gray-700">에너지레벨 (Energy Level)</span>
             </div>
             <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
               <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-              <span className="text-sm font-medium text-gray-700">모험성 vs 안정성</span>
+              <span className="text-sm font-medium text-gray-700">관계 추구 (Relationship)</span>
             </div>
             <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span className="text-sm font-medium text-gray-700">사교성 vs 독립성</span>
+              <span className="text-sm font-medium text-gray-700">발달 감각 (Sense)</span>
             </div>
             <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
               <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-              <span className="text-sm font-medium text-gray-700">계획성 vs 자유성</span>
+              <span className="text-sm font-medium text-gray-700">여행 바이브 (Vibe)</span>
             </div>
           </div>
         </Card>
 
-        {/* 기존별 상세내용 */}
+        {/* 기준별 상세내용 */}
         <Card className="p-6 bg-white rounded-2xl shadow-lg">
           <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
             <Mountain className="w-5 h-5 mr-2 text-green-600" />
-            기존별 상세내용
+            기준별 상세내용
           </h3>
           <div className="grid grid-cols-2 gap-3">
             <div className="p-4 bg-gradient-to-br from-red-50 to-red-100 rounded-xl text-center">
-              <div className="text-sm font-semibold text-red-700">E (외향형)</div>
-              <div className="text-xs text-red-600 mt-1">활발하고 사교적</div>
+              <div className="text-sm font-semibold text-red-700">활동적인 탐험가</div>
+              <div className="text-xs text-red-600 mt-1">Energetic Explorer</div>
             </div>
             <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl text-center">
-              <div className="text-sm font-semibold text-blue-700">I (내향형)</div>
-              <div className="text-xs text-blue-600 mt-1">조용하고 신중함</div>
+              <div className="text-sm font-semibold text-blue-700">차분한 동반자</div>
+              <div className="text-xs text-blue-600 mt-1">Calm Companion</div>
             </div>
             <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl text-center">
-              <div className="text-sm font-semibold text-green-700">S (감각형)</div>
-              <div className="text-xs text-green-600 mt-1">현실적이고 실용적</div>
+              <div className="text-sm font-semibold text-green-700">핵 인싸</div>
+              <div className="text-xs text-green-600 mt-1">Social Star</div>
             </div>
             <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl text-center">
-              <div className="text-sm font-semibold text-purple-700">N (직관형)</div>
-              <div className="text-xs text-purple-600 mt-1">상상력이 풍부함</div>
+              <div className="text-sm font-semibold text-purple-700">주인 바라기</div>
+              <div className="text-xs text-purple-600 mt-1">Owner Only</div>
+            </div>
+            <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl text-center">
+              <div className="text-sm font-semibold text-orange-700">시각 중심</div>
+              <div className="text-xs text-orange-600 mt-1">Visual-led</div>
+            </div>
+            <div className="p-4 bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl text-center">
+              <div className="text-sm font-semibold text-pink-700">후각 중심</div>
+              <div className="text-xs text-pink-600 mt-1">Nose-led</div>
+            </div>
+            <div className="p-4 bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl text-center">
+              <div className="text-sm font-semibold text-teal-700">꾸꾸꾸</div>
+              <div className="text-xs text-teal-600 mt-1">Fashion Forward</div>
+            </div>
+            <div className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl text-center">
+              <div className="text-sm font-semibold text-gray-700">꾸안꾸</div>
+              <div className="text-xs text-gray-600 mt-1">Back to Basics</div>
             </div>
           </div>
         </Card>
@@ -106,10 +122,10 @@ const MbtiTest = () => {
           </h3>
           <div className="grid grid-cols-4 gap-2">
             {[
-              "ESTJ", "ESTP", "ESFJ", "ESFP",
-              "ENTJ", "ENTP", "ENFJ", "ENFP", 
-              "ISTJ", "ISTP", "ISFJ", "ISFP",
-              "INTJ", "INTP", "INFJ", "INFP"
+              "ESVF", "ESVB", "ESNF", "ESNB",
+              "EOVF", "EOVB", "EONF", "EONB", 
+              "CSVF", "CSVB", "CSNF", "CSNB",
+              "COVF", "COVB", "CONF", "CONB"
             ].map((type) => (
               <div key={type} className="p-3 bg-gray-50 rounded-lg text-center">
                 <div className="text-xs font-bold text-gray-700">{type}</div>
