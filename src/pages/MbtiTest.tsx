@@ -4,6 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, PawPrint, Heart, MapPin, Compass, Mountain, Zap, Coffee, Users, User, Eye, Flower, Sparkles, Leaf } from "lucide-react";
 
+// Import dog images
+import energeticExplorerDog from "@/assets/energetic-explorer-dog.jpg";
+import calmCompanionDog from "@/assets/calm-companion-dog.jpg";
+import socialStarDog from "@/assets/social-star-dog.jpg";
+import ownerOnlyDog from "@/assets/owner-only-dog.jpg";
+import visualLedDog from "@/assets/visual-led-dog.jpg";
+import noseLedDog from "@/assets/nose-led-dog.jpg";
+import fashionForwardDog from "@/assets/fashion-forward-dog.jpg";
+import backToBasicsDog from "@/assets/back-to-basics-dog.jpg";
+
 const MbtiTest = () => {
   const navigate = useNavigate();
 
@@ -80,42 +90,42 @@ const MbtiTest = () => {
           </h3>
           <div className="grid grid-cols-2 gap-3">
             <div className="p-4 bg-gradient-to-br from-red-50 to-red-100 rounded-xl text-center">
-              <Zap className="w-6 h-6 text-red-600 mx-auto mb-2" />
+              <img src={energeticExplorerDog} alt="활동적인 탐험가" className="w-12 h-12 rounded-full mx-auto mb-2 object-cover" />
               <div className="text-sm font-semibold text-red-700">활동적인 탐험가</div>
               <div className="text-xs text-red-600 mt-1">Energetic Explorer</div>
             </div>
             <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl text-center">
-              <Coffee className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+              <img src={calmCompanionDog} alt="차분한 동반자" className="w-12 h-12 rounded-full mx-auto mb-2 object-cover" />
               <div className="text-sm font-semibold text-blue-700">차분한 동반자</div>
               <div className="text-xs text-blue-600 mt-1">Calm Companion</div>
             </div>
             <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl text-center">
-              <Users className="w-6 h-6 text-green-600 mx-auto mb-2" />
+              <img src={socialStarDog} alt="핵 인싸" className="w-12 h-12 rounded-full mx-auto mb-2 object-cover" />
               <div className="text-sm font-semibold text-green-700">핵 인싸</div>
               <div className="text-xs text-green-600 mt-1">Social Star</div>
             </div>
             <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl text-center">
-              <User className="w-6 h-6 text-purple-600 mx-auto mb-2" />
+              <img src={ownerOnlyDog} alt="주인 바라기" className="w-12 h-12 rounded-full mx-auto mb-2 object-cover" />
               <div className="text-sm font-semibold text-purple-700">주인 바라기</div>
               <div className="text-xs text-purple-600 mt-1">Owner Only</div>
             </div>
             <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl text-center">
-              <Eye className="w-6 h-6 text-orange-600 mx-auto mb-2" />
+              <img src={visualLedDog} alt="시각 중심" className="w-12 h-12 rounded-full mx-auto mb-2 object-cover" />
               <div className="text-sm font-semibold text-orange-700">시각 중심</div>
               <div className="text-xs text-orange-600 mt-1">Visual-led</div>
             </div>
             <div className="p-4 bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl text-center">
-              <Flower className="w-6 h-6 text-pink-600 mx-auto mb-2" />
+              <img src={noseLedDog} alt="후각 중심" className="w-12 h-12 rounded-full mx-auto mb-2 object-cover" />
               <div className="text-sm font-semibold text-pink-700">후각 중심</div>
               <div className="text-xs text-pink-600 mt-1">Nose-led</div>
             </div>
             <div className="p-4 bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl text-center">
-              <Sparkles className="w-6 h-6 text-teal-600 mx-auto mb-2" />
+              <img src={fashionForwardDog} alt="꾸꾸꾸" className="w-12 h-12 rounded-full mx-auto mb-2 object-cover" />
               <div className="text-sm font-semibold text-teal-700">꾸꾸꾸</div>
               <div className="text-xs text-teal-600 mt-1">Fashion Forward</div>
             </div>
             <div className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl text-center">
-              <Leaf className="w-6 h-6 text-gray-600 mx-auto mb-2" />
+              <img src={backToBasicsDog} alt="꾸안꾸" className="w-12 h-12 rounded-full mx-auto mb-2 object-cover" />
               <div className="text-sm font-semibold text-gray-700">꾸안꾸</div>
               <div className="text-xs text-gray-600 mt-1">Back to Basics</div>
             </div>
