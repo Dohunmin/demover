@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { PawPrint, Mail, Lock, User } from "lucide-react";
+import { PawPrint, Mail, Lock, User, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -103,6 +103,18 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
+        {/* Back Button */}
+        <div className="mb-4">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/")}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            홈으로 돌아가기
+          </Button>
+        </div>
+
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-2 mb-4">
