@@ -24,7 +24,7 @@ const Index = () => {
             <div>
               <div className="flex items-center space-x-2 mb-2">
                 <PawPrint className="w-6 h-6" />
-                <h1 className="text-xl font-bold">펫패스</h1>
+                <h1 className="text-xl font-bold">멍멍! 일단 출발해!</h1>
               </div>
               <p className="text-blue-100 text-sm font-medium">반려견과 함께하는 스마트한 여행</p>
             </div>
