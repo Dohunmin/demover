@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, PawPrint, Heart, MapPin, Compass, Mountain } from "lucide-react";
+import { ArrowLeft, PawPrint, Heart, MapPin, Compass, Mountain, Zap, Coffee, Users, User, Eye, Flower, Sparkles, Leaf } from "lucide-react";
 
 const MbtiTest = () => {
   const navigate = useNavigate();
@@ -80,34 +80,42 @@ const MbtiTest = () => {
           </h3>
           <div className="grid grid-cols-2 gap-3">
             <div className="p-4 bg-gradient-to-br from-red-50 to-red-100 rounded-xl text-center">
+              <Zap className="w-6 h-6 text-red-600 mx-auto mb-2" />
               <div className="text-sm font-semibold text-red-700">활동적인 탐험가</div>
               <div className="text-xs text-red-600 mt-1">Energetic Explorer</div>
             </div>
             <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl text-center">
+              <Coffee className="w-6 h-6 text-blue-600 mx-auto mb-2" />
               <div className="text-sm font-semibold text-blue-700">차분한 동반자</div>
               <div className="text-xs text-blue-600 mt-1">Calm Companion</div>
             </div>
             <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-xl text-center">
+              <Users className="w-6 h-6 text-green-600 mx-auto mb-2" />
               <div className="text-sm font-semibold text-green-700">핵 인싸</div>
               <div className="text-xs text-green-600 mt-1">Social Star</div>
             </div>
             <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl text-center">
+              <User className="w-6 h-6 text-purple-600 mx-auto mb-2" />
               <div className="text-sm font-semibold text-purple-700">주인 바라기</div>
               <div className="text-xs text-purple-600 mt-1">Owner Only</div>
             </div>
             <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl text-center">
+              <Eye className="w-6 h-6 text-orange-600 mx-auto mb-2" />
               <div className="text-sm font-semibold text-orange-700">시각 중심</div>
               <div className="text-xs text-orange-600 mt-1">Visual-led</div>
             </div>
             <div className="p-4 bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl text-center">
+              <Flower className="w-6 h-6 text-pink-600 mx-auto mb-2" />
               <div className="text-sm font-semibold text-pink-700">후각 중심</div>
               <div className="text-xs text-pink-600 mt-1">Nose-led</div>
             </div>
             <div className="p-4 bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl text-center">
+              <Sparkles className="w-6 h-6 text-teal-600 mx-auto mb-2" />
               <div className="text-sm font-semibold text-teal-700">꾸꾸꾸</div>
               <div className="text-xs text-teal-600 mt-1">Fashion Forward</div>
             </div>
             <div className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl text-center">
+              <Leaf className="w-6 h-6 text-gray-600 mx-auto mb-2" />
               <div className="text-sm font-semibold text-gray-700">꾸안꾸</div>
               <div className="text-xs text-gray-600 mt-1">Back to Basics</div>
             </div>
