@@ -1,13 +1,47 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { PawPrint, Sparkles } from "lucide-react";
+import { PawPrint, Sparkles, LogOut } from "lucide-react";
 import BottomNavigation from "@/components/BottomNavigation";
 import CategoryGrid from "@/components/CategoryGrid";
 import BeachStatus from "@/components/BeachStatus";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
+  const { user, loading, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/auth");
+    }
+  }, [user, loading, navigate]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("로그아웃되었습니다.");
+    navigate("/auth");
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 max-w-md mx-auto flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg animate-pulse">
+            <PawPrint className="w-6 h-6 text-white" />
+          </div>
+          <p className="text-gray-600">로딩중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 max-w-md mx-auto relative">
@@ -31,9 +65,11 @@ const Index = () => {
             <Button 
               variant="outline" 
               size="sm" 
+              onClick={handleSignOut}
               className="bg-white/10 border-white/30 text-white hover:bg-white hover:text-blue-700 backdrop-blur-sm font-medium"
             >
-              로그인
+              <LogOut className="w-4 h-4 mr-1" />
+              로그아웃
             </Button>
           </div>
         </div>
