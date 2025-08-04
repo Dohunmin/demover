@@ -39,7 +39,7 @@ const Index = () => {
   // 로그인하지 않은 사용자를 위한 페이지
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 max-w-md mx-auto relative">
+      <div className="min-h-screen bg-gray-50 max-w-md mx-auto relative overflow-x-hidden">
         {/* Header */}
         <header className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 text-white p-6 rounded-b-3xl shadow-xl relative overflow-hidden">
           {/* Background Pattern */}
@@ -116,7 +116,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 max-w-md mx-auto relative">
+    <div className="min-h-screen bg-gray-50 max-w-md mx-auto relative overflow-x-hidden">
       {/* Header */}
       <header className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 text-white p-6 rounded-b-3xl shadow-xl relative overflow-hidden">
         {/* Background Pattern */}
