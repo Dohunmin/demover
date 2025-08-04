@@ -14,69 +14,7 @@ export type Database = {
   }
   public: {
     Tables: {
-      pets: {
-        Row: {
-          age: number | null
-          breed: string
-          created_at: string
-          gender: string | null
-          id: string
-          name: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          age?: number | null
-          breed: string
-          created_at?: string
-          gender?: string | null
-          id?: string
-          name: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          age?: number | null
-          breed?: string
-          created_at?: string
-          gender?: string | null
-          id?: string
-          name?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      profiles: {
-        Row: {
-          age: number | null
-          created_at: string
-          gender: string | null
-          id: string
-          nickname: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          age?: number | null
-          created_at?: string
-          gender?: string | null
-          id?: string
-          nickname: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          age?: number | null
-          created_at?: string
-          gender?: string | null
-          id?: string
-          nickname?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
