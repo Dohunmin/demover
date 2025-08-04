@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import beachImage from "@/assets/beach-dogs.jpg";
+import { Waves, Thermometer, Users } from "lucide-react";
 
 const BeachStatus = () => {
   const beaches = [
@@ -9,14 +9,14 @@ const BeachStatus = () => {
       status: "좋음", 
       temperature: "24°C", 
       crowd: "보통",
-      statusColor: "bg-green-500"
+      statusColor: "bg-emerald-500"
     },
     { 
       name: "광안리 해수욕장", 
       status: "좋음", 
       temperature: "23°C", 
       crowd: "여유",
-      statusColor: "bg-green-500"
+      statusColor: "bg-emerald-500"
     },
     { 
       name: "송정 해수욕장", 
@@ -28,30 +28,32 @@ const BeachStatus = () => {
   ];
 
   return (
-    <div className="px-4 mb-20">
-      <h3 className="text-lg font-semibold text-foreground mb-4">해수욕장별 실시간 상황</h3>
+    <div className="px-5 mb-24">
+      <h3 className="text-lg font-semibold text-gray-900 mb-5">실시간 해수욕장 현황</h3>
       <div className="space-y-3">
         {beaches.map((beach, index) => (
-          <Card key={index} className="p-4 bg-card border-border">
+          <Card key={index} className="p-4 bg-white border-gray-100 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <img 
-                  src={beachImage} 
-                  alt="Beach" 
-                  className="w-12 h-12 rounded-lg object-cover"
-                />
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                  <Waves className="w-6 h-6 text-blue-600" strokeWidth={1.5} />
+                </div>
                 <div>
-                  <h4 className="font-semibold text-foreground">{beach.name}</h4>
-                  <div className="flex items-center space-x-2 mt-1">
+                  <h4 className="font-semibold text-gray-900 text-sm">{beach.name}</h4>
+                  <div className="flex items-center space-x-3 mt-2">
                     <Badge 
-                      variant="secondary" 
-                      className={`${beach.statusColor} text-white text-xs`}
+                      className={`${beach.statusColor} text-white text-xs px-2 py-1 border-0`}
                     >
                       {beach.status}
                     </Badge>
-                    <span className="text-sm text-muted-foreground">{beach.temperature}</span>
-                    <span className="text-sm text-muted-foreground">·</span>
-                    <span className="text-sm text-muted-foreground">{beach.crowd}</span>
+                    <div className="flex items-center space-x-1 text-gray-600">
+                      <Thermometer className="w-3 h-3" />
+                      <span className="text-xs">{beach.temperature}</span>
+                    </div>
+                    <div className="flex items-center space-x-1 text-gray-600">
+                      <Users className="w-3 h-3" />
+                      <span className="text-xs">{beach.crowd}</span>
+                    </div>
                   </div>
                 </div>
               </div>
