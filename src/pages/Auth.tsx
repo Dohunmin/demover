@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { PawPrint, Mail, Lock, User, ArrowLeft } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PawPrint, Mail, Lock, User, ArrowLeft, Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -13,6 +14,10 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [petName, setPetName] = useState("");
+  const [petAge, setPetAge] = useState("");
+  const [petGender, setPetGender] = useState("");
+  const [petBreed, setPetBreed] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -48,7 +53,13 @@ const Auth = () => {
       email,
       password,
       options: {
-        emailRedirectTo: redirectUrl
+        emailRedirectTo: redirectUrl,
+        data: {
+          pet_name: petName,
+          pet_age: petAge ? parseInt(petAge) : null,
+          pet_gender: petGender,
+          pet_breed: petBreed
+        }
       }
     });
 
@@ -93,6 +104,10 @@ const Auth = () => {
     setEmail("");
     setPassword("");
     setConfirmPassword("");
+    setPetName("");
+    setPetAge("");
+    setPetGender("");
+    setPetBreed("");
   };
 
   const toggleMode = () => {
@@ -172,23 +187,97 @@ const Auth = () => {
               </div>
 
               {isSignUp && (
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
-                    비밀번호 확인
-                  </Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      placeholder="비밀번호를 다시 입력하세요"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="pl-10"
-                      required
-                    />
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
+                      비밀번호 확인
+                    </Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        placeholder="비밀번호를 다시 입력하세요"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="pl-10"
+                        required
+                      />
+                    </div>
                   </div>
-                </div>
+
+                  {/* Pet Information Section */}
+                  <div className="border-t pt-4 mt-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Heart className="w-4 h-4 text-pink-500" />
+                      <Label className="text-sm font-medium text-gray-700">반려견 정보</Label>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="petName" className="text-sm font-medium text-gray-700">
+                          반려견 이름
+                        </Label>
+                        <div className="relative">
+                          <PawPrint className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Input
+                            id="petName"
+                            type="text"
+                            placeholder="반려견 이름을 입력하세요"
+                            value={petName}
+                            onChange={(e) => setPetName(e.target.value)}
+                            className="pl-10"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="petAge" className="text-sm font-medium text-gray-700">
+                            나이
+                          </Label>
+                          <Input
+                            id="petAge"
+                            type="number"
+                            placeholder="나이"
+                            value={petAge}
+                            onChange={(e) => setPetAge(e.target.value)}
+                            min="0"
+                            max="30"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="petGender" className="text-sm font-medium text-gray-700">
+                            성별
+                          </Label>
+                          <Select value={petGender} onValueChange={setPetGender}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="성별" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="male">남아</SelectItem>
+                              <SelectItem value="female">여아</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="petBreed" className="text-sm font-medium text-gray-700">
+                          견종
+                        </Label>
+                        <Input
+                          id="petBreed"
+                          type="text"
+                          placeholder="견종을 입력하세요 (예: 골든리트리버)"
+                          value={petBreed}
+                          onChange={(e) => setPetBreed(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </>
               )}
 
               <Button
