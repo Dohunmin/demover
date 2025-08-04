@@ -103,6 +103,9 @@ const Index = () => {
           <CategoryGrid />
           <BeachStatus />
         </main>
+
+        {/* Bottom Navigation */}
+        <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
     );
   }
