@@ -6,6 +6,7 @@ import { PawPrint, Sparkles, LogOut } from "lucide-react";
 import BottomNavigation from "@/components/BottomNavigation";
 import CategoryGrid from "@/components/CategoryGrid";
 import BeachStatus from "@/components/BeachStatus";
+import UserProfile from "@/components/UserProfile";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
@@ -129,15 +130,18 @@ const Index = () => {
               </div>
               <p className="text-blue-100 text-sm font-medium">반려견과 함께하는 스마트한 여행</p>
             </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleSignOut}
-              className="bg-white/10 border-white/30 text-white hover:bg-white hover:text-blue-700 backdrop-blur-sm font-medium"
-            >
-              <LogOut className="w-4 h-4 mr-1" />
-              로그아웃
-            </Button>
+            <div className="flex flex-col gap-2">
+              <UserProfile />
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleSignOut}
+                className="bg-white/10 border-white/30 text-white hover:bg-white hover:text-blue-700 backdrop-blur-sm font-medium"
+              >
+                <LogOut className="w-4 h-4 mr-1" />
+                로그아웃
+              </Button>
+            </div>
           </div>
         </div>
       </header>
