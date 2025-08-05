@@ -15,24 +15,56 @@ import noseLedDog from "@/assets/nose-led-dog.jpg";
 import fashionForwardDog from "@/assets/fashion-forward-dog.jpg";
 import backToBasicsDog from "@/assets/back-to-basics-dog.jpg";
 
-// 16가지 성향 데이터 (설명은 사용자가 제공할 예정)
+// 16가지 성향 데이터
 const travelTypes = [
-  { code: "ESVF", description: "설명을 입력해주세요" },
-  { code: "ESVB", description: "설명을 입력해주세요" },
-  { code: "ESNF", description: "설명을 입력해주세요" },
-  { code: "ESNB", description: "설명을 입력해주세요" },
-  { code: "EOVF", description: "설명을 입력해주세요" },
-  { code: "EOVB", description: "설명을 입력해주세요" },
-  { code: "EONF", description: "설명을 입력해주세요" },
-  { code: "EONB", description: "설명을 입력해주세요" },
-  { code: "CSVF", description: "설명을 입력해주세요" },
-  { code: "CSVB", description: "설명을 입력해주세요" },
-  { code: "CSNF", description: "설명을 입력해주세요" },
-  { code: "CSNB", description: "설명을 입력해주세요" },
-  { code: "COVF", description: "설명을 입력해주세요" },
-  { code: "COVB", description: "설명을 입력해주세요" },
-  { code: "CONF", description: "설명을 입력해주세요" },
-  { code: "CONB", description: "설명을 입력해주세요" },
+  { 
+    code: "ESVF", 
+    title: "에너자이저 여행 유튜버",
+    description: "구독과 좋아요는 필수! 지치지 않는 에너지로 새로운 장소를 탐험하고, 만나는 모든 사람과 강아지들에게 댕댕펀치를 날리며 구독자를 늘려요. 오늘의 OOTD를 뽐내며 멋진 풍경 앞에서 라이브 방송을 켜는 게 여행의 가장 큰 즐거움이랍니다."
+  },
+  { 
+    code: "ESVB", 
+    title: "골목대장 프로참견러",
+    description: "\"이 구역의 대장은 바로 나!\" 낯선 여행지에 도착하자마자 온 동네를 뛰어다니며 모든 일에 참견해야 직성이 풀려요. 꾸밈없는 모습 그대로, 새로운 친구들을 이끌고 신나는 모험을 떠나는 타고난 리더입니다."
+  },
+  { 
+    code: "ESNF", 
+    title: "킁킁대는 패셔니스타",
+    description: "제 코는 최신 유행의 냄새를 맡죠! 호기심 가득한 코로 낯선 곳의 냄새를 킁킁거리면서도, \"이 옷 어때?\" 하고 뽐내는 건 포기할 수 없어요. 냄새 탐험과 스타일, 둘 다 놓칠 수 없는 욕심쟁이랍니다."
+  },
+  { 
+    code: "ESNB", 
+    title: "자연 속의 보물찾기 왕",
+    description: "세상은 넓고 맡을 냄새는 많다! 반짝이는 보물을 찾듯, 코를 땅에 대고 온갖 자연의 흔적을 찾아다니는 탐험가. 다른 강아지 친구들과 함께 흙냄새 풀냄새를 맡으며 뛰어놀 때 가장 행복해요."
+  },
+  { 
+    code: "EOVF", 
+    title: "견생샷 전문, 전속 모델",
+    description: "제 카메라는 오직 보호자뿐이에요. 다른 사람의 부름엔 묵묵부답, 오직 보호자 앞에서만 최고의 포즈를 선보이죠. 보호자가 입혀준 예쁜 옷을 입고 '견생샷'을 찍을 때 가장 빛나는, 보호자만의 전속 모델입니다."
+  },
+  { 
+    code: "EOVB", 
+    title: "가족껌딱지 자연 탐험가",
+    description: "우리 가족과 함께라면 어디든 갈 수 있어! 화려한 옷이나 낯선 친구들보다, 우리 가족과 함께 흙길을 달리고 계곡을 건너는 것이 가장 큰 기쁨이에요. 가족의 보폭에 맞춰 함께 걷는 듬직한 탐험가랍니다."
+  },
+  { 
+    code: "EONF", 
+    title: "멋쟁이 탐정, 셜록 멍즈",
+    description: "사건 발생! 이 냄새의 근원지를 찾아야 해! 멋진 트렌치코트(옷)를 휘날리며, 예리한 코로 사건의 단서를 추적하는 명탐정. 수사가 끝나면 언제나 유일한 파트너, 보호자의 곁으로 돌아가죠."
+  },
+  { 
+    code: "EONB", 
+    title: "둘만의 비밀 탐사대원",
+    description: "이 세상은 보호자와 나, 단둘이 탐험하는 비밀의 장소! 다른 사람의 접근은 허용하지 않아요. 보호자의 발자국 소리를 들으며, 함께 미지의 냄새를 찾아 떠나는 우리만의 비밀 탐사대원입니다."
+  },
+  { code: "CSVF", title: "설명을 입력해주세요", description: "설명을 입력해주세요" },
+  { code: "CSVB", title: "설명을 입력해주세요", description: "설명을 입력해주세요" },
+  { code: "CSNF", title: "설명을 입력해주세요", description: "설명을 입력해주세요" },
+  { code: "CSNB", title: "설명을 입력해주세요", description: "설명을 입력해주세요" },
+  { code: "COVF", title: "설명을 입력해주세요", description: "설명을 입력해주세요" },
+  { code: "COVB", title: "설명을 입력해주세요", description: "설명을 입력해주세요" },
+  { code: "CONF", title: "설명을 입력해주세요", description: "설명을 입력해주세요" },
+  { code: "CONB", title: "설명을 입력해주세요", description: "설명을 입력해주세요" },
 ];
 
 const MbtiTest = () => {
@@ -200,11 +232,14 @@ const MbtiTest = () => {
         <DialogContent className="max-w-sm mx-auto">
           <DialogHeader>
             <DialogTitle className="text-center text-lg font-bold text-gray-900">
-              {selectedType} 성향
+              {selectedTypeData?.title}
             </DialogTitle>
+            <p className="text-center text-sm text-gray-500 mt-1">
+              {selectedType}
+            </p>
           </DialogHeader>
           <div className="py-4">
-            <p className="text-gray-600 text-sm leading-relaxed text-center">
+            <p className="text-gray-600 text-sm leading-relaxed">
               {selectedTypeData?.description}
             </p>
           </div>
