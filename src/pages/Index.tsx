@@ -108,7 +108,11 @@ const Index = () => {
         {/* Bottom Navigation */}
         <BottomNavigation 
           activeTab={activeTab} 
-          onTabChange={setActiveTab} 
+          onTabChange={(tab) => {
+            setActiveTab(tab);
+            if (tab === "news") navigate("/news");
+            else if (tab === "mbti") navigate("/mbti");
+          }}
           onMbtiClick={() => navigate("/mbti")}
         />
       </div>
@@ -186,12 +190,16 @@ const Index = () => {
         <BeachStatus />
       </main>
 
-      {/* Bottom Navigation */}
-      <BottomNavigation 
-        activeTab={activeTab} 
-        onTabChange={setActiveTab} 
-        onMbtiClick={() => navigate("/mbti")}
-      />
+        {/* Bottom Navigation */}
+        <BottomNavigation 
+          activeTab={activeTab} 
+          onTabChange={(tab) => {
+            setActiveTab(tab);
+            if (tab === "news") navigate("/news");
+            else if (tab === "mbti") navigate("/mbti");
+          }}
+          onMbtiClick={() => navigate("/mbti")}
+        />
     </div>
   );
 };

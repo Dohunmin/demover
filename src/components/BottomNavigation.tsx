@@ -22,7 +22,13 @@ const BottomNavigation = ({ activeTab, onTabChange, onMbtiClick }: BottomNavigat
         {tabs.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
-            onClick={() => id === "mbti" && onMbtiClick ? onMbtiClick() : onTabChange(id)}
+            onClick={() => {
+              if (id === "mbti" && onMbtiClick) {
+                onMbtiClick();
+              } else {
+                onTabChange(id);
+              }
+            }}
             className={cn(
               "flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-200",
               "text-xs font-medium min-w-0 flex-1",
