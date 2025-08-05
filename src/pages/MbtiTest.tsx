@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ArrowLeft, PawPrint, Heart, MapPin, Compass, Mountain, Zap, Coffee, Users, User, Eye, Flower, Sparkles, Leaf } from "lucide-react";
 
 // Import dog images
@@ -14,8 +15,37 @@ import noseLedDog from "@/assets/nose-led-dog.jpg";
 import fashionForwardDog from "@/assets/fashion-forward-dog.jpg";
 import backToBasicsDog from "@/assets/back-to-basics-dog.jpg";
 
+// 16가지 성향 데이터 (설명은 사용자가 제공할 예정)
+const travelTypes = [
+  { code: "ESVF", description: "설명을 입력해주세요" },
+  { code: "ESVB", description: "설명을 입력해주세요" },
+  { code: "ESNF", description: "설명을 입력해주세요" },
+  { code: "ESNB", description: "설명을 입력해주세요" },
+  { code: "EOVF", description: "설명을 입력해주세요" },
+  { code: "EOVB", description: "설명을 입력해주세요" },
+  { code: "EONF", description: "설명을 입력해주세요" },
+  { code: "EONB", description: "설명을 입력해주세요" },
+  { code: "CSVF", description: "설명을 입력해주세요" },
+  { code: "CSVB", description: "설명을 입력해주세요" },
+  { code: "CSNF", description: "설명을 입력해주세요" },
+  { code: "CSNB", description: "설명을 입력해주세요" },
+  { code: "COVF", description: "설명을 입력해주세요" },
+  { code: "COVB", description: "설명을 입력해주세요" },
+  { code: "CONF", description: "설명을 입력해주세요" },
+  { code: "CONB", description: "설명을 입력해주세요" },
+];
+
 const MbtiTest = () => {
   const navigate = useNavigate();
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const handleTypeClick = (typeCode: string) => {
+    setSelectedType(typeCode);
+    setDialogOpen(true);
+  };
+
+  const selectedTypeData = travelTypes.find(type => type.code === selectedType);
 
   return (
     <div className="min-h-screen bg-gray-50 max-w-md mx-auto">
@@ -139,15 +169,14 @@ const MbtiTest = () => {
             16가지 여행 성향 설명
           </h3>
           <div className="grid grid-cols-4 gap-2">
-            {[
-              "ESVF", "ESVB", "ESNF", "ESNB",
-              "EOVF", "EOVB", "EONF", "EONB", 
-              "CSVF", "CSVB", "CSNF", "CSNB",
-              "COVF", "COVB", "CONF", "CONB"
-            ].map((type) => (
-              <div key={type} className="p-3 bg-gray-50 rounded-lg text-center">
-                <div className="text-xs font-bold text-gray-700">{type}</div>
-              </div>
+            {travelTypes.map((type) => (
+              <button 
+                key={type.code} 
+                onClick={() => handleTypeClick(type.code)}
+                className="p-3 bg-gray-50 hover:bg-blue-50 hover:border-blue-200 border border-transparent rounded-lg text-center transition-all duration-200 cursor-pointer"
+              >
+                <div className="text-xs font-bold text-gray-700 hover:text-blue-700">{type.code}</div>
+              </button>
             ))}
           </div>
           <p className="text-xs text-gray-500 mt-4 text-center">
@@ -165,6 +194,22 @@ const MbtiTest = () => {
           </Button>
         </div>
       </main>
+
+      {/* 여행 성향 설명 다이얼로그 */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-sm mx-auto">
+          <DialogHeader>
+            <DialogTitle className="text-center text-lg font-bold text-gray-900">
+              {selectedType} 성향
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-gray-600 text-sm leading-relaxed text-center">
+              {selectedTypeData?.description}
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
