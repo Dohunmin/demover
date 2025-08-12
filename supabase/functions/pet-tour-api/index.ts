@@ -26,36 +26,51 @@ serve(async (req) => {
 
     const baseUrl = 'https://apis.data.go.kr/B551011/PetTourService'
     
-    const apiParams = new URLSearchParams({
-      serviceKey,
-      _type: 'json',
-      MobileOS: 'ETC',
-      MobileApp: 'LovableApp',
-      pageNo,
-      numOfRows,
-    })
+    // 필수 파라미터를 정확히 설정 (디코딩된 키 사용)
+    const params = [
+      `serviceKey=${encodeURIComponent(serviceKey)}`,
+      '_type=json',  // 필수: JSON 응답 요청
+      'MobileOS=ETC',  // 필수
+      'MobileApp=LovableApp',  // 필수
+      `pageNo=${pageNo}`,
+      `numOfRows=${numOfRows}`
+    ]
 
     if (keyword) {
-      apiParams.append('keyword', keyword)
+      params.push(`keyword=${encodeURIComponent(keyword)}`)
     }
     if (areaCode) {
-      apiParams.append('areaCode', areaCode)
+      params.push(`areaCode=${areaCode}`)
     }
     if (sigunguCode) {
-      apiParams.append('sigunguCode', sigunguCode)
+      params.push(`sigunguCode=${sigunguCode}`)
     }
 
-    const apiUrl = `${baseUrl}/${operation}?${apiParams.toString()}`
+    const apiUrl = `${baseUrl}/${operation}?${params.join('&')}`
     console.log('Calling Pet Tour API:', apiUrl)
     
     const response = await fetch(apiUrl)
     console.log('Pet Tour API Response status:', response.status)
     
+    const responseText = await response.text()
+    console.log('Pet Tour API Response text (first 500 chars):', responseText.substring(0, 500))
+    
+    // response.ok 체크 후 파싱
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
+      console.error('Pet Tour API Error:', response.status, responseText)
+      throw new Error(`HTTP error! status: ${response.status} - ${responseText.substring(0, 200)}`)
     }
 
-    const data = await response.json()
+    // JSON 파싱 시도
+    let data
+    try {
+      data = JSON.parse(responseText)
+      console.log('Pet Tour API: Successfully parsed JSON')
+    } catch (parseError) {
+      console.error('Pet Tour API JSON parse error:', parseError)
+      console.log('Raw response (probably XML):', responseText)
+      throw new Error(`Invalid JSON response (probably XML): ${responseText.substring(0, 200)}`)
+    }
     
     // 응답 데이터 가공
     const items = data.response?.body?.items?.item || []

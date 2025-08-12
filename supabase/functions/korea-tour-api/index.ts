@@ -22,21 +22,16 @@ serve(async (req) => {
     if (!serviceKey) {
       throw new Error('KTO_TOUR_SERVICE_KEY not found')
     }
-    
-    // API 키 디버깅
-    console.log('Raw service key:', serviceKey)
-    console.log('Service key first 20 chars:', serviceKey.substring(0, 20))
-    console.log('Service key includes special chars:', /[+/=]/.test(serviceKey))
 
     const baseUrl = 'https://apis.data.go.kr/B551011/KorService1'
     const operation = keyword ? 'searchKeyword1' : 'areaBasedList1'
     
-    // URL 인코딩하지 않고 직접 사용
+    // 필수 파라미터를 정확히 설정 (디코딩된 키 사용)
     const params = [
       `serviceKey=${encodeURIComponent(serviceKey)}`,
-      '_type=json',
-      'MobileOS=ETC',
-      'MobileApp=LovableApp',
+      '_type=json',  // 필수: JSON 응답 요청
+      'MobileOS=ETC',  // 필수
+      'MobileApp=LovableApp',  // 필수
       `pageNo=${pageNo}`,
       `numOfRows=${numOfRows}`
     ]
@@ -61,35 +56,37 @@ serve(async (req) => {
     console.log('Full API URL:', apiUrl)
     console.log('API Params:', params.join('&'))
     
-    try {
-      const response = await fetch(apiUrl, {
-        method: 'GET',
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (compatible; LovableApp/1.0)',
-          'Accept': 'application/json'
-        }
-      })
-      
-      console.log('API Response status:', response.status)
-      console.log('API Response headers:', JSON.stringify(Object.fromEntries(response.headers.entries())))
-      
-      const responseText = await response.text()
-      console.log('API Response text (first 1000 chars):', responseText.substring(0, 1000))
-      
-      let data
-      try {
-        data = JSON.parse(responseText)
-        console.log('Successfully parsed JSON')
-      } catch (parseError) {
-        console.error('JSON parse error:', parseError)
-        console.log('Raw response:', responseText)
-        throw new Error(`Invalid JSON response: ${responseText.substring(0, 200)}`)
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; LovableApp/1.0)',
+        'Accept': 'application/json'
       }
+    })
+    
+    console.log('API Response status:', response.status)
+    console.log('API Response headers:', JSON.stringify(Object.fromEntries(response.headers.entries())))
+    
+    const responseText = await response.text()
+    console.log('API Response text (first 500 chars):', responseText.substring(0, 500))
+    
+    // response.ok 체크 후 파싱
+    if (!response.ok) {
+      console.error('API Error Response:', response.status, responseText)
+      throw new Error(`API Error: ${response.status} - ${responseText.substring(0, 200)}`)
+    }
 
-      if (!response.ok) {
-        console.error('API Error Response:', data)
-        throw new Error(`API Error: ${response.status} - ${JSON.stringify(data)}`)
-      }
+    // JSON 파싱 시도
+    let data
+    try {
+      data = JSON.parse(responseText)
+      console.log('Successfully parsed JSON')
+      console.log('Response structure:', JSON.stringify(data, null, 2).substring(0, 1000))
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError)
+      console.log('Raw response (probably XML):', responseText)
+      throw new Error(`Invalid JSON response (probably XML): ${responseText.substring(0, 200)}`)
+    }
 
       // 응답 데이터 가공
       const items = data.response?.body?.items?.item || []
