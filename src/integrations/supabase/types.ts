@@ -54,6 +54,7 @@ export type Database = {
           pet_age: number | null
           pet_breed: string | null
           pet_gender: string | null
+          pet_image_url: string | null
           pet_name: string | null
           updated_at: string
           user_id: string
@@ -64,6 +65,7 @@ export type Database = {
           pet_age?: number | null
           pet_breed?: string | null
           pet_gender?: string | null
+          pet_image_url?: string | null
           pet_name?: string | null
           updated_at?: string
           user_id: string
@@ -74,6 +76,7 @@ export type Database = {
           pet_age?: number | null
           pet_breed?: string | null
           pet_gender?: string | null
+          pet_image_url?: string | null
           pet_name?: string | null
           updated_at?: string
           user_id?: string
