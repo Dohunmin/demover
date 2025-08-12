@@ -5,3 +5,12 @@ enabled = true
 
 [functions.send-password-reset]
 verify_jwt = false
+
+[functions.korea-tour-api]
+verify_jwt = false
+
+[functions.pet-tour-api]
+verify_jwt = false
+
+[functions.test-api-key]
+verify_jwt = false
