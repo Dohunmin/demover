@@ -1,19 +1,53 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { PawPrint, Sparkles, LogOut } from "lucide-react";
+import { PawPrint, Sparkles, LogOut, Settings } from "lucide-react";
 import BottomNavigation from "@/components/BottomNavigation";
 import CategoryGrid from "@/components/CategoryGrid";
 import BeachStatus from "@/components/BeachStatus";
 import UserProfile from "@/components/UserProfile";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
+  const [isAdmin, setIsAdmin] = useState(false);
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
+
+  // Check admin role when user changes
+  useEffect(() => {
+    if (user) {
+      checkAdminRole();
+    } else {
+      setIsAdmin(false);
+    }
+  }, [user]);
+
+  const checkAdminRole = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .single();
+      
+      if (error) {
+        setIsAdmin(false);
+        return;
+      }
+      
+      setIsAdmin(!!data);
+    } catch (error) {
+      console.error('Error checking admin role:', error);
+      setIsAdmin(false);
+    }
+  };
 
   // 로그인하지 않은 사용자도 메인 페이지를 볼 수 있도록 리다이렉트 제거
 
@@ -139,6 +173,17 @@ const Index = () => {
               <p className="text-blue-100 text-sm font-medium">반려견과 함께하는 스마트한 여행</p>
             </div>
             <div className="flex flex-col gap-2">
+              {isAdmin && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => navigate("/admin")}
+                  className="bg-white/10 border-white/30 text-white hover:bg-white hover:text-purple-700 backdrop-blur-sm font-medium"
+                >
+                  <Settings className="w-4 h-4 mr-1" />
+                  관리자
+                </Button>
+              )}
               <UserProfile />
               <Button 
                 variant="outline" 
