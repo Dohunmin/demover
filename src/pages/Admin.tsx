@@ -198,16 +198,12 @@ const Admin = () => {
 
   const fetchUsers = async () => {
     setUsersLoading(true);
-    console.log('🔍 Fetching users data...');
     try {
-      // Fetch user profiles with auth user data
+      // Fetch user profiles
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
-
-      console.log('📝 Profiles data:', profilesData);
-      console.log('❌ Profiles error:', profilesError);
 
       if (profilesError) throw profilesError;
 
@@ -216,23 +212,19 @@ const Admin = () => {
         .from('user_roles')
         .select('user_id, role');
 
-      console.log('👥 Roles data:', rolesData);
-      console.log('❌ Roles error:', rolesError);
-
       if (rolesError) throw rolesError;
 
-      // Get auth users data - this will fail in client-side, so we'll handle it differently
+      // Create user list with available data
       const usersWithDetails = profilesData?.map(profile => {
         const userRole = rolesData?.find(r => r.user_id === profile.user_id);
         
         return {
           ...profile,
-          email: '사용자 정보', // We can't access email from client side
+          email: '회원 정보', // Auth 데이터는 보안상 숨김
           role: userRole?.role || 'user'
         };
       }) || [];
 
-      console.log('✅ Final users with details:', usersWithDetails);
       setUsers(usersWithDetails);
     } catch (error) {
       console.error('Error fetching users:', error);
