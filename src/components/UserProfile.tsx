@@ -326,9 +326,9 @@ const UserProfile = () => {
             </div>
           </div>
         </DialogTrigger>
-        <DialogContent className="max-w-md relative bg-white border shadow-xl">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-semibold text-gray-900">
+        <DialogContent className="sm:max-w-md max-w-[95vw] max-h-[90vh] overflow-y-auto bg-white border border-gray-200 shadow-2xl rounded-lg p-6">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-xl font-bold text-gray-900 text-center">
               프로필 정보
             </DialogTitle>
           </DialogHeader>
