@@ -28,7 +28,7 @@ serve(async (req) => {
     console.log('Service key first 20 chars:', serviceKey.substring(0, 20))
     console.log('Service key includes special chars:', /[+/=]/.test(serviceKey))
 
-    const baseUrl = 'http://apis.data.go.kr/B551011/KorService1'
+    const baseUrl = 'https://apis.data.go.kr/B551011/KorService1'
     const operation = keyword ? 'searchKeyword1' : 'areaBasedList1'
     
     // URL 인코딩하지 않고 직접 사용

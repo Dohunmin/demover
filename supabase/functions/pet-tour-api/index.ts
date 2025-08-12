@@ -24,7 +24,7 @@ serve(async (req) => {
       throw new Error('KTO_TOUR_SERVICE_KEY not found')
     }
 
-    const baseUrl = 'http://apis.data.go.kr/B551011/PetTourService'
+    const baseUrl = 'https://apis.data.go.kr/B551011/PetTourService'
     
     const apiParams = new URLSearchParams({
       serviceKey,
