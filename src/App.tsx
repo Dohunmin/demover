@@ -16,15 +16,29 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const AppWithNavigation = () => {
-  const [activeTab, setActiveTab] = useState("home");
   const location = useLocation();
   const navigate = useNavigate();
+
+  // 현재 경로에 따라 활성 탭 설정
+  const getActiveTab = () => {
+    switch (location.pathname) {
+      case "/":
+        return "home";
+      case "/mbti":
+        return "mbti";
+      case "/news":
+        return "news";
+      default:
+        return "home";
+    }
+  };
+
+  const activeTab = getActiveTab();
 
   // Auth 페이지에서는 하단 네비게이션을 숨김
   const hideNavigation = location.pathname === "/auth";
 
   const handleTabChange = (tab: string) => {
-    setActiveTab(tab);
     switch (tab) {
       case "home":
         navigate("/");
