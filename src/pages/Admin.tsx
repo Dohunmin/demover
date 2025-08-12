@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Edit, Trash2, Calendar, Tag, Users, UserPlus, Shield } from "lucide-react";
+import { ArrowLeft, Plus, Edit, Trash2, Calendar, Tag, Users, UserPlus, Shield, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -31,6 +31,7 @@ interface UserProfile {
   pet_age?: number;
   pet_gender?: string;
   pet_breed?: string;
+  pet_image_url?: string;
   created_at: string;
   email?: string;
   role?: string;
@@ -46,6 +47,8 @@ const Admin = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<NewsPost | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+  const [isUserDetailOpen, setIsUserDetailOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("news");
   
   // Form state
@@ -484,60 +487,45 @@ const Admin = () => {
                   <p className="text-gray-600 mt-2">회원 정보를 불러오는 중...</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>이메일</TableHead>
-                        <TableHead>반려견</TableHead>
-                        <TableHead>가입일</TableHead>
-                        <TableHead>권한</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {users.map((user) => (
-                        <TableRow key={user.id}>
-                          <TableCell className="font-medium">{user.email}</TableCell>
-                          <TableCell>
-                            <div className="text-sm">
-                              <div className="font-medium">{user.pet_name || "미설정"}</div>
-                              <div className="text-gray-500">
-                                {user.pet_breed || "품종 미설정"} • {user.pet_age ? `${user.pet_age}살` : "나이 미설정"}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {new Date(user.created_at).toLocaleDateString('ko-KR')}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center space-x-2">
-                              {user.user_id === currentUser?.id ? (
-                                <span className="text-sm text-gray-500 px-3 py-1 bg-gray-100 rounded">
-                                  본인 권한 변경 불가
-                                </span>
-                              ) : (
-                                <Select
-                                  value={user.role}
-                                  onValueChange={(value) => handleRoleChange(user.user_id, value)}
-                                >
-                                  <SelectTrigger className="w-24">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="user">일반</SelectItem>
-                                    <SelectItem value="admin">관리자</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              )}
-                              {user.role === 'admin' && (
-                                <Shield className="w-4 h-4 text-purple-600" />
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                <div className="space-y-3">
+                  {users.map((user) => (
+                    <div
+                      key={user.id}
+                      onClick={() => {
+                        setSelectedUser(user);
+                        setIsUserDetailOpen(true);
+                      }}
+                      className="flex items-center space-x-4 p-4 border border-gray-200 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors"
+                    >
+                      <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                        {user.pet_image_url ? (
+                          <img 
+                            src={user.pet_image_url} 
+                            alt={user.pet_name || "반려견"} 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-400 to-indigo-400">
+                            <User className="w-6 h-6 text-white" />
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {user.pet_name || "반려견 이름 미설정"}
+                          </p>
+                          {user.role === 'admin' && (
+                            <Shield className="w-4 h-4 text-purple-600 flex-shrink-0" />
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          {new Date(user.created_at).toLocaleDateString('ko-KR')} 가입
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                   
                   {users.length === 0 && (
                     <div className="text-center py-8">
@@ -548,6 +536,119 @@ const Admin = () => {
                 </div>
               )}
             </Card>
+
+            {/* User Detail Dialog */}
+            <Dialog open={isUserDetailOpen} onOpenChange={setIsUserDetailOpen}>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>회원 상세 정보</DialogTitle>
+                </DialogHeader>
+                
+                {selectedUser && (
+                  <div className="space-y-6">
+                    {/* Profile Image */}
+                    <div className="flex justify-center">
+                      <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200">
+                        {selectedUser.pet_image_url ? (
+                          <img 
+                            src={selectedUser.pet_image_url} 
+                            alt={selectedUser.pet_name || "반려견"} 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-400 to-indigo-400">
+                            <User className="w-10 h-10 text-white" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Pet Information */}
+                    <div className="space-y-4">
+                      <div className="border-b pb-2">
+                        <h4 className="text-sm font-medium text-gray-900 mb-2">반려견 정보</h4>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label className="text-xs text-gray-500">이름</Label>
+                            <p className="text-sm font-medium">{selectedUser.pet_name || "미설정"}</p>
+                          </div>
+                          <div>
+                            <Label className="text-xs text-gray-500">나이</Label>
+                            <p className="text-sm font-medium">{selectedUser.pet_age ? `${selectedUser.pet_age}살` : "미설정"}</p>
+                          </div>
+                          <div>
+                            <Label className="text-xs text-gray-500">성별</Label>
+                            <p className="text-sm font-medium">
+                              {selectedUser.pet_gender === 'male' ? '남아' : 
+                               selectedUser.pet_gender === 'female' ? '여아' : '미설정'}
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-xs text-gray-500">견종</Label>
+                            <p className="text-sm font-medium">{selectedUser.pet_breed || "미설정"}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Account Information */}
+                      <div className="border-b pb-2">
+                        <h4 className="text-sm font-medium text-gray-900 mb-2">계정 정보</h4>
+                        <div className="space-y-2">
+                          <div>
+                            <Label className="text-xs text-gray-500">가입일</Label>
+                            <p className="text-sm font-medium">
+                              {new Date(selectedUser.created_at).toLocaleDateString('ko-KR')}
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-xs text-gray-500">현재 권한</Label>
+                            <div className="flex items-center space-x-2">
+                              <p className="text-sm font-medium">
+                                {selectedUser.role === 'admin' ? '관리자' : '일반 회원'}
+                              </p>
+                              {selectedUser.role === 'admin' && (
+                                <Shield className="w-4 h-4 text-purple-600" />
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Role Management */}
+                      {selectedUser.user_id !== currentUser?.id && (
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-900 mb-2">권한 관리</h4>
+                          <Select
+                            value={selectedUser.role}
+                            onValueChange={(value) => {
+                              handleRoleChange(selectedUser.user_id, value);
+                              setSelectedUser({ ...selectedUser, role: value });
+                            }}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="user">일반 회원</SelectItem>
+                              <SelectItem value="admin">관리자</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex justify-end">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setIsUserDetailOpen(false)}
+                      >
+                        닫기
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
           </TabsContent>
         </Tabs>
       </main>
