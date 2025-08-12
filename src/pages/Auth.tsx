@@ -146,32 +146,14 @@ const Auth = () => {
     setLoading(true);
     
     try {
-      // First upload image if provided to get the URL
-      let imageUrl = null;
-      if (petImage) {
-        console.log('Uploading pet image before signup...');
-        // Create a temporary user ID for upload (we'll use email hash)
-        const tempId = btoa(email).replace(/[^a-zA-Z0-9]/g, '');
-        imageUrl = await uploadPetImage(tempId);
-        if (imageUrl) {
-          console.log('Image uploaded successfully:', imageUrl);
-        }
-      }
-
       const redirectUrl = `${window.location.origin}/`;
       
+      // Step 1: Sign up the user first
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            pet_name: petName,
-            pet_age: petAge ? parseInt(petAge) : null,
-            pet_gender: petGender,
-            pet_breed: petBreed,
-            pet_image_url: imageUrl // Include image URL in signup data
-          }
+          emailRedirectTo: redirectUrl
         }
       });
 
@@ -179,54 +161,46 @@ const Auth = () => {
         throw error;
       }
 
-      // If we uploaded with temp ID and user was created, move the image to proper location
-      if (data.user && imageUrl && petImage) {
-        console.log('Moving image to proper user location...');
-        const tempId = btoa(email).replace(/[^a-zA-Z0-9]/g, '');
-        const fileExt = petImage.name.split('.').pop();
-        const tempFileName = `${tempId}/${Date.now()}.${fileExt}`;
-        const newFileName = `${data.user.id}/${Date.now()}.${fileExt}`;
-        
-        // Copy file to new location
-        const { data: downloadData } = await supabase.storage
-          .from('pet-profiles')
-          .download(tempFileName);
-          
-        if (downloadData) {
-          const { error: uploadError } = await supabase.storage
-            .from('pet-profiles')
-            .upload(newFileName, downloadData, { upsert: true });
-          
-          if (!uploadError) {
-            // Get new public URL
-            const { data: urlData } = supabase.storage
-              .from('pet-profiles')
-              .getPublicUrl(newFileName);
-            
-            // Delete temp file
-            await supabase.storage
-              .from('pet-profiles')
-              .remove([tempFileName]);
-              
-            // Update the user metadata with new URL
-            await supabase.auth.updateUser({
-              data: {
-                pet_name: petName,
-                pet_age: petAge ? parseInt(petAge) : null,
-                pet_gender: petGender,
-                pet_breed: petBreed,
-                pet_image_url: urlData.publicUrl
-              }
-            });
-            
-            console.log('Image moved to proper location:', urlData.publicUrl);
-          }
+      if (!data.user) {
+        throw new Error("사용자 생성에 실패했습니다.");
+      }
+
+      console.log('User created:', data.user.id);
+
+      // Step 2: Upload image if provided
+      let imageUrl = null;
+      if (petImage) {
+        console.log('Uploading pet image...');
+        imageUrl = await uploadPetImage(data.user.id);
+        if (imageUrl) {
+          console.log('Image uploaded successfully:', imageUrl);
         }
+      }
+
+      // Step 3: Create profile directly
+      console.log('Creating profile...');
+      const { error: profileError } = await (supabase as any)
+        .from('profiles')
+        .insert({
+          user_id: data.user.id,
+          pet_name: petName || null,
+          pet_age: petAge ? parseInt(petAge) : null,
+          pet_gender: petGender || null,
+          pet_breed: petBreed || null,
+          pet_image_url: imageUrl
+        });
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        // Don't throw error here, just log it
+      } else {
+        console.log('Profile created successfully');
       }
 
       toast.success("회원가입이 완료되었습니다! 이메일을 확인해주세요.");
       setIsSignUp(false);
     } catch (error: any) {
+      console.error('Signup error:', error);
       if (error.message.includes("already registered")) {
         toast.error("이미 가입된 이메일입니다.");
       } else {
