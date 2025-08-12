@@ -85,7 +85,10 @@ const Admin = () => {
         return;
       }
 
-      setPosts(data || []);
+      setPosts((data || []).map(post => ({
+        ...post,
+        category: post.category as 'event' | 'sale'
+      })));
     } catch (error) {
       console.error('Error fetching posts:', error);
       toast.error('소식을 불러오는데 실패했습니다.');

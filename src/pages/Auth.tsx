@@ -11,6 +11,7 @@ import { toast } from "sonner";
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isPasswordReset, setIsPasswordReset] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -100,6 +101,46 @@ const Auth = () => {
     }
   };
 
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email) {
+      toast.error("이메일을 입력해주세요.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth?reset=true`,
+      });
+
+      if (error) {
+        toast.error(error.message);
+      } else {
+        // Send custom email through our edge function
+        const response = await supabase.functions.invoke('send-password-reset', {
+          body: {
+            email,
+            resetUrl: `${window.location.origin}/auth?reset=true&email=${encodeURIComponent(email)}`
+          }
+        });
+
+        if (response.error) {
+          console.error('Edge function error:', response.error);
+        }
+
+        toast.success("비밀번호 재설정 이메일을 발송했습니다. 이메일을 확인해주세요.");
+        setIsPasswordReset(false);
+      }
+    } catch (error) {
+      toast.error("오류가 발생했습니다. 다시 시도해주세요.");
+    }
+
+    setLoading(false);
+  };
+
   const resetForm = () => {
     setEmail("");
     setPassword("");
@@ -112,6 +153,13 @@ const Auth = () => {
 
   const toggleMode = () => {
     setIsSignUp(!isSignUp);
+    setIsPasswordReset(false);
+    resetForm();
+  };
+
+  const togglePasswordReset = () => {
+    setIsPasswordReset(!isPasswordReset);
+    setIsSignUp(false);
     resetForm();
   };
 
@@ -145,11 +193,11 @@ const Auth = () => {
         <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
           <CardHeader className="text-center">
             <CardTitle className="text-xl font-bold text-gray-900">
-              {isSignUp ? "회원가입" : "로그인"}
+              {isPasswordReset ? "비밀번호 재설정" : isSignUp ? "회원가입" : "로그인"}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <form onSubmit={isSignUp ? handleSignUp : handleSignIn} className="space-y-4">
+            <form onSubmit={isPasswordReset ? handlePasswordReset : isSignUp ? handleSignUp : handleSignIn} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium text-gray-700">
                   이메일
@@ -168,23 +216,25 @@ const Auth = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-                  비밀번호
-                </Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="비밀번호를 입력하세요"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10"
-                    required
-                  />
+              {!isPasswordReset && (
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                    비밀번호
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="비밀번호를 입력하세요"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
 
               {isSignUp && (
                 <>
@@ -285,17 +335,28 @@ const Auth = () => {
                 className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
                 disabled={loading}
               >
-                {loading ? "처리중..." : isSignUp ? "회원가입" : "로그인"}
+                {loading ? "처리중..." : isPasswordReset ? "재설정 이메일 발송" : isSignUp ? "회원가입" : "로그인"}
               </Button>
             </form>
 
-            <div className="text-center">
-              <button
-                onClick={toggleMode}
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-              >
-                {isSignUp ? "이미 계정이 있나요? 로그인" : "계정이 없나요? 회원가입"}
-              </button>
+            <div className="text-center space-y-2">
+              {!isPasswordReset && (
+                <button
+                  onClick={toggleMode}
+                  className="text-sm text-blue-600 hover:text-blue-700 font-medium block w-full"
+                >
+                  {isSignUp ? "이미 계정이 있나요? 로그인" : "계정이 없나요? 회원가입"}
+                </button>
+              )}
+              
+              {!isSignUp && (
+                <button
+                  onClick={togglePasswordReset}
+                  className="text-sm text-gray-600 hover:text-gray-700 font-medium"
+                >
+                  {isPasswordReset ? "로그인으로 돌아가기" : "비밀번호를 잊으셨나요?"}
+                </button>
+              )}
             </div>
           </CardContent>
         </Card>

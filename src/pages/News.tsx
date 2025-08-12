@@ -60,8 +60,13 @@ const News = () => {
         return;
       }
 
-      const eventPosts = (data || []).filter(post => post.category === 'event');
-      const salePosts = (data || []).filter(post => post.category === 'sale');
+      const postsWithTypes = (data || []).map(post => ({
+        ...post,
+        category: post.category as 'event' | 'sale'
+      }));
+      
+      const eventPosts = postsWithTypes.filter(post => post.category === 'event');
+      const salePosts = postsWithTypes.filter(post => post.category === 'sale');
       
       setEvents(eventPosts);
       setSales(salePosts);
