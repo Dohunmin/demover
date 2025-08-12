@@ -221,12 +221,6 @@ const News = () => {
         </Card>
       </main>
 
-      {/* Bottom Navigation */}
-      <BottomNavigation 
-        activeTab={activeTab} 
-        onTabChange={handleTabChange}
-        onMbtiClick={() => navigate("/mbti")}
-      />
     </div>
   );
 };

@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import BottomNavigation from "@/components/BottomNavigation";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import MbtiTest from "./pages/MbtiTest";
@@ -14,6 +15,55 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+const AppWithNavigation = () => {
+  const [activeTab, setActiveTab] = useState("home");
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Auth 페이지에서는 하단 네비게이션을 숨김
+  const hideNavigation = location.pathname === "/auth";
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    switch (tab) {
+      case "home":
+        navigate("/");
+        break;
+      case "news":
+        navigate("/news");
+        break;
+      case "mbti":
+        navigate("/mbti");
+        break;
+      default:
+        navigate("/");
+    }
+  };
+
+  return (
+    <div className="min-h-screen">
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/mbti" element={<MbtiTest />} />
+        <Route path="/news" element={<News />} />
+        <Route path="/admin" element={<Admin />} />
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+
+      {/* 하단 네비게이션 - Auth 페이지 제외하고 모든 페이지에서 표시 */}
+      {!hideNavigation && (
+        <BottomNavigation 
+          activeTab={activeTab} 
+          onTabChange={handleTabChange}
+          onMbtiClick={() => navigate("/mbti")}
+        />
+      )}
+    </div>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -21,15 +71,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/mbti" element={<MbtiTest />} />
-            <Route path="/news" element={<News />} />
-            <Route path="/admin" element={<Admin />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <AppWithNavigation />
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
