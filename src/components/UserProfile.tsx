@@ -78,23 +78,30 @@ const UserProfile = () => {
 
   const uploadImage = async (file: File): Promise<string | null> => {
     try {
+      console.log('Uploading image to bucket: pet-profiles');
       const fileExt = file.name.split('.').pop();
       const fileName = `${user?.id}/${Date.now()}.${fileExt}`;
+      
+      console.log('File path:', fileName);
       
       const { error: uploadError } = await supabase.storage
         .from('pet-profiles')
         .upload(fileName, file);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
 
       const { data } = supabase.storage
         .from('pet-profiles')
         .getPublicUrl(fileName);
 
+      console.log('Public URL:', data.publicUrl);
       return data.publicUrl;
     } catch (error) {
       console.error('Error uploading image:', error);
-      toast.error('이미지 업로드에 실패했습니다.');
+      toast.error(`이미지 업로드 실패: ${error.message || 'Unknown error'}`);
       return null;
     }
   };
@@ -157,7 +164,8 @@ const UserProfile = () => {
       toast.success('프로필이 저장되었습니다.');
     } catch (error) {
       console.error('Error saving profile:', error);
-      toast.error('프로필 저장에 실패했습니다. 다시 시도해주세요.');
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      toast.error(`프로필 저장 실패: ${error.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
