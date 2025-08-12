@@ -146,6 +146,7 @@ const News = () => {
               {events.map((event) => (
                 <div 
                   key={event.id}
+                  onClick={() => navigate(`/news/${event.id}`)}
                   className="flex items-start p-3 bg-gray-50 rounded-xl hover:bg-blue-50 transition-colors cursor-pointer"
                 >
                   {event.image_url && (
@@ -204,6 +205,7 @@ const News = () => {
               {sales.map((sale) => (
                 <div 
                   key={sale.id}
+                  onClick={() => navigate(`/news/${sale.id}`)}
                   className="flex items-start p-3 bg-gray-50 rounded-xl hover:bg-red-50 transition-colors cursor-pointer"
                 >
                   {sale.image_url && (

@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import MbtiTest from "./pages/MbtiTest";
 import News from "./pages/News";
+import NewsDetail from "./pages/NewsDetail";
 import Travel from "./pages/Travel";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
@@ -38,8 +39,8 @@ const AppWithNavigation = () => {
 
   const activeTab = getActiveTab();
 
-  // Auth 페이지에서는 하단 네비게이션을 숨김
-  const hideNavigation = location.pathname === "/auth";
+  // Auth 페이지와 NewsDetail 페이지에서는 하단 네비게이션을 숨김
+  const hideNavigation = location.pathname === "/auth" || location.pathname.startsWith("/news/");
 
   const handleTabChange = (tab: string) => {
     switch (tab) {
@@ -68,6 +69,7 @@ const AppWithNavigation = () => {
         <Route path="/travel" element={<Travel />} />
         <Route path="/mbti" element={<MbtiTest />} />
         <Route path="/news" element={<News />} />
+        <Route path="/news/:id" element={<NewsDetail />} />
         <Route path="/admin" element={<Admin />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
