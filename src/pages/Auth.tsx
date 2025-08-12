@@ -69,6 +69,37 @@ const Auth = () => {
             setIsSignUp(false);
             toast.info("보안을 위해 새 비밀번호를 설정해주세요.");
           } else {
+            // Check if there's a pending profile to create
+            const pendingProfile = localStorage.getItem('pendingProfile');
+            if (pendingProfile) {
+              try {
+                const profileData = JSON.parse(pendingProfile);
+                // Create profile after successful email confirmation
+                setTimeout(async () => {
+                  try {
+                    const { error: profileError } = await (supabase as any)
+                      .from('profiles')
+                      .insert(profileData);
+                    
+                    if (profileError) {
+                      console.error('Profile creation error:', profileError);
+                      toast.error("프로필 생성에 실패했습니다. 프로필에서 정보를 다시 입력해주세요.");
+                    } else {
+                      console.log('Profile created successfully after email confirmation');
+                      toast.success("프로필이 성공적으로 생성되었습니다!");
+                    }
+                    
+                    localStorage.removeItem('pendingProfile');
+                  } catch (error) {
+                    console.error('Profile creation failed:', error);
+                    localStorage.removeItem('pendingProfile');
+                  }
+                }, 1000);
+              } catch (error) {
+                console.error('Error parsing pending profile:', error);
+                localStorage.removeItem('pendingProfile');
+              }
+            }
             // Normal login, redirect to home
             navigate("/");
           }
@@ -177,24 +208,17 @@ const Auth = () => {
         }
       }
 
-      // Step 3: Create profile directly
-      console.log('Creating profile...');
-      const { error: profileError } = await (supabase as any)
-        .from('profiles')
-        .insert({
-          user_id: data.user.id,
+      // Store pet info in localStorage temporarily for profile creation after email confirmation
+      if (petName || petAge || petGender || petBreed || imageUrl) {
+        const petInfo = {
           pet_name: petName || null,
           pet_age: petAge ? parseInt(petAge) : null,
           pet_gender: petGender || null,
           pet_breed: petBreed || null,
-          pet_image_url: imageUrl
-        });
-
-      if (profileError) {
-        console.error('Profile creation error:', profileError);
-        // Don't throw error here, just log it
-      } else {
-        console.log('Profile created successfully');
+          pet_image_url: imageUrl,
+          user_id: data.user.id
+        };
+        localStorage.setItem('pendingProfile', JSON.stringify(petInfo));
       }
 
       toast.success("회원가입이 완료되었습니다! 이메일을 확인해주세요.");
