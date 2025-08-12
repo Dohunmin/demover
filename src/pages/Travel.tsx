@@ -76,7 +76,7 @@ const Travel = () => {
       </header>
 
       {/* Main Content */}
-      <main className="-mt-4">
+      <main className="pt-4">
         <TourPlaces />
       </main>
     </div>

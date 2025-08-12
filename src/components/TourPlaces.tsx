@@ -247,8 +247,7 @@ const TourPlaces = () => {
   return (
     <div className="px-5 mb-8">
       <div className="flex items-center justify-between mb-5">
-        <h3 className="text-lg font-semibold text-gray-900">여행지 정보</h3>
-        <div className="flex gap-2">
+        <div className="flex gap-2">{/* 제목 제거 */}
           <Button
             variant={activeTab === "general" ? "default" : "outline"}
             size="sm"
