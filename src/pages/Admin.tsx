@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Edit, Trash2, Calendar, Tag } from "lucide-react";
+import { ArrowLeft, Plus, Edit, Trash2, Calendar, Tag, Users, UserPlus, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -22,14 +24,29 @@ interface NewsPost {
   author_id: string;
 }
 
+interface UserProfile {
+  id: string;
+  user_id: string;
+  pet_name?: string;
+  pet_age?: number;
+  pet_gender?: string;
+  pet_breed?: string;
+  created_at: string;
+  email?: string;
+  role?: string;
+}
+
 const Admin = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [posts, setPosts] = useState<NewsPost[]>([]);
+  const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [usersLoading, setUsersLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<NewsPost | null>(null);
+  const [activeTab, setActiveTab] = useState("news");
   
   // Form state
   const [formData, setFormData] = useState({
@@ -47,6 +64,12 @@ const Admin = () => {
     checkAdminRole();
     fetchPosts();
   }, [user, navigate]);
+
+  useEffect(() => {
+    if (activeTab === "users" && isAdmin) {
+      fetchUsers();
+    }
+  }, [activeTab, isAdmin]);
 
   const checkAdminRole = async () => {
     if (!user) return;
@@ -173,6 +196,77 @@ const Admin = () => {
     }
   };
 
+  const fetchUsers = async () => {
+    setUsersLoading(true);
+    try {
+      // Fetch user profiles with auth user data
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (profilesError) throw profilesError;
+
+      // Fetch user roles
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+
+      if (rolesError) throw rolesError;
+
+      // Get auth users data - this will fail in client-side, so we'll handle it differently
+      const usersWithDetails = profilesData?.map(profile => {
+        const userRole = rolesData?.find(r => r.user_id === profile.user_id);
+        
+        return {
+          ...profile,
+          email: 'Hidden', // We can't access email from client side
+          role: userRole?.role || 'user'
+        };
+      }) || [];
+
+      setUsers(usersWithDetails);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      toast.error('회원 정보를 불러오는데 실패했습니다.');
+    } finally {
+      setUsersLoading(false);
+    }
+  };
+
+  const handleRoleChange = async (userId: string, newRole: string) => {
+    try {
+      if (newRole === 'user') {
+        // Remove admin role
+        const { error } = await supabase
+          .from('user_roles')
+          .delete()
+          .eq('user_id', userId)
+          .eq('role', 'admin');
+        
+        if (error) throw error;
+      } else {
+        // Add admin role
+        const { error } = await supabase
+          .from('user_roles')
+          .upsert({ 
+            user_id: userId, 
+            role: newRole as 'admin' | 'moderator' | 'user'
+          }, {
+            onConflict: 'user_id,role'
+          });
+        
+        if (error) throw error;
+      }
+      
+      toast.success('권한이 변경되었습니다.');
+      fetchUsers(); // Refresh the users list
+    } catch (error) {
+      console.error('Error changing role:', error);
+      toast.error('권한 변경에 실패했습니다.');
+    }
+  };
+
   const resetForm = () => {
     setFormData({ title: '', content: '', category: 'event' });
     setEditingPost(null);
@@ -218,143 +312,238 @@ const Admin = () => {
           </Button>
           <div>
             <h1 className="text-xl font-bold">관리자 페이지</h1>
-            <p className="text-purple-100 text-sm">소식 관리</p>
+            <p className="text-purple-100 text-sm">소식 & 회원 관리</p>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="p-5 space-y-6">
-        {/* Create Button */}
-        <Card className="p-4 bg-white rounded-2xl shadow-lg">
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button 
-                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
-                onClick={() => {
-                  resetForm();
-                  setIsDialogOpen(true);
-                }}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                새 소식 등록
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingPost ? '소식 수정' : '새 소식 등록'}
-                </DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="category">카테고리</Label>
-                  <Select
-                    value={formData.category}
-                    onValueChange={(value: 'event' | 'sale') => 
-                      setFormData(prev => ({ ...prev, category: value }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="event">축제/이벤트</SelectItem>
-                      <SelectItem value="sale">세일/할인</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="title">제목</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="소식 제목을 입력하세요"
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="content">내용</Label>
-                  <Textarea
-                    id="content"
-                    value={formData.content}
-                    onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                    placeholder="소식 내용을 입력하세요"
-                    rows={4}
-                    required
-                  />
-                </div>
-                
-                <div className="flex space-x-2">
-                  <Button type="submit" className="flex-1">
-                    {editingPost ? '수정' : '등록'}
-                  </Button>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => setIsDialogOpen(false)}
-                  >
-                    취소
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </Card>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="news" className="flex items-center space-x-2">
+              <Tag className="w-4 h-4" />
+              <span>소식 관리</span>
+            </TabsTrigger>
+            <TabsTrigger value="users" className="flex items-center space-x-2">
+              <Users className="w-4 h-4" />
+              <span>회원 관리</span>
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Posts List */}
-        <div className="space-y-4">
-          {posts.map((post) => (
-            <Card key={post.id} className="p-4 bg-white rounded-2xl shadow-lg">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center space-x-2">
-                  {post.category === 'event' ? (
-                    <Calendar className="w-4 h-4 text-blue-600" />
-                  ) : (
-                    <Tag className="w-4 h-4 text-red-600" />
+          <TabsContent value="news" className="space-y-6">
+            {/* Create Button */}
+            <Card className="p-4 bg-white rounded-2xl shadow-lg">
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+                    onClick={() => {
+                      resetForm();
+                      setIsDialogOpen(true);
+                    }}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    새 소식 등록
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>
+                      {editingPost ? '소식 수정' : '새 소식 등록'}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="category">카테고리</Label>
+                      <Select
+                        value={formData.category}
+                        onValueChange={(value: 'event' | 'sale') => 
+                          setFormData(prev => ({ ...prev, category: value }))
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="event">축제/이벤트</SelectItem>
+                          <SelectItem value="sale">세일/할인</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="title">제목</Label>
+                      <Input
+                        id="title"
+                        value={formData.title}
+                        onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                        placeholder="소식 제목을 입력하세요"
+                        required
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="content">내용</Label>
+                      <Textarea
+                        id="content"
+                        value={formData.content}
+                        onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+                        placeholder="소식 내용을 입력하세요"
+                        rows={4}
+                        required
+                      />
+                    </div>
+                    
+                    <div className="flex space-x-2">
+                      <Button type="submit" className="flex-1">
+                        {editingPost ? '수정' : '등록'}
+                      </Button>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => setIsDialogOpen(false)}
+                      >
+                        취소
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </Card>
+
+            {/* Posts List */}
+            <div className="space-y-4">
+              {posts.map((post) => (
+                <Card key={post.id} className="p-4 bg-white rounded-2xl shadow-lg">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      {post.category === 'event' ? (
+                        <Calendar className="w-4 h-4 text-blue-600" />
+                      ) : (
+                        <Tag className="w-4 h-4 text-red-600" />
+                      )}
+                      <span className="text-xs font-medium text-gray-500">
+                        {post.category === 'event' ? '축제/이벤트' : '세일/할인'}
+                      </span>
+                    </div>
+                    <div className="flex space-x-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleEdit(post)}
+                        className="p-1 h-auto"
+                      >
+                        <Edit className="w-4 h-4 text-gray-600" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDelete(post.id)}
+                        className="p-1 h-auto"
+                      >
+                        <Trash2 className="w-4 h-4 text-red-600" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <h3 className="font-semibold text-gray-900 mb-2">{post.title}</h3>
+                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">{post.content}</p>
+                  
+                  <div className="text-xs text-gray-400">
+                    {new Date(post.created_at).toLocaleDateString('ko-KR')}
+                  </div>
+                </Card>
+              ))}
+              
+              {posts.length === 0 && (
+                <Card className="p-8 text-center">
+                  <p className="text-gray-500">등록된 소식이 없습니다.</p>
+                </Card>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="users" className="space-y-6">
+            <Card className="p-4 bg-white rounded-2xl shadow-lg">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">가입 회원 목록</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={fetchUsers}
+                  disabled={usersLoading}
+                >
+                  {usersLoading ? "로딩 중..." : "새로고침"}
+                </Button>
+              </div>
+              
+              {usersLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+                  <p className="text-gray-600 mt-2">회원 정보를 불러오는 중...</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>이메일</TableHead>
+                        <TableHead>반려견</TableHead>
+                        <TableHead>가입일</TableHead>
+                        <TableHead>권한</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {users.map((user) => (
+                        <TableRow key={user.id}>
+                          <TableCell className="font-medium">{user.email}</TableCell>
+                          <TableCell>
+                            <div className="text-sm">
+                              <div className="font-medium">{user.pet_name || "미설정"}</div>
+                              <div className="text-gray-500">
+                                {user.pet_breed || "품종 미설정"} • {user.pet_age ? `${user.pet_age}살` : "나이 미설정"}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {new Date(user.created_at).toLocaleDateString('ko-KR')}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <Select
+                                value={user.role}
+                                onValueChange={(value) => handleRoleChange(user.user_id, value)}
+                              >
+                                <SelectTrigger className="w-24">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="user">일반</SelectItem>
+                                  <SelectItem value="admin">관리자</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              {user.role === 'admin' && (
+                                <Shield className="w-4 h-4 text-purple-600" />
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  
+                  {users.length === 0 && (
+                    <div className="text-center py-8">
+                      <Users className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-500">등록된 회원이 없습니다.</p>
+                    </div>
                   )}
-                  <span className="text-xs font-medium text-gray-500">
-                    {post.category === 'event' ? '축제/이벤트' : '세일/할인'}
-                  </span>
                 </div>
-                <div className="flex space-x-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleEdit(post)}
-                    className="p-1 h-auto"
-                  >
-                    <Edit className="w-4 h-4 text-gray-600" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleDelete(post.id)}
-                    className="p-1 h-auto"
-                  >
-                    <Trash2 className="w-4 h-4 text-red-600" />
-                  </Button>
-                </div>
-              </div>
-              
-              <h3 className="font-semibold text-gray-900 mb-2">{post.title}</h3>
-              <p className="text-sm text-gray-600 mb-3 line-clamp-2">{post.content}</p>
-              
-              <div className="text-xs text-gray-400">
-                {new Date(post.created_at).toLocaleDateString('ko-KR')}
-              </div>
+              )}
             </Card>
-          ))}
-          
-          {posts.length === 0 && (
-            <Card className="p-8 text-center">
-              <p className="text-gray-500">등록된 소식이 없습니다.</p>
-            </Card>
-          )}
-        </div>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
