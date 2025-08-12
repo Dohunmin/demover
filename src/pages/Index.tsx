@@ -6,7 +6,6 @@ import { PawPrint, Sparkles, LogOut, Settings } from "lucide-react";
 import BottomNavigation from "@/components/BottomNavigation";
 import CategoryGrid from "@/components/CategoryGrid";
 import BeachStatus from "@/components/BeachStatus";
-import TourPlaces from "@/components/TourPlaces";
 import UserProfile from "@/components/UserProfile";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -137,7 +136,6 @@ const Index = () => {
 
           {/* Preview Content */}
           <CategoryGrid />
-          <TourPlaces />
           <BeachStatus />
         </main>
 
@@ -222,9 +220,6 @@ const Index = () => {
 
         {/* Category Section */}
         <CategoryGrid />
-
-        {/* Tour Places Section */}
-        <TourPlaces />
 
         {/* Beach Status Section */}
         <BeachStatus />

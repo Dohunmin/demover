@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import MbtiTest from "./pages/MbtiTest";
 import News from "./pages/News";
+import Travel from "./pages/Travel";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
@@ -24,6 +25,8 @@ const AppWithNavigation = () => {
     switch (location.pathname) {
       case "/":
         return "home";
+      case "/travel":
+        return "travel";
       case "/mbti":
         return "mbti";
       case "/news":
@@ -43,6 +46,9 @@ const AppWithNavigation = () => {
       case "home":
         navigate("/");
         break;
+      case "travel":
+        navigate("/travel");
+        break;
       case "news":
         navigate("/news");
         break;
@@ -59,6 +65,7 @@ const AppWithNavigation = () => {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/travel" element={<Travel />} />
         <Route path="/mbti" element={<MbtiTest />} />
         <Route path="/news" element={<News />} />
         <Route path="/admin" element={<Admin />} />
