@@ -42,10 +42,6 @@ const AppWithNavigation = () => {
 
   const activeTab = getActiveTab();
 
-  // Auth 페이지, NewsDetail 페이지, Records 페이지에서는 하단 네비게이션을 숨김
-  const hideNavigation = location.pathname === "/auth" || 
-                        location.pathname.startsWith("/news/") || 
-                        location.pathname === "/records";
 
   const handleTabChange = (tab: string) => {
     switch (tab) {
@@ -84,14 +80,12 @@ const AppWithNavigation = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
 
-      {/* 하단 네비게이션 - Auth 페이지 제외하고 모든 페이지에서 표시 */}
-      {!hideNavigation && (
-        <BottomNavigation 
-          activeTab={activeTab} 
-          onTabChange={handleTabChange}
-          onMbtiClick={() => navigate("/mbti")}
-        />
-      )}
+      {/* 하단 네비게이션 - 모든 페이지에서 항상 표시 */}
+      <BottomNavigation 
+        activeTab={activeTab} 
+        onTabChange={handleTabChange}
+        onMbtiClick={() => navigate("/mbti")}
+      />
     </div>
   );
 };
