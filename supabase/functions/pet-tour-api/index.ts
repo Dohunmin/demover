@@ -26,7 +26,7 @@ serve(async (req) => {
       throw new Error('KTO_TOUR_SERVICE_KEY not found')
     }
 
-    const baseUrl = 'https://apis.data.go.kr/B551011/PetTourService'
+    const baseUrl = 'http://apis.data.go.kr/B551011/PetTourService'
     
     const apiParams = new URLSearchParams({
       serviceKey,
@@ -55,12 +55,23 @@ serve(async (req) => {
     }
 
     const apiUrl = `${baseUrl}/${operation}?${apiParams.toString()}`
+    console.log('Calling Pet Tour API:', apiUrl)
     
-    const response = await fetch(apiUrl)
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; LovableApp/1.0)',
+        'Accept': 'application/json'
+      }
+    })
+    
+    console.log('Pet Tour API Response status:', response.status)
     const data = await response.json()
+    console.log('Pet Tour API Response data:', JSON.stringify(data).substring(0, 500))
 
     if (!response.ok) {
-      throw new Error(`Pet Tour API Error: ${response.status}`)
+      console.error('Pet Tour API Error Response:', data)
+      throw new Error(`Pet Tour API Error: ${response.status} - ${JSON.stringify(data)}`)
     }
 
     // JSON 패스스루 - 가공 없이 그대로 반환
