@@ -162,16 +162,15 @@ const Index = () => {
               </div>
               <p className="text-blue-100 text-sm font-medium">반려견과 함께하는 스마트한 여행</p>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
               {isAdmin && (
                 <Button 
                   variant="outline" 
                   size="sm" 
                   onClick={() => navigate("/admin")}
-                  className="bg-white/10 border-white/30 text-white hover:bg-white hover:text-purple-700 backdrop-blur-sm font-medium"
+                  className="bg-white/10 border-white/30 text-white hover:bg-white hover:text-purple-700 backdrop-blur-sm font-medium p-2"
                 >
-                  <Settings className="w-4 h-4 mr-1" />
-                  관리자
+                  <Settings className="w-4 h-4" />
                 </Button>
               )}
               <UserProfile />
@@ -179,10 +178,9 @@ const Index = () => {
                 variant="outline" 
                 size="sm" 
                 onClick={handleSignOut}
-                className="bg-white/10 border-white/30 text-white hover:bg-white hover:text-blue-700 backdrop-blur-sm font-medium"
+                className="bg-white/10 border-white/30 text-white hover:bg-white hover:text-blue-700 backdrop-blur-sm font-medium p-2"
               >
-                <LogOut className="w-4 h-4 mr-1" />
-                로그아웃
+                <LogOut className="w-4 h-4" />
               </Button>
             </div>
           </div>
