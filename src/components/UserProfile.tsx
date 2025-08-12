@@ -178,14 +178,14 @@ const UserProfile = () => {
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
+          <DialogTitle className="flex items-center justify-between pr-8">
             프로필 정보
             {!isEditMode && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleEdit}
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 p-0 hover:bg-gray-100"
               >
                 <Edit className="w-4 h-4" />
               </Button>
