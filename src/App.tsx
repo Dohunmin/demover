@@ -13,6 +13,7 @@ import News from "./pages/News";
 import NewsDetail from "./pages/NewsDetail";
 import Travel from "./pages/Travel";
 import Admin from "./pages/Admin";
+import Records from "./pages/Records";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,8 @@ const AppWithNavigation = () => {
         return "mbti";
       case "/news":
         return "news";
+      case "/records":
+        return "record";
       default:
         return "home";
     }
@@ -39,8 +42,10 @@ const AppWithNavigation = () => {
 
   const activeTab = getActiveTab();
 
-  // Auth 페이지와 NewsDetail 페이지에서는 하단 네비게이션을 숨김
-  const hideNavigation = location.pathname === "/auth" || location.pathname.startsWith("/news/");
+  // Auth 페이지, NewsDetail 페이지, Records 페이지에서는 하단 네비게이션을 숨김
+  const hideNavigation = location.pathname === "/auth" || 
+                        location.pathname.startsWith("/news/") || 
+                        location.pathname === "/records";
 
   const handleTabChange = (tab: string) => {
     switch (tab) {
@@ -56,6 +61,9 @@ const AppWithNavigation = () => {
       case "mbti":
         navigate("/mbti");
         break;
+      case "record":
+        navigate("/records");
+        break;
       default:
         navigate("/");
     }
@@ -70,6 +78,7 @@ const AppWithNavigation = () => {
         <Route path="/mbti" element={<MbtiTest />} />
         <Route path="/news" element={<News />} />
         <Route path="/news/:id" element={<NewsDetail />} />
+        <Route path="/records" element={<Records />} />
         <Route path="/admin" element={<Admin />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />

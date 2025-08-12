@@ -4,6 +4,7 @@ import { ArrowLeft, Calendar, Tag, Share2, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
 interface NewsPost {
@@ -17,15 +18,24 @@ interface NewsPost {
 
 const NewsDetail = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { id } = useParams<{ id: string }>();
   const [post, setPost] = useState<NewsPost | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [bookmarkLoading, setBookmarkLoading] = useState(false);
 
   useEffect(() => {
     if (id) {
       fetchPost(id);
     }
   }, [id]);
+
+  useEffect(() => {
+    if (user && post) {
+      checkBookmarkStatus();
+    }
+  }, [user, post]);
 
   const fetchPost = async (postId: string) => {
     try {
@@ -52,6 +62,77 @@ const NewsDetail = () => {
       navigate('/news');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkBookmarkStatus = async () => {
+    if (!user || !post) return;
+
+    try {
+      const { data, error } = await (supabase as any)
+        .from('bookmarks')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('news_post_id', post.id)
+        .single();
+
+      setIsBookmarked(!!data && !error);
+    } catch (error) {
+      setIsBookmarked(false);
+    }
+  };
+
+  const toggleBookmark = async () => {
+    if (!user) {
+      toast.error('로그인이 필요합니다.');
+      navigate('/auth');
+      return;
+    }
+
+    if (!post) return;
+
+    setBookmarkLoading(true);
+    
+    try {
+      if (isBookmarked) {
+        // 북마크 제거
+        const { error } = await (supabase as any)
+          .from('bookmarks')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('news_post_id', post.id);
+
+        if (error) {
+          console.error('Error removing bookmark:', error);
+          toast.error('북마크 삭제에 실패했습니다.');
+          return;
+        }
+
+        setIsBookmarked(false);
+        toast.success('북마크가 해제되었습니다.');
+      } else {
+        // 북마크 추가
+        const { error } = await (supabase as any)
+          .from('bookmarks')
+          .insert({
+            user_id: user.id,
+            news_post_id: post.id
+          });
+
+        if (error) {
+          console.error('Error adding bookmark:', error);
+          toast.error('북마크 추가에 실패했습니다.');
+          return;
+        }
+
+        setIsBookmarked(true);
+        toast.success('북마크에 추가되었습니다.');
+      }
+    } catch (error) {
+      console.error('Error toggling bookmark:', error);
+      toast.error('북마크 처리 중 오류가 발생했습니다.');
+    } finally {
+      setBookmarkLoading(false);
     }
   };
 
@@ -156,9 +237,17 @@ const NewsDetail = () => {
             <Button
               variant="ghost"
               size="sm"
-              className="text-gray-700 hover:bg-gray-100 p-2"
+              onClick={toggleBookmark}
+              disabled={bookmarkLoading}
+              className={`p-2 transition-colors ${
+                isBookmarked 
+                  ? 'text-red-500 hover:bg-red-50' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
             >
-              <Heart className="w-5 h-5" />
+              <Heart 
+                className={`w-5 h-5 ${isBookmarked ? 'fill-current' : ''}`} 
+              />
             </Button>
           </div>
         </div>
