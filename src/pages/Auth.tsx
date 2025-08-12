@@ -163,6 +163,9 @@ const Auth = () => {
 
       // Upload image if provided and user was created
       if (data.user && petImage) {
+        // Wait a moment for the trigger to create the profile
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         const imageUrl = await uploadPetImage(data.user.id);
         if (imageUrl) {
           // Update the profile with the image URL
@@ -173,6 +176,21 @@ const Auth = () => {
           
           if (updateError) {
             console.error('Profile update error:', updateError);
+            // Try to insert if update failed (fallback)
+            const { error: insertError } = await (supabase as any)
+              .from('profiles')
+              .insert({
+                user_id: data.user.id,
+                pet_name: petName,
+                pet_age: petAge ? parseInt(petAge) : null,
+                pet_gender: petGender,
+                pet_breed: petBreed,
+                pet_image_url: imageUrl
+              });
+            
+            if (insertError) {
+              console.error('Profile insert error:', insertError);
+            }
           }
         }
       }
