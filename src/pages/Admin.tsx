@@ -38,7 +38,7 @@ interface UserProfile {
 
 const Admin = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user: currentUser } = useAuth();
   const [posts, setPosts] = useState<NewsPost[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,14 +56,14 @@ const Admin = () => {
   });
 
   useEffect(() => {
-    if (!user) {
+    if (!currentUser) {
       navigate("/auth");
       return;
     }
     
     checkAdminRole();
     fetchPosts();
-  }, [user, navigate]);
+  }, [currentUser, navigate]);
 
   useEffect(() => {
     if (activeTab === "users" && isAdmin) {
@@ -72,13 +72,13 @@ const Admin = () => {
   }, [activeTab, isAdmin]);
 
   const checkAdminRole = async () => {
-    if (!user) return;
+    if (!currentUser) return;
     
     try {
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', user.id)
+        .eq('user_id', currentUser.id)
         .eq('role', 'admin')
         .single();
       
@@ -123,7 +123,7 @@ const Admin = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user) return;
+    if (!currentUser) return;
     
     try {
       if (editingPost) {
@@ -148,7 +148,7 @@ const Admin = () => {
             title: formData.title,
             content: formData.content,
             category: formData.category,
-            author_id: user.id
+            author_id: currentUser.id
           });
 
         if (error) throw error;
@@ -511,18 +511,24 @@ const Admin = () => {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center space-x-2">
-                              <Select
-                                value={user.role}
-                                onValueChange={(value) => handleRoleChange(user.user_id, value)}
-                              >
-                                <SelectTrigger className="w-24">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="user">일반</SelectItem>
-                                  <SelectItem value="admin">관리자</SelectItem>
-                                </SelectContent>
-                              </Select>
+                              {user.user_id === currentUser?.id ? (
+                                <span className="text-sm text-gray-500 px-3 py-1 bg-gray-100 rounded">
+                                  본인 권한 변경 불가
+                                </span>
+                              ) : (
+                                <Select
+                                  value={user.role}
+                                  onValueChange={(value) => handleRoleChange(user.user_id, value)}
+                                >
+                                  <SelectTrigger className="w-24">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="user">일반</SelectItem>
+                                    <SelectItem value="admin">관리자</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              )}
                               {user.role === 'admin' && (
                                 <Shield className="w-4 h-4 text-purple-600" />
                               )}
