@@ -12,13 +12,11 @@ serve(async (req) => {
 
   try {
     const { searchParams } = new URL(req.url)
+    const keyword = searchParams.get('keyword')
     const pageNo = searchParams.get('pageNo') || '1'
     const numOfRows = searchParams.get('numOfRows') || '10'
     const areaCode = searchParams.get('areaCode')
     const sigunguCode = searchParams.get('sigunguCode')
-    const mapX = searchParams.get('mapX')
-    const mapY = searchParams.get('mapY')
-    const radius = searchParams.get('radius')
     const operation = searchParams.get('operation') || 'areaBasedList1'
 
     const serviceKey = Deno.env.get('KTO_TOUR_SERVICE_KEY')
@@ -37,46 +35,63 @@ serve(async (req) => {
       numOfRows,
     })
 
-    // 파라미터에 따라 오퍼레이션 선택
-    if (operation === 'locationBasedList1' && mapX && mapY) {
-      apiParams.append('mapX', mapX)
-      apiParams.append('mapY', mapY)
-      if (radius) {
-        apiParams.append('radius', radius)
-      }
-    } else {
-      // areaBasedList1이 기본
-      if (areaCode) {
-        apiParams.append('areaCode', areaCode)
-      }
-      if (sigunguCode) {
-        apiParams.append('sigunguCode', sigunguCode)
-      }
+    if (keyword) {
+      apiParams.append('keyword', keyword)
+    }
+    if (areaCode) {
+      apiParams.append('areaCode', areaCode)
+    }
+    if (sigunguCode) {
+      apiParams.append('sigunguCode', sigunguCode)
     }
 
     const apiUrl = `${baseUrl}/${operation}?${apiParams.toString()}`
     console.log('Calling Pet Tour API:', apiUrl)
     
-    const response = await fetch(apiUrl, {
-      method: 'GET',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; LovableApp/1.0)',
-        'Accept': 'application/json'
-      }
-    })
-    
+    const response = await fetch(apiUrl)
     console.log('Pet Tour API Response status:', response.status)
-    const data = await response.json()
-    console.log('Pet Tour API Response data:', JSON.stringify(data).substring(0, 500))
-
+    
     if (!response.ok) {
-      console.error('Pet Tour API Error Response:', data)
-      throw new Error(`Pet Tour API Error: ${response.status} - ${JSON.stringify(data)}`)
+      throw new Error(`HTTP error! status: ${response.status}`)
     }
 
-    // JSON 패스스루 - 가공 없이 그대로 반환
+    const data = await response.json()
+    
+    // 응답 데이터 가공
+    const items = data.response?.body?.items?.item || []
+    const processedData = Array.isArray(items) ? items.map((item: any) => ({
+      contentId: item.contentid,
+      title: item.title,
+      addr1: item.addr1 || '',
+      addr2: item.addr2 || '',
+      image: item.firstimage || item.firstimage2 || '',
+      tel: item.tel || '',
+      mapx: item.mapx || '',
+      mapy: item.mapy || '',
+      areacode: item.areacode || '',
+      sigungucode: item.sigungucode || ''
+    })) : [items].map((item: any) => ({
+      contentId: item.contentid,
+      title: item.title,
+      addr1: item.addr1 || '',
+      addr2: item.addr2 || '',
+      image: item.firstimage || item.firstimage2 || '',
+      tel: item.tel || '',
+      mapx: item.mapx || '',
+      mapy: item.mapy || '',
+      areacode: item.areacode || '',
+      sigungucode: item.sigungucode || ''
+    }))
+
+    const result = {
+      pageNo: parseInt(pageNo),
+      numOfRows: parseInt(numOfRows),
+      totalCount: data.response?.body?.totalCount || 0,
+      data: processedData
+    }
+
     return new Response(
-      JSON.stringify(data),
+      JSON.stringify(result),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
