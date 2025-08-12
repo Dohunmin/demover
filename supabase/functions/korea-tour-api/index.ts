@@ -22,30 +22,36 @@ serve(async (req) => {
     if (!serviceKey) {
       throw new Error('KTO_TOUR_SERVICE_KEY not found')
     }
+    
+    // API 키 디버깅
+    console.log('Raw service key:', serviceKey)
+    console.log('Service key first 20 chars:', serviceKey.substring(0, 20))
+    console.log('Service key includes special chars:', /[+/=]/.test(serviceKey))
 
     const baseUrl = 'http://apis.data.go.kr/B551011/KorService1'
     const operation = keyword ? 'searchKeyword1' : 'areaBasedList1'
     
-    const apiParams = new URLSearchParams({
-      serviceKey,
-      _type: 'json',
-      MobileOS: 'ETC',
-      MobileApp: 'LovableApp',
-      pageNo,
-      numOfRows,
-    })
+    // URL 인코딩하지 않고 직접 사용
+    const params = [
+      `serviceKey=${encodeURIComponent(serviceKey)}`,
+      '_type=json',
+      'MobileOS=ETC',
+      'MobileApp=LovableApp',
+      `pageNo=${pageNo}`,
+      `numOfRows=${numOfRows}`
+    ]
 
     if (keyword) {
-      apiParams.append('keyword', keyword)
+      params.push(`keyword=${encodeURIComponent(keyword)}`)
     }
     if (areaCode) {
-      apiParams.append('areaCode', areaCode)
+      params.push(`areaCode=${areaCode}`)
     }
     if (sigunguCode) {
-      apiParams.append('sigunguCode', sigunguCode)
+      params.push(`sigunguCode=${sigunguCode}`)
     }
 
-    const apiUrl = `${baseUrl}/${operation}?${apiParams.toString()}`
+    const apiUrl = `${baseUrl}/${operation}?${params.join('&')}`
     console.log('=== API CALL DEBUG INFO ===')
     console.log('Service Key exists:', !!serviceKey)
     console.log('Service Key length:', serviceKey?.length)
@@ -53,7 +59,7 @@ serve(async (req) => {
     console.log('Base URL:', baseUrl)
     console.log('Operation:', operation)
     console.log('Full API URL:', apiUrl)
-    console.log('API Params:', apiParams.toString())
+    console.log('API Params:', params.join('&'))
     
     try {
       const response = await fetch(apiUrl, {
