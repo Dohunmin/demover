@@ -30,37 +30,47 @@ const Auth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'PASSWORD_RECOVERY') {
+          // Force password change mode when recovery event is detected
           setIsNewPasswordMode(true);
           setIsPasswordReset(false);
           setIsSignUp(false);
+          toast.info("새 비밀번호를 설정해주세요.");
         } else if (event === 'SIGNED_IN' && session) {
-          // If user just signed in after password reset, redirect to home
-          if (isNewPasswordMode) {
+          // Check if this is a password recovery session by checking URL params
+          const urlParams = new URLSearchParams(window.location.search);
+          const typeParam = urlParams.get('type');
+          
+          if (typeParam === 'recovery' || isNewPasswordMode) {
+            // This is a recovery sign-in, force password change
+            setIsNewPasswordMode(true);
+            setIsPasswordReset(false);
+            setIsSignUp(false);
+            toast.info("보안을 위해 새 비밀번호를 설정해주세요.");
+          } else {
+            // Normal login, redirect to home
             navigate("/");
           }
         }
       }
     );
 
-    // Check URL parameters for password reset
+    // Check URL parameters for password reset  
     const urlParams = new URLSearchParams(window.location.search);
     const resetParam = urlParams.get('reset');
-    const emailParam = urlParams.get('email');
+    const typeParam = urlParams.get('type');
     
-    if (resetParam === 'true') {
+    // Check if this is a recovery URL from email
+    if (typeParam === 'recovery' || resetParam === 'true') {
       setIsNewPasswordMode(true);
       setIsPasswordReset(false);
       setIsSignUp(false);
-      if (emailParam) {
-        setEmail(decodeURIComponent(emailParam));
-      }
     }
 
     // Check if user is already logged in (but not during password reset)
-    if (!resetParam) {
+    if (!resetParam && typeParam !== 'recovery') {
       const checkUser = async () => {
         const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
+        if (session && !isNewPasswordMode) {
           navigate("/");
         }
       };
