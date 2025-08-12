@@ -5,6 +5,10 @@ import type { Database } from './types';
 const SUPABASE_URL = "https://iuoofmeyakduqteyptkq.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1b29mbWV5YWtkdXF0ZXlwdGtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQzMTYzNDMsImV4cCI6MjA2OTg5MjM0M30.bY_V1Mv5M2-fLUTFcsn4tdXzVFHsSSTGmlm6cEVltp4";
 
+// DEBUG: 프로젝트 연결 상태 확인
+console.log('Supabase URL:', SUPABASE_URL);
+console.log('API Key exists:', !!SUPABASE_PUBLISHABLE_KEY);
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
