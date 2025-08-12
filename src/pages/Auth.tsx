@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PawPrint, Mail, Lock, User, ArrowLeft, Heart } from "lucide-react";
+import { PawPrint, Mail, Lock, User, ArrowLeft, Heart, ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -22,6 +22,8 @@ const Auth = () => {
   const [petAge, setPetAge] = useState("");
   const [petGender, setPetGender] = useState("");
   const [petBreed, setPetBreed] = useState("");
+  const [petImage, setPetImage] = useState<File | null>(null);
+  const [petImagePreview, setPetImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -89,6 +91,40 @@ const Auth = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPetImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPetImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadPetImage = async (userId: string): Promise<string | null> => {
+    if (!petImage) return null;
+
+    const fileExt = petImage.name.split('.').pop();
+    const fileName = `${userId}/profile.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('pet-profiles')
+      .upload(fileName, petImage, { upsert: true });
+
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      return null;
+    }
+
+    const { data } = supabase.storage
+      .from('pet-profiles')
+      .getPublicUrl(fileName);
+
+    return data.publicUrl;
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -104,33 +140,53 @@ const Auth = () => {
 
     setLoading(true);
     
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          pet_name: petName,
-          pet_age: petAge ? parseInt(petAge) : null,
-          pet_gender: petGender,
-          pet_breed: petBreed
+    try {
+      const redirectUrl = `${window.location.origin}/`;
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            pet_name: petName,
+            pet_age: petAge ? parseInt(petAge) : null,
+            pet_gender: petGender,
+            pet_breed: petBreed
+          }
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // Upload image if provided and user was created
+      if (data.user && petImage) {
+        const imageUrl = await uploadPetImage(data.user.id);
+        if (imageUrl) {
+          // Update the profile with the image URL
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ pet_image_url: imageUrl })
+            .eq('user_id', data.user.id);
+          
+          if (updateError) {
+            console.error('Profile update error:', updateError);
+          }
         }
       }
-    });
 
-    setLoading(false);
-
-    if (error) {
+      toast.success("회원가입이 완료되었습니다! 이메일을 확인해주세요.");
+      setIsSignUp(false);
+    } catch (error: any) {
       if (error.message.includes("already registered")) {
         toast.error("이미 가입된 이메일입니다.");
       } else {
         toast.error(error.message);
       }
-    } else {
-      toast.success("회원가입이 완료되었습니다! 이메일을 확인해주세요.");
-      setIsSignUp(false);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -252,6 +308,8 @@ const Auth = () => {
     setPetAge("");
     setPetGender("");
     setPetBreed("");
+    setPetImage(null);
+    setPetImagePreview(null);
   };
 
   const toggleMode = () => {
@@ -460,18 +518,59 @@ const Auth = () => {
                         </div>
                       </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="petBreed" className="text-sm font-medium text-gray-700">
-                          견종
-                        </Label>
-                        <Input
-                          id="petBreed"
-                          type="text"
-                          placeholder="견종을 입력하세요 (예: 골든리트리버)"
-                          value={petBreed}
-                          onChange={(e) => setPetBreed(e.target.value)}
-                        />
-                      </div>
+                       <div className="space-y-2">
+                         <Label htmlFor="petBreed" className="text-sm font-medium text-gray-700">
+                           견종
+                         </Label>
+                         <Input
+                           id="petBreed"
+                           type="text"
+                           placeholder="견종을 입력하세요 (예: 골든리트리버)"
+                           value={petBreed}
+                           onChange={(e) => setPetBreed(e.target.value)}
+                         />
+                       </div>
+
+                       <div className="space-y-2">
+                         <Label className="text-sm font-medium text-gray-700">
+                           반려견 사진
+                         </Label>
+                         <div className="flex flex-col items-center gap-3">
+                           {petImagePreview ? (
+                             <div className="relative">
+                               <img
+                                 src={petImagePreview}
+                                 alt="반려견 미리보기"
+                                 className="w-20 h-20 rounded-full object-cover border-2 border-primary/20"
+                               />
+                               <Button
+                                 type="button"
+                                 variant="outline"
+                                 size="sm"
+                                 onClick={() => {
+                                   setPetImage(null);
+                                   setPetImagePreview(null);
+                                 }}
+                                 className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                               >
+                                 ×
+                               </Button>
+                             </div>
+                           ) : (
+                             <div className="w-20 h-20 rounded-full bg-secondary/20 flex items-center justify-center border-2 border-dashed border-secondary/40">
+                               <ImageIcon className="w-8 h-8 text-secondary/60" />
+                             </div>
+                           )}
+                           <div className="w-full">
+                             <Input
+                               type="file"
+                               accept="image/*"
+                               onChange={handleImageChange}
+                               className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+                             />
+                           </div>
+                         </div>
+                       </div>
                     </div>
                   </div>
                 </>
