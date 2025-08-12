@@ -213,23 +213,33 @@ const UserProfile = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="bg-white/10 border-white/30 text-white hover:bg-white hover:text-blue-700 backdrop-blur-sm font-medium"
-        >
-          <Avatar className="w-5 h-5 mr-1">
-            <AvatarImage 
-              src={profile?.pet_image_url} 
-              alt="반려견 프로필" 
-              className="object-cover"
-            />
-            <AvatarFallback className="bg-transparent">
-              <User className="w-4 h-4" />
-            </AvatarFallback>
-          </Avatar>
-          프로필
-        </Button>
+        <div className="bg-white/10 border border-white/30 rounded-xl p-4 hover:bg-white/20 transition-all duration-200 cursor-pointer backdrop-blur-sm">
+          <div className="flex items-center space-x-3">
+            <Avatar className="w-12 h-12 border-2 border-white/30">
+              <AvatarImage 
+                src={profile?.pet_image_url} 
+                alt="반려견 프로필" 
+                className="object-cover"
+              />
+              <AvatarFallback className="bg-gradient-to-br from-white/20 to-white/10 text-white">
+                <User className="w-6 h-6" />
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 text-left">
+              <div className="text-white font-semibold text-base">
+                {profile?.pet_name || '프로필 설정'}
+              </div>
+              <div className="text-blue-100 text-sm">
+                {user?.email || '이메일 정보 없음'}
+              </div>
+            </div>
+            <div className="text-white/70">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </div>
+        </div>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>

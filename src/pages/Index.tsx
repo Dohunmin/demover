@@ -154,37 +154,43 @@ const Index = () => {
         </div>
         
         <div className="relative z-10">
-          <div className="flex justify-between items-start mb-6">
-            <div>
+          <div className="flex justify-between items-start mb-4">
+            <div className="flex-1">
               <div className="flex items-center space-x-2 mb-2">
                 <PawPrint className="w-6 h-6" />
                 <h1 className="text-xl font-bold">멍멍! 일단 출발해!</h1>
               </div>
               <p className="text-blue-100 text-sm font-medium">반려견과 함께하는 스마트한 여행</p>
             </div>
-            <div className="flex flex-col gap-2">
-              {isAdmin && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => navigate("/admin")}
-                  className="bg-white/10 border-white/30 text-white hover:bg-white hover:text-purple-700 backdrop-blur-sm font-medium"
-                >
-                  <Settings className="w-4 h-4 mr-1" />
-                  관리자
-                </Button>
-              )}
-              <UserProfile />
+            
+            {/* Admin Button - Top Right */}
+            {isAdmin && (
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={handleSignOut}
-                className="bg-white/10 border-white/30 text-white hover:bg-white hover:text-blue-700 backdrop-blur-sm font-medium"
+                onClick={() => navigate("/admin")}
+                className="bg-white/10 border-white/30 text-white hover:bg-white hover:text-purple-700 backdrop-blur-sm font-medium mb-2"
               >
-                <LogOut className="w-4 h-4 mr-1" />
-                로그아웃
+                <Settings className="w-4 h-4 mr-1" />
+                관리자
               </Button>
+            )}
+          </div>
+
+          {/* Enhanced Profile Section */}
+          <div className="flex items-center justify-between space-x-4 mb-4">
+            <div className="flex-1">
+              <UserProfile />
             </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleSignOut}
+              className="bg-white/10 border-white/30 text-white hover:bg-white hover:text-blue-700 backdrop-blur-sm font-medium"
+            >
+              <LogOut className="w-4 h-4 mr-1" />
+              로그아웃
+            </Button>
           </div>
         </div>
       </header>
