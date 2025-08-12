@@ -257,9 +257,19 @@ const UserProfile = () => {
         }
       }
 
-      // Sign out the user
-      await supabase.auth.signOut();
-      
+      // Delete the actual user account
+      const { error: deleteUserError } = await supabase.functions.invoke('delete-user', {
+        headers: {
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        }
+      });
+
+      if (deleteUserError) {
+        console.error('User deletion error:', deleteUserError);
+        toast.error("계정 삭제 중 오류가 발생했습니다.");
+        return;
+      }
+
       toast.success("회원 탈퇴가 완료되었습니다.");
       
       // Redirect to home or login page
