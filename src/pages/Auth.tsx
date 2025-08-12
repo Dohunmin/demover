@@ -62,6 +62,22 @@ const Auth = () => {
             setIsSignUp(false);
             toast.info("보안을 위해 새 비밀번호를 설정해주세요.");
           } else {
+            // Check if this is a first-time login after email confirmation
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user && user.email_confirmed_at) {
+              // Check if profile exists
+              const { data: profile } = await (supabase as any)
+                .from('profiles')
+                .select('*')
+                .eq('user_id', user.id)
+                .single();
+              
+              if (!profile) {
+                // This is a new user who just confirmed their email
+                toast.success("회원가입이 완료되었습니다!");
+              }
+            }
+            
             // Normal login, redirect to home
             navigate("/");
           }
@@ -119,7 +135,7 @@ const Auth = () => {
         throw new Error("사용자 생성에 실패했습니다.");
       }
 
-      toast.success("회원가입이 완료되었습니다! 이메일을 확인해주세요.");
+      toast.info("이메일을 확인해주세요.");
       setIsSignUp(false);
     } catch (error: any) {
       console.error('Signup error:', error);
