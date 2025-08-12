@@ -12,9 +12,12 @@ import { toast } from "sonner";
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isPasswordReset, setIsPasswordReset] = useState(false);
+  const [isNewPasswordMode, setIsNewPasswordMode] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [petName, setPetName] = useState("");
   const [petAge, setPetAge] = useState("");
   const [petGender, setPetGender] = useState("");
@@ -23,14 +26,30 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is already logged in
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate("/");
+    // Check URL parameters for password reset
+    const urlParams = new URLSearchParams(window.location.search);
+    const resetParam = urlParams.get('reset');
+    const emailParam = urlParams.get('email');
+    
+    if (resetParam === 'true') {
+      setIsNewPasswordMode(true);
+      setIsPasswordReset(false);
+      setIsSignUp(false);
+      if (emailParam) {
+        setEmail(decodeURIComponent(emailParam));
       }
-    };
-    checkUser();
+    }
+
+    // Check if user is already logged in (but not during password reset)
+    if (!resetParam) {
+      const checkUser = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          navigate("/");
+        }
+      };
+      checkUser();
+    }
   }, [navigate]);
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -141,10 +160,52 @@ const Auth = () => {
     setLoading(false);
   };
 
+  const handleNewPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (newPassword !== confirmNewPassword) {
+      toast.error("새 비밀번호가 일치하지 않습니다.");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error("비밀번호는 6자 이상이어야 합니다.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success("비밀번호가 성공적으로 변경되었습니다. 새 비밀번호로 로그인해주세요.");
+        // Clear URL parameters and reset to login mode
+        window.history.replaceState({}, document.title, "/auth");
+        setIsNewPasswordMode(false);
+        setIsPasswordReset(false);
+        setIsSignUp(false);
+        setNewPassword("");
+        setConfirmNewPassword("");
+        setPassword("");
+      }
+    } catch (error) {
+      toast.error("비밀번호 변경에 실패했습니다. 다시 시도해주세요.");
+    }
+
+    setLoading(false);
+  };
+
   const resetForm = () => {
     setEmail("");
     setPassword("");
     setConfirmPassword("");
+    setNewPassword("");
+    setConfirmNewPassword("");
     setPetName("");
     setPetAge("");
     setPetGender("");
@@ -154,12 +215,14 @@ const Auth = () => {
   const toggleMode = () => {
     setIsSignUp(!isSignUp);
     setIsPasswordReset(false);
+    setIsNewPasswordMode(false);
     resetForm();
   };
 
   const togglePasswordReset = () => {
     setIsPasswordReset(!isPasswordReset);
     setIsSignUp(false);
+    setIsNewPasswordMode(false);
     resetForm();
   };
 
@@ -193,30 +256,72 @@ const Auth = () => {
         <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
           <CardHeader className="text-center">
             <CardTitle className="text-xl font-bold text-gray-900">
-              {isPasswordReset ? "비밀번호 재설정" : isSignUp ? "회원가입" : "로그인"}
+              {isNewPasswordMode ? "새 비밀번호 설정" : isPasswordReset ? "비밀번호 재설정" : isSignUp ? "회원가입" : "로그인"}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <form onSubmit={isPasswordReset ? handlePasswordReset : isSignUp ? handleSignUp : handleSignIn} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                  이메일
-                </Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="이메일을 입력하세요"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
-                    required
-                  />
+            <form onSubmit={isNewPasswordMode ? handleNewPasswordSubmit : isPasswordReset ? handlePasswordReset : isSignUp ? handleSignUp : handleSignIn} className="space-y-4">
+              {!isNewPasswordMode && (
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                    이메일
+                  </Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="이메일을 입력하세요"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {!isPasswordReset && (
+              {isNewPasswordMode && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="newPassword" className="text-sm font-medium text-gray-700">
+                      새 비밀번호
+                    </Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="newPassword"
+                        type="password"
+                        placeholder="새 비밀번호를 입력하세요 (6자 이상)"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="pl-10"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmNewPassword" className="text-sm font-medium text-gray-700">
+                      새 비밀번호 확인
+                    </Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="confirmNewPassword"
+                        type="password"
+                        placeholder="새 비밀번호를 다시 입력하세요"
+                        value={confirmNewPassword}
+                        onChange={(e) => setConfirmNewPassword(e.target.value)}
+                        className="pl-10"
+                        required
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {!isPasswordReset && !isNewPasswordMode && (
                 <div className="space-y-2">
                   <Label htmlFor="password" className="text-sm font-medium text-gray-700">
                     비밀번호
@@ -236,7 +341,7 @@ const Auth = () => {
                 </div>
               )}
 
-              {isSignUp && (
+              {isSignUp && !isNewPasswordMode && (
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
@@ -335,12 +440,12 @@ const Auth = () => {
                 className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
                 disabled={loading}
               >
-                {loading ? "처리중..." : isPasswordReset ? "재설정 이메일 발송" : isSignUp ? "회원가입" : "로그인"}
+                {loading ? "처리중..." : isNewPasswordMode ? "비밀번호 변경" : isPasswordReset ? "재설정 이메일 발송" : isSignUp ? "회원가입" : "로그인"}
               </Button>
             </form>
 
             <div className="text-center space-y-2">
-              {!isPasswordReset && (
+              {!isPasswordReset && !isNewPasswordMode && (
                 <button
                   onClick={toggleMode}
                   className="text-sm text-blue-600 hover:text-blue-700 font-medium block w-full"
@@ -349,7 +454,7 @@ const Auth = () => {
                 </button>
               )}
               
-              {!isSignUp && (
+              {!isSignUp && !isNewPasswordMode && (
                 <button
                   onClick={togglePasswordReset}
                   className="text-sm text-gray-600 hover:text-gray-700 font-medium"
