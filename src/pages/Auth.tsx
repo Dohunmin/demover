@@ -166,7 +166,7 @@ const Auth = () => {
         const imageUrl = await uploadPetImage(data.user.id);
         if (imageUrl) {
           // Update the profile with the image URL
-          const { error: updateError } = await supabase
+          const { error: updateError } = await (supabase as any)
             .from('profiles')
             .update({ pet_image_url: imageUrl })
             .eq('user_id', data.user.id);

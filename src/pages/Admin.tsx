@@ -79,7 +79,7 @@ const Admin = () => {
     if (!currentUser) return;
     
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('user_roles')
         .select('role')
         .eq('user_id', currentUser.id)
@@ -101,7 +101,7 @@ const Admin = () => {
 
   const fetchPosts = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('news_posts')
         .select('*')
         .order('created_at', { ascending: false });
@@ -132,7 +132,7 @@ const Admin = () => {
     try {
       if (editingPost) {
         // Update existing post
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('news_posts')
           .update({
             title: formData.title,
@@ -146,7 +146,7 @@ const Admin = () => {
         toast.success('소식이 수정되었습니다.');
       } else {
         // Create new post
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('news_posts')
           .insert({
             title: formData.title,
@@ -185,7 +185,7 @@ const Admin = () => {
     if (!confirm('정말 삭제하시겠습니까?')) return;
     
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('news_posts')
         .delete()
         .eq('id', postId);
@@ -204,7 +204,7 @@ const Admin = () => {
     setUsersLoading(true);
     try {
       // Fetch user profiles
-      const { data: profilesData, error: profilesError } = await supabase
+      const { data: profilesData, error: profilesError } = await (supabase as any)
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
@@ -212,7 +212,7 @@ const Admin = () => {
       if (profilesError) throw profilesError;
 
       // Fetch user roles
-      const { data: rolesData, error: rolesError } = await supabase
+      const { data: rolesData, error: rolesError } = await (supabase as any)
         .from('user_roles')
         .select('user_id, role');
 
@@ -242,7 +242,7 @@ const Admin = () => {
     try {
       if (newRole === 'user') {
         // Remove admin role
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('user_roles')
           .delete()
           .eq('user_id', userId)
@@ -251,7 +251,7 @@ const Admin = () => {
         if (error) throw error;
       } else {
         // Add admin role
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('user_roles')
           .upsert({ 
             user_id: userId, 

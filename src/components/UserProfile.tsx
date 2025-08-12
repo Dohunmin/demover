@@ -47,11 +47,11 @@ const UserProfile = () => {
     console.log('Fetching profile for user:', user.id);
     
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+    const { data, error } = await (supabase as any)
+      .from('profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
 
       console.log('Profile fetch result:', { data, error });
 
@@ -157,7 +157,7 @@ const UserProfile = () => {
       };
 
       // Check if profile exists
-      const { data: existingProfile } = await supabase
+      const { data: existingProfile } = await (supabase as any)
         .from('profiles')
         .select('id')
         .eq('user_id', user.id)
@@ -166,13 +166,13 @@ const UserProfile = () => {
       let result;
       if (existingProfile) {
         // Update existing profile
-        result = await supabase
+        result = await (supabase as any)
           .from('profiles')
           .update(saveData)
           .eq('user_id', user.id);
       } else {
         // Create new profile
-        result = await supabase
+        result = await (supabase as any)
           .from('profiles')
           .insert({
             ...saveData,

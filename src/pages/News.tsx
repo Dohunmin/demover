@@ -35,7 +35,7 @@ const News = () => {
     if (!user) return;
     
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
@@ -50,7 +50,7 @@ const News = () => {
 
   const fetchPosts = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('news_posts')
         .select('*')
         .order('created_at', { ascending: false });
