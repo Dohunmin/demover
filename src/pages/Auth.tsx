@@ -26,6 +26,22 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Handle auth state changes and password reset
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          setIsNewPasswordMode(true);
+          setIsPasswordReset(false);
+          setIsSignUp(false);
+        } else if (event === 'SIGNED_IN' && session) {
+          // If user just signed in after password reset, redirect to home
+          if (isNewPasswordMode) {
+            navigate("/");
+          }
+        }
+      }
+    );
+
     // Check URL parameters for password reset
     const urlParams = new URLSearchParams(window.location.search);
     const resetParam = urlParams.get('reset');
@@ -50,7 +66,9 @@ const Auth = () => {
       };
       checkUser();
     }
-  }, [navigate]);
+
+    return () => subscription.unsubscribe();
+  }, [navigate, isNewPasswordMode]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,24 +150,12 @@ const Auth = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth?reset=true`,
+        redirectTo: `${window.location.origin}/auth`,
       });
 
       if (error) {
         toast.error(error.message);
       } else {
-        // Send custom email through our edge function
-        const response = await supabase.functions.invoke('send-password-reset', {
-          body: {
-            email,
-            resetUrl: `${window.location.origin}/auth?reset=true&email=${encodeURIComponent(email)}`
-          }
-        });
-
-        if (response.error) {
-          console.error('Edge function error:', response.error);
-        }
-
         toast.success("비밀번호 재설정 이메일을 발송했습니다. 이메일을 확인해주세요.");
         setIsPasswordReset(false);
       }
@@ -176,6 +182,16 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      // Check if user has a valid session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast.error("세션이 만료되었습니다. 비밀번호 재설정을 다시 요청해주세요.");
+        setIsNewPasswordMode(false);
+        setLoading(false);
+        return;
+      }
+
       const { error } = await supabase.auth.updateUser({
         password: newPassword
       });
@@ -183,7 +199,7 @@ const Auth = () => {
       if (error) {
         toast.error(error.message);
       } else {
-        toast.success("비밀번호가 성공적으로 변경되었습니다. 새 비밀번호로 로그인해주세요.");
+        toast.success("비밀번호가 성공적으로 변경되었습니다!");
         // Clear URL parameters and reset to login mode
         window.history.replaceState({}, document.title, "/auth");
         setIsNewPasswordMode(false);
@@ -192,6 +208,10 @@ const Auth = () => {
         setNewPassword("");
         setConfirmNewPassword("");
         setPassword("");
+        
+        // Sign out and redirect to login
+        await supabase.auth.signOut();
+        toast.info("새 비밀번호로 다시 로그인해주세요.");
       }
     } catch (error) {
       toast.error("비밀번호 변경에 실패했습니다. 다시 시도해주세요.");
