@@ -26,22 +26,42 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Handle auth state changes and password reset
+    // Check URL parameters FIRST for password reset
+    const urlParams = new URLSearchParams(window.location.search);
+    const typeParam = urlParams.get('type');
+    const tokenHashParam = urlParams.get('token_hash');
+    
+    // If this is a recovery URL, immediately set to password change mode
+    if (typeParam === 'recovery' && tokenHashParam) {
+      // Mark this as a forced password reset in localStorage
+      localStorage.setItem('forcePasswordReset', 'true');
+      setIsNewPasswordMode(true);
+      setIsPasswordReset(false);
+      setIsSignUp(false);
+      toast.info("보안을 위해 새 비밀번호를 설정해주세요.");
+      return; // Don't continue with other logic
+    }
+
+    // Check if we should force password reset from localStorage
+    if (localStorage.getItem('forcePasswordReset') === 'true') {
+      setIsNewPasswordMode(true);
+      setIsPasswordReset(false);
+      setIsSignUp(false);
+      return;
+    }
+
+    // Handle auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'PASSWORD_RECOVERY') {
-          // Force password change mode when recovery event is detected
+          localStorage.setItem('forcePasswordReset', 'true');
           setIsNewPasswordMode(true);
           setIsPasswordReset(false);
           setIsSignUp(false);
           toast.info("새 비밀번호를 설정해주세요.");
         } else if (event === 'SIGNED_IN' && session) {
-          // Check if this is a password recovery session by checking URL params
-          const urlParams = new URLSearchParams(window.location.search);
-          const typeParam = urlParams.get('type');
-          
-          if (typeParam === 'recovery' || isNewPasswordMode) {
-            // This is a recovery sign-in, force password change
+          // If we have forcePasswordReset flag, don't redirect to home
+          if (localStorage.getItem('forcePasswordReset') === 'true') {
             setIsNewPasswordMode(true);
             setIsPasswordReset(false);
             setIsSignUp(false);
@@ -54,31 +74,20 @@ const Auth = () => {
       }
     );
 
-    // Check URL parameters for password reset  
-    const urlParams = new URLSearchParams(window.location.search);
-    const resetParam = urlParams.get('reset');
-    const typeParam = urlParams.get('type');
-    
-    // Check if this is a recovery URL from email
-    if (typeParam === 'recovery' || resetParam === 'true') {
-      setIsNewPasswordMode(true);
-      setIsPasswordReset(false);
-      setIsSignUp(false);
-    }
-
     // Check if user is already logged in (but not during password reset)
-    if (!resetParam && typeParam !== 'recovery') {
-      const checkUser = async () => {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session && !isNewPasswordMode) {
-          navigate("/");
-        }
-      };
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session && localStorage.getItem('forcePasswordReset') !== 'true') {
+        navigate("/");
+      }
+    };
+    
+    if (typeParam !== 'recovery') {
       checkUser();
     }
 
     return () => subscription.unsubscribe();
-  }, [navigate, isNewPasswordMode]);
+  }, [navigate]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -209,6 +218,9 @@ const Auth = () => {
       if (error) {
         toast.error(error.message);
       } else {
+        // Clear the forced password reset flag
+        localStorage.removeItem('forcePasswordReset');
+        
         toast.success("비밀번호가 성공적으로 변경되었습니다!");
         // Clear URL parameters and reset to login mode
         window.history.replaceState({}, document.title, "/auth");
