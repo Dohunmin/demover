@@ -178,18 +178,8 @@ const UserProfile = () => {
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between pr-8">
+          <DialogTitle>
             프로필 정보
-            {!isEditMode && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleEdit}
-                className="h-8 w-8 p-0 hover:bg-gray-100"
-              >
-                <Edit className="w-4 h-4" />
-              </Button>
-            )}
           </DialogTitle>
         </DialogHeader>
         
@@ -222,6 +212,17 @@ const UserProfile = () => {
                 </label>
               )}
             </div>
+            {!isEditMode && (
+              <Button
+                variant="outline"
+                size="default"
+                onClick={handleEdit}
+                className="px-4 py-2 h-10"
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                프로필 수정
+              </Button>
+            )}
           </div>
 
           {/* Profile Information */}
@@ -285,7 +286,7 @@ const UserProfile = () => {
                   <Button 
                     onClick={handleSave} 
                     disabled={loading}
-                    className="flex-1"
+                    className="flex-1 h-11"
                   >
                     <Save className="w-4 h-4 mr-2" />
                     {loading ? '저장 중...' : '저장'}
@@ -293,7 +294,7 @@ const UserProfile = () => {
                   <Button 
                     variant="outline" 
                     onClick={handleCancel}
-                    className="flex-1"
+                    className="flex-1 h-11"
                   >
                     <X className="w-4 h-4 mr-2" />
                     취소
