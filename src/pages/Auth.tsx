@@ -146,6 +146,18 @@ const Auth = () => {
     setLoading(true);
     
     try {
+      // First upload image if provided to get the URL
+      let imageUrl = null;
+      if (petImage) {
+        console.log('Uploading pet image before signup...');
+        // Create a temporary user ID for upload (we'll use email hash)
+        const tempId = btoa(email).replace(/[^a-zA-Z0-9]/g, '');
+        imageUrl = await uploadPetImage(tempId);
+        if (imageUrl) {
+          console.log('Image uploaded successfully:', imageUrl);
+        }
+      }
+
       const redirectUrl = `${window.location.origin}/`;
       
       const { data, error } = await supabase.auth.signUp({
@@ -157,7 +169,8 @@ const Auth = () => {
             pet_name: petName,
             pet_age: petAge ? parseInt(petAge) : null,
             pet_gender: petGender,
-            pet_breed: petBreed
+            pet_breed: petBreed,
+            pet_image_url: imageUrl // Include image URL in signup data
           }
         }
       });
@@ -166,41 +179,47 @@ const Auth = () => {
         throw error;
       }
 
-      // Upload image first if provided
-      let imageUrl = null;
-      if (data.user && petImage) {
-        console.log('Uploading pet image...');
-        imageUrl = await uploadPetImage(data.user.id);
-        if (imageUrl) {
-          console.log('Image uploaded successfully:', imageUrl);
-        }
-      }
-
-      // If we have an image, we need to ensure the profile gets updated with it
-      if (data.user && imageUrl) {
-        // Wait a bit longer for the trigger to create the profile
-        await new Promise(resolve => setTimeout(resolve, 3000));
+      // If we uploaded with temp ID and user was created, move the image to proper location
+      if (data.user && imageUrl && petImage) {
+        console.log('Moving image to proper user location...');
+        const tempId = btoa(email).replace(/[^a-zA-Z0-9]/g, '');
+        const fileExt = petImage.name.split('.').pop();
+        const tempFileName = `${tempId}/${Date.now()}.${fileExt}`;
+        const newFileName = `${data.user.id}/${Date.now()}.${fileExt}`;
         
-        console.log('Updating profile with image URL...');
-        // Try multiple times to update the profile
-        let updateAttempts = 0;
-        const maxAttempts = 5;
-        
-        while (updateAttempts < maxAttempts) {
-          const { error: updateError } = await (supabase as any)
-            .from('profiles')
-            .update({ pet_image_url: imageUrl })
-            .eq('user_id', data.user.id);
+        // Copy file to new location
+        const { data: downloadData } = await supabase.storage
+          .from('pet-profiles')
+          .download(tempFileName);
           
-          if (!updateError) {
-            console.log('Profile updated with image successfully');
-            break;
-          } else {
-            console.error(`Profile update attempt ${updateAttempts + 1} failed:`, updateError);
-            updateAttempts++;
-            if (updateAttempts < maxAttempts) {
-              await new Promise(resolve => setTimeout(resolve, 1000));
-            }
+        if (downloadData) {
+          const { error: uploadError } = await supabase.storage
+            .from('pet-profiles')
+            .upload(newFileName, downloadData, { upsert: true });
+          
+          if (!uploadError) {
+            // Get new public URL
+            const { data: urlData } = supabase.storage
+              .from('pet-profiles')
+              .getPublicUrl(newFileName);
+            
+            // Delete temp file
+            await supabase.storage
+              .from('pet-profiles')
+              .remove([tempFileName]);
+              
+            // Update the user metadata with new URL
+            await supabase.auth.updateUser({
+              data: {
+                pet_name: petName,
+                pet_age: petAge ? parseInt(petAge) : null,
+                pet_gender: petGender,
+                pet_breed: petBreed,
+                pet_image_url: urlData.publicUrl
+              }
+            });
+            
+            console.log('Image moved to proper location:', urlData.publicUrl);
           }
         }
       }
