@@ -4,8 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PawPrint, Mail, Lock, User, ArrowLeft, Heart, ImageIcon } from "lucide-react";
+import { PawPrint, Mail, Lock, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -18,12 +17,6 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
-  const [petName, setPetName] = useState("");
-  const [petAge, setPetAge] = useState("");
-  const [petGender, setPetGender] = useState("");
-  const [petBreed, setPetBreed] = useState("");
-  const [petImage, setPetImage] = useState<File | null>(null);
-  const [petImagePreview, setPetImagePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -69,37 +62,6 @@ const Auth = () => {
             setIsSignUp(false);
             toast.info("보안을 위해 새 비밀번호를 설정해주세요.");
           } else {
-            // Check if there's a pending profile to create
-            const pendingProfile = localStorage.getItem('pendingProfile');
-            if (pendingProfile) {
-              try {
-                const profileData = JSON.parse(pendingProfile);
-                // Create profile after successful email confirmation
-                setTimeout(async () => {
-                  try {
-                    const { error: profileError } = await (supabase as any)
-                      .from('profiles')
-                      .insert(profileData);
-                    
-                    if (profileError) {
-                      console.error('Profile creation error:', profileError);
-                      toast.error("프로필 생성에 실패했습니다. 프로필에서 정보를 다시 입력해주세요.");
-                    } else {
-                      console.log('Profile created successfully after email confirmation');
-                      toast.success("프로필이 성공적으로 생성되었습니다!");
-                    }
-                    
-                    localStorage.removeItem('pendingProfile');
-                  } catch (error) {
-                    console.error('Profile creation failed:', error);
-                    localStorage.removeItem('pendingProfile');
-                  }
-                }, 1000);
-              } catch (error) {
-                console.error('Error parsing pending profile:', error);
-                localStorage.removeItem('pendingProfile');
-              }
-            }
             // Normal login, redirect to home
             navigate("/");
           }
@@ -122,44 +84,6 @@ const Auth = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setPetImage(file);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setPetImagePreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const uploadPetImage = async (userId: string): Promise<string | null> => {
-    if (!petImage) return null;
-
-    try {
-      const fileExt = petImage.name.split('.').pop();
-      const fileName = `${userId}/${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('pet-profiles')
-        .upload(fileName, petImage, { upsert: true });
-
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        return null;
-      }
-
-      const { data } = supabase.storage
-        .from('pet-profiles')
-        .getPublicUrl(fileName);
-
-      return data.publicUrl;
-    } catch (error) {
-      console.error('Image upload failed:', error);
-      return null;
-    }
-  };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -179,7 +103,6 @@ const Auth = () => {
     try {
       const redirectUrl = `${window.location.origin}/`;
       
-      // Step 1: Sign up the user first
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -194,31 +117,6 @@ const Auth = () => {
 
       if (!data.user) {
         throw new Error("사용자 생성에 실패했습니다.");
-      }
-
-      console.log('User created:', data.user.id);
-
-      // Step 2: Upload image if provided
-      let imageUrl = null;
-      if (petImage) {
-        console.log('Uploading pet image...');
-        imageUrl = await uploadPetImage(data.user.id);
-        if (imageUrl) {
-          console.log('Image uploaded successfully:', imageUrl);
-        }
-      }
-
-      // Store pet info in localStorage temporarily for profile creation after email confirmation
-      if (petName || petAge || petGender || petBreed || imageUrl) {
-        const petInfo = {
-          pet_name: petName || null,
-          pet_age: petAge ? parseInt(petAge) : null,
-          pet_gender: petGender || null,
-          pet_breed: petBreed || null,
-          pet_image_url: imageUrl,
-          user_id: data.user.id
-        };
-        localStorage.setItem('pendingProfile', JSON.stringify(petInfo));
       }
 
       toast.success("회원가입이 완료되었습니다! 이메일을 확인해주세요.");
@@ -349,12 +247,6 @@ const Auth = () => {
     setConfirmPassword("");
     setNewPassword("");
     setConfirmNewPassword("");
-    setPetName("");
-    setPetAge("");
-    setPetGender("");
-    setPetBreed("");
-    setPetImage(null);
-    setPetImagePreview(null);
   };
 
   const toggleMode = () => {
@@ -487,138 +379,23 @@ const Auth = () => {
               )}
 
               {isSignUp && !isNewPasswordMode && (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
-                      비밀번호 확인
-                    </Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="confirmPassword"
-                        type="password"
-                        placeholder="비밀번호를 다시 입력하세요"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="pl-10"
-                        required
-                      />
-                    </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
+                    비밀번호 확인
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      placeholder="비밀번호를 다시 입력하세요"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
                   </div>
-
-                  {/* Pet Information Section */}
-                  <div className="border-t pt-4 mt-6">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Heart className="w-4 h-4 text-pink-500" />
-                      <Label className="text-sm font-medium text-gray-700">반려견 정보</Label>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <div className="space-y-2">
-                        <Label htmlFor="petName" className="text-sm font-medium text-gray-700">
-                          반려견 이름
-                        </Label>
-                        <div className="relative">
-                          <PawPrint className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                          <Input
-                            id="petName"
-                            type="text"
-                            placeholder="반려견 이름을 입력하세요"
-                            value={petName}
-                            onChange={(e) => setPetName(e.target.value)}
-                            className="pl-10"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-2">
-                          <Label htmlFor="petAge" className="text-sm font-medium text-gray-700">
-                            나이
-                          </Label>
-                          <Input
-                            id="petAge"
-                            type="number"
-                            placeholder="나이"
-                            value={petAge}
-                            onChange={(e) => setPetAge(e.target.value)}
-                            min="0"
-                            max="30"
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="petGender" className="text-sm font-medium text-gray-700">
-                            성별
-                          </Label>
-                          <Select value={petGender} onValueChange={setPetGender}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="성별" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="male">남아</SelectItem>
-                              <SelectItem value="female">여아</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                       <div className="space-y-2">
-                         <Label htmlFor="petBreed" className="text-sm font-medium text-gray-700">
-                           견종
-                         </Label>
-                         <Input
-                           id="petBreed"
-                           type="text"
-                           placeholder="견종을 입력하세요 (예: 골든리트리버)"
-                           value={petBreed}
-                           onChange={(e) => setPetBreed(e.target.value)}
-                         />
-                       </div>
-
-                       <div className="space-y-2">
-                         <Label className="text-sm font-medium text-gray-700">
-                           반려견 사진
-                         </Label>
-                         <div className="flex flex-col items-center gap-3">
-                           {petImagePreview ? (
-                             <div className="relative">
-                               <img
-                                 src={petImagePreview}
-                                 alt="반려견 미리보기"
-                                 className="w-20 h-20 rounded-full object-cover border-2 border-primary/20"
-                               />
-                               <Button
-                                 type="button"
-                                 variant="outline"
-                                 size="sm"
-                                 onClick={() => {
-                                   setPetImage(null);
-                                   setPetImagePreview(null);
-                                 }}
-                                 className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
-                               >
-                                 ×
-                               </Button>
-                             </div>
-                           ) : (
-                             <div className="w-20 h-20 rounded-full bg-secondary/20 flex items-center justify-center border-2 border-dashed border-secondary/40">
-                               <ImageIcon className="w-8 h-8 text-secondary/60" />
-                             </div>
-                           )}
-                           <div className="w-full">
-                             <Input
-                               type="file"
-                               accept="image/*"
-                               onChange={handleImageChange}
-                               className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
-                             />
-                           </div>
-                         </div>
-                       </div>
-                    </div>
-                  </div>
-                </>
+                </div>
               )}
 
               <Button
