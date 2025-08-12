@@ -114,27 +114,50 @@ const UserProfile = () => {
         }
       }
 
-      const updateData = {
-        ...editData,
-        pet_image_url: imageUrl,
+      const saveData = {
+        user_id: user.id,
+        pet_name: editData.pet_name || null,
+        pet_age: editData.pet_age || null,
+        pet_gender: editData.pet_gender || null,
+        pet_breed: editData.pet_breed || null,
+        pet_image_url: imageUrl || null,
         updated_at: new Date().toISOString()
       };
 
-      const { error } = await supabase
+      // Check if profile exists
+      const { data: existingProfile } = await supabase
         .from('profiles')
-        .update(updateData)
-        .eq('user_id', user.id);
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
 
-      if (error) throw error;
+      let result;
+      if (existingProfile) {
+        // Update existing profile
+        result = await supabase
+          .from('profiles')
+          .update(saveData)
+          .eq('user_id', user.id);
+      } else {
+        // Create new profile
+        result = await supabase
+          .from('profiles')
+          .insert({
+            ...saveData,
+            created_at: new Date().toISOString()
+          });
+      }
 
-      setProfile({ ...editData, pet_image_url: imageUrl });
+      if (result.error) throw result.error;
+
+      setProfile({ ...editData, pet_image_url: imageUrl, user_id: user.id });
       setIsEditMode(false);
       setImageFile(null);
       setImagePreview(null);
-      toast.success('프로필이 업데이트되었습니다.');
+      toast.success('프로필이 저장되었습니다.');
     } catch (error) {
-      console.error('Error updating profile:', error);
-      toast.error('프로필 업데이트에 실패했습니다.');
+      console.error('Error saving profile:', error);
+      toast.error('프로필 저장에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setLoading(false);
     }
