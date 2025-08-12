@@ -96,7 +96,7 @@ const UserProfile = () => {
       
       console.log('File path:', fileName);
       
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError } = await (supabase as any).storage
         .from('pet-profiles')
         .upload(fileName, file);
 
@@ -105,7 +105,7 @@ const UserProfile = () => {
         throw uploadError;
       }
 
-      const { data } = supabase.storage
+      const { data } = (supabase as any).storage
         .from('pet-profiles')
         .getPublicUrl(fileName);
 
@@ -134,17 +134,16 @@ const UserProfile = () => {
     try {
       let imageUrl = editData.pet_image_url;
 
-      // Skip image upload for now to test basic functionality
-      console.log('Skipping image upload for testing...');
-      /*
       // Upload new image if selected
       if (imageFile) {
         const uploadedUrl = await uploadImage(imageFile);
         if (uploadedUrl) {
           imageUrl = uploadedUrl;
+        } else {
+          // If image upload fails, don't save the profile
+          return;
         }
       }
-      */
 
       const saveData = {
         user_id: user.id,
