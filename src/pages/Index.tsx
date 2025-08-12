@@ -178,15 +178,15 @@ const Index = () => {
           </div>
 
           {/* Enhanced Profile Section */}
-          <div className="flex items-center justify-between space-x-4 mb-4">
-            <div className="flex-1">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="flex-1 min-w-0">
               <UserProfile />
             </div>
             <Button 
               variant="outline" 
               size="sm" 
               onClick={handleSignOut}
-              className="bg-white/10 border-white/30 text-white hover:bg-white hover:text-blue-700 backdrop-blur-sm font-medium"
+              className="bg-white/10 border-white/30 text-white hover:bg-white hover:text-blue-700 backdrop-blur-sm font-medium flex-shrink-0"
             >
               <LogOut className="w-4 h-4 mr-1" />
               로그아웃

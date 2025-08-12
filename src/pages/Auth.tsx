@@ -176,21 +176,32 @@ const Auth = () => {
         }
       }
 
-      // Wait for trigger to create profile, then update with image if available
+      // If we have an image, we need to ensure the profile gets updated with it
       if (data.user && imageUrl) {
-        // Wait for the trigger to create the profile
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Wait a bit longer for the trigger to create the profile
+        await new Promise(resolve => setTimeout(resolve, 3000));
         
         console.log('Updating profile with image URL...');
-        const { error: updateError } = await (supabase as any)
-          .from('profiles')
-          .update({ pet_image_url: imageUrl })
-          .eq('user_id', data.user.id);
+        // Try multiple times to update the profile
+        let updateAttempts = 0;
+        const maxAttempts = 5;
         
-        if (updateError) {
-          console.error('Profile update error:', updateError);
-        } else {
-          console.log('Profile updated with image successfully');
+        while (updateAttempts < maxAttempts) {
+          const { error: updateError } = await (supabase as any)
+            .from('profiles')
+            .update({ pet_image_url: imageUrl })
+            .eq('user_id', data.user.id);
+          
+          if (!updateError) {
+            console.log('Profile updated with image successfully');
+            break;
+          } else {
+            console.error(`Profile update attempt ${updateAttempts + 1} failed:`, updateError);
+            updateAttempts++;
+            if (updateAttempts < maxAttempts) {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+          }
         }
       }
 
