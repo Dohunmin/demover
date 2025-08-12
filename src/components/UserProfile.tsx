@@ -30,6 +30,7 @@ const UserProfile = () => {
   const [editData, setEditData] = useState<Profile>({});
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -196,7 +197,10 @@ const UserProfile = () => {
           {/* Profile Image Section */}
           <div className="flex flex-col items-center space-y-3">
             <div className="relative">
-              <Avatar className="w-24 h-24">
+              <Avatar 
+                className="w-24 h-24 cursor-pointer transition-transform hover:scale-105" 
+                onClick={() => !isEditMode && (imagePreview || profile?.pet_image_url) && setIsImageDialogOpen(true)}
+              >
                 <AvatarImage 
                   src={imagePreview || profile?.pet_image_url} 
                   alt="반려견 프로필" 
@@ -329,6 +333,27 @@ const UserProfile = () => {
           </div>
         </div>
       </DialogContent>
+
+      {/* Image Enlargement Dialog */}
+      <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
+        <DialogContent className="max-w-2xl p-0 bg-transparent border-none">
+          <div className="relative">
+            <img
+              src={profile?.pet_image_url}
+              alt="반려견 프로필 확대"
+              className="w-full h-auto max-h-[80vh] object-contain rounded-lg"
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsImageDialogOpen(false)}
+              className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white rounded-full h-8 w-8 p-0"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 };
