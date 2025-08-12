@@ -134,6 +134,9 @@ const UserProfile = () => {
     try {
       let imageUrl = editData.pet_image_url;
 
+      // Skip image upload for now to test basic functionality
+      console.log('Skipping image upload for testing...');
+      /*
       // Upload new image if selected
       if (imageFile) {
         const uploadedUrl = await uploadImage(imageFile);
@@ -141,6 +144,7 @@ const UserProfile = () => {
           imageUrl = uploadedUrl;
         }
       }
+      */
 
       const saveData = {
         user_id: user.id,
