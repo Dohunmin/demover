@@ -88,53 +88,46 @@ serve(async (req) => {
       throw new Error(`Invalid JSON response (probably XML): ${responseText.substring(0, 200)}`)
     }
 
-      // 응답 데이터 가공
-      const items = data.response?.body?.items?.item || []
-      const processedData = Array.isArray(items) ? items.map((item: any) => ({
-        contentId: item.contentid,
-        title: item.title,
-        addr1: item.addr1 || '',
-        addr2: item.addr2 || '',
-        image: item.firstimage || item.firstimage2 || '',
-        tel: item.tel || '',
-        mapx: item.mapx || '',
-        mapy: item.mapy || '',
-        areacode: item.areacode || '',
-        sigungucode: item.sigungucode || ''
-      })) : [items].map((item: any) => ({
-        contentId: item.contentid,
-        title: item.title,
-        addr1: item.addr1 || '',
-        addr2: item.addr2 || '',
-        image: item.firstimage || item.firstimage2 || '',
-        tel: item.tel || '',
-        mapx: item.mapx || '',
-        mapy: item.mapy || '',
-        areacode: item.areacode || '',
-        sigungucode: item.sigungucode || ''
-      }))
+    // 응답 데이터 가공
+    const items = data.response?.body?.items?.item || []
+    const processedData = Array.isArray(items) ? items.map((item: any) => ({
+      contentId: item.contentid,
+      title: item.title,
+      addr1: item.addr1 || '',
+      addr2: item.addr2 || '',
+      image: item.firstimage || item.firstimage2 || '',
+      tel: item.tel || '',
+      mapx: item.mapx || '',
+      mapy: item.mapy || '',
+      areacode: item.areacode || '',
+      sigungucode: item.sigungucode || ''
+    })) : [items].map((item: any) => ({
+      contentId: item.contentid,
+      title: item.title,
+      addr1: item.addr1 || '',
+      addr2: item.addr2 || '',
+      image: item.firstimage || item.firstimage2 || '',
+      tel: item.tel || '',
+      mapx: item.mapx || '',
+      mapy: item.mapy || '',
+      areacode: item.areacode || '',
+      sigungucode: item.sigungucode || ''
+    }))
 
-      const result = {
-        pageNo: parseInt(pageNo),
-        numOfRows: parseInt(numOfRows),
-        totalCount: data.response?.body?.totalCount || 0,
-        data: processedData
-      }
-
-      return new Response(
-        JSON.stringify(result),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        },
-      )
-    } catch (fetchError) {
-      console.error('Fetch error details:', fetchError)
-      console.error('Error name:', fetchError.name)
-      console.error('Error message:', fetchError.message)
-      console.error('Error stack:', fetchError.stack)
-      throw fetchError
+    const result = {
+      pageNo: parseInt(pageNo),
+      numOfRows: parseInt(numOfRows),
+      totalCount: data.response?.body?.totalCount || 0,
+      data: processedData
     }
+
+    return new Response(
+      JSON.stringify(result),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      },
+    )
   } catch (error) {
     console.error('Korea Tour API Error:', error)
     return new Response(
