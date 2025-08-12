@@ -39,8 +39,13 @@ const UserProfile = () => {
   }, [user]);
 
   const fetchProfile = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('No user - skipping profile fetch');
+      return;
+    }
 
+    console.log('Fetching profile for user:', user.id);
+    
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -48,13 +53,20 @@ const UserProfile = () => {
         .eq('user_id', user.id)
         .single();
 
+      console.log('Profile fetch result:', { data, error });
+
       if (error) {
         console.error('프로필 로드 에러:', error);
+        if (error.code !== 'PGRST116') { // PGRST116 is "not found" which is expected for new users
+          toast.error(`프로필 로드 실패: ${error.message}`);
+        }
       } else {
         setProfile(data as Profile);
+        console.log('Profile loaded successfully:', data);
       }
     } catch (error) {
       console.error('프로필 로드 실패:', error);
+      toast.error('프로필 로드 중 오류가 발생했습니다.');
     }
   };
 
@@ -107,7 +119,16 @@ const UserProfile = () => {
   };
 
   const handleSave = async () => {
-    if (!user) return;
+    if (!user) {
+      console.error('No user found!');
+      toast.error('로그인이 필요합니다.');
+      return;
+    }
+    
+    console.log('Current user:', user);
+    console.log('User ID:', user.id);
+    console.log('User email:', user.email);
+    
     setLoading(true);
 
     try {
