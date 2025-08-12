@@ -225,12 +225,16 @@ const UserProfile = () => {
                 <User className="w-6 h-6" />
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1 text-left">
-              <div className="text-white font-semibold text-base">
+            <div className="flex-1 text-left min-w-0">
+              <div className="text-white font-semibold text-base truncate">
                 {profile?.pet_name || '프로필 설정'}
               </div>
-              <div className="text-blue-100 text-sm">
-                {user?.email || '이메일 정보 없음'}
+              <div className="text-blue-100 text-sm truncate">
+                {user?.email ? (
+                  user.email.length > 25 ? 
+                    `${user.email.substring(0, 22)}...` : 
+                    user.email
+                ) : '이메일 정보 없음'}
               </div>
             </div>
             <div className="text-white/70">

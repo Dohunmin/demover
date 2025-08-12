@@ -106,23 +106,28 @@ const Auth = () => {
   const uploadPetImage = async (userId: string): Promise<string | null> => {
     if (!petImage) return null;
 
-    const fileExt = petImage.name.split('.').pop();
-    const fileName = `${userId}/profile.${fileExt}`;
+    try {
+      const fileExt = petImage.name.split('.').pop();
+      const fileName = `${userId}/${Date.now()}.${fileExt}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from('pet-profiles')
-      .upload(fileName, petImage, { upsert: true });
+      const { error: uploadError } = await supabase.storage
+        .from('pet-profiles')
+        .upload(fileName, petImage, { upsert: true });
 
-    if (uploadError) {
-      console.error('Upload error:', uploadError);
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        return null;
+      }
+
+      const { data } = supabase.storage
+        .from('pet-profiles')
+        .getPublicUrl(fileName);
+
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Image upload failed:', error);
       return null;
     }
-
-    const { data } = supabase.storage
-      .from('pet-profiles')
-      .getPublicUrl(fileName);
-
-    return data.publicUrl;
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -161,37 +166,31 @@ const Auth = () => {
         throw error;
       }
 
-      // Upload image if provided and user was created
+      // Upload image first if provided
+      let imageUrl = null;
       if (data.user && petImage) {
-        // Wait a moment for the trigger to create the profile
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const imageUrl = await uploadPetImage(data.user.id);
+        console.log('Uploading pet image...');
+        imageUrl = await uploadPetImage(data.user.id);
         if (imageUrl) {
-          // Update the profile with the image URL
-          const { error: updateError } = await (supabase as any)
-            .from('profiles')
-            .update({ pet_image_url: imageUrl })
-            .eq('user_id', data.user.id);
-          
-          if (updateError) {
-            console.error('Profile update error:', updateError);
-            // Try to insert if update failed (fallback)
-            const { error: insertError } = await (supabase as any)
-              .from('profiles')
-              .insert({
-                user_id: data.user.id,
-                pet_name: petName,
-                pet_age: petAge ? parseInt(petAge) : null,
-                pet_gender: petGender,
-                pet_breed: petBreed,
-                pet_image_url: imageUrl
-              });
-            
-            if (insertError) {
-              console.error('Profile insert error:', insertError);
-            }
-          }
+          console.log('Image uploaded successfully:', imageUrl);
+        }
+      }
+
+      // Wait for trigger to create profile, then update with image if available
+      if (data.user && imageUrl) {
+        // Wait for the trigger to create the profile
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        console.log('Updating profile with image URL...');
+        const { error: updateError } = await (supabase as any)
+          .from('profiles')
+          .update({ pet_image_url: imageUrl })
+          .eq('user_id', data.user.id);
+        
+        if (updateError) {
+          console.error('Profile update error:', updateError);
+        } else {
+          console.log('Profile updated with image successfully');
         }
       }
 
