@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Edit, Trash2, Calendar, Tag, Users, UserPlus, Shield, User, X } from "lucide-react";
+import { ArrowLeft, Plus, Edit, Trash2, Calendar, Tag, Users, UserPlus, Shield, User, X, Camera, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ interface NewsPost {
   created_at: string;
   updated_at: string;
   author_id: string;
+  image_url?: string | null;
 }
 
 interface UserProfile {
@@ -58,6 +59,8 @@ const Admin = () => {
     content: '',
     category: 'event' as 'event' | 'sale'
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (!currentUser) {
@@ -124,12 +127,56 @@ const Admin = () => {
     }
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadImage = async (file: File): Promise<string | null> => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await (supabase as any).storage
+        .from('news-images')
+        .upload(fileName, file);
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
+
+      const { data } = (supabase as any).storage
+        .from('news-images')
+        .getPublicUrl(fileName);
+
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error(`이미지 업로드 실패: ${error.message || 'Unknown error'}`);
+      return null;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!currentUser) return;
     
     try {
+      let imageUrl = null;
+
+      // Upload image if selected
+      if (imageFile) {
+        imageUrl = await uploadImage(imageFile);
+      }
       if (editingPost) {
         // Update existing post
         const { error } = await (supabase as any)
@@ -138,6 +185,7 @@ const Admin = () => {
             title: formData.title,
             content: formData.content,
             category: formData.category,
+            image_url: imageUrl || editingPost.image_url,
             updated_at: new Date().toISOString()
           })
           .eq('id', editingPost.id);
@@ -152,7 +200,8 @@ const Admin = () => {
             title: formData.title,
             content: formData.content,
             category: formData.category,
-            author_id: currentUser.id
+            author_id: currentUser.id,
+            image_url: imageUrl
           });
 
         if (error) throw error;
@@ -162,6 +211,8 @@ const Admin = () => {
       // Reset form and close dialog
       setFormData({ title: '', content: '', category: 'event' });
       setEditingPost(null);
+      setImageFile(null);
+      setImagePreview(null);
       setIsDialogOpen(false);
       fetchPosts();
       
@@ -178,6 +229,8 @@ const Admin = () => {
       content: post.content,
       category: post.category
     });
+    setImagePreview(post.image_url || null);
+    setImageFile(null);
     setIsDialogOpen(true);
   };
 
@@ -274,6 +327,8 @@ const Admin = () => {
   const resetForm = () => {
     setFormData({ title: '', content: '', category: 'event' });
     setEditingPost(null);
+    setImageFile(null);
+    setImagePreview(null);
   };
 
   if (loading) {
@@ -375,6 +430,48 @@ const Admin = () => {
                         </SelectContent>
                       </Select>
                     </div>
+
+                    {/* Image Upload Section */}
+                    <div className="space-y-2">
+                      <Label>이미지</Label>
+                      <div className="flex items-center space-x-4">
+                        <label className="flex items-center justify-center w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-gray-400 transition-colors">
+                          {imagePreview ? (
+                            <img 
+                              src={imagePreview} 
+                              alt="Preview" 
+                              className="w-full h-full object-cover rounded-lg"
+                            />
+                          ) : (
+                            <div className="text-center">
+                              <Camera className="w-6 h-6 mx-auto text-gray-400 mb-1" />
+                              <span className="text-xs text-gray-500">이미지</span>
+                            </div>
+                          )}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="hidden"
+                          />
+                        </label>
+                        {imagePreview && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setImageFile(null);
+                              setImagePreview(null);
+                            }}
+                          >
+                            <X className="w-4 h-4 mr-1" />
+                            제거
+                          </Button>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500">JPG, PNG, WebP 파일을 업로드하세요</p>
+                    </div>
                     
                     <div className="space-y-2">
                       <Label htmlFor="title">제목</Label>
@@ -451,11 +548,24 @@ const Admin = () => {
                     </div>
                   </div>
                   
-                  <h3 className="font-semibold text-gray-900 mb-2">{post.title}</h3>
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">{post.content}</p>
-                  
-                  <div className="text-xs text-gray-400">
-                    {new Date(post.created_at).toLocaleDateString('ko-KR')}
+                  <div className="flex space-x-3">
+                    {post.image_url && (
+                      <div className="flex-shrink-0">
+                        <img 
+                          src={post.image_url} 
+                          alt={post.title}
+                          className="w-16 h-16 object-cover rounded-lg"
+                        />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 mb-2">{post.title}</h3>
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{post.content}</p>
+                      
+                      <div className="text-xs text-gray-400">
+                        {new Date(post.created_at).toLocaleDateString('ko-KR')}
+                      </div>
+                    </div>
                   </div>
                 </Card>
               ))}

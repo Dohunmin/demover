@@ -13,6 +13,7 @@ interface NewsPost {
   content: string;
   category: 'event' | 'sale';
   created_at: string;
+  image_url?: string | null;
 }
 
 const News = () => {
@@ -147,6 +148,15 @@ const News = () => {
                   key={event.id}
                   className="flex items-start p-3 bg-gray-50 rounded-xl hover:bg-blue-50 transition-colors cursor-pointer"
                 >
+                  {event.image_url && (
+                    <div className="flex-shrink-0 mr-3">
+                      <img 
+                        src={event.image_url} 
+                        alt={event.title}
+                        className="w-12 h-12 object-cover rounded-lg"
+                      />
+                    </div>
+                  )}
                   <div className="w-2 h-2 bg-blue-500 rounded-full mr-3 flex-shrink-0 mt-2"></div>
                   <div className="flex-1">
                     <span className="text-sm text-gray-700 font-medium block">{event.title}</span>
@@ -196,6 +206,15 @@ const News = () => {
                   key={sale.id}
                   className="flex items-start p-3 bg-gray-50 rounded-xl hover:bg-red-50 transition-colors cursor-pointer"
                 >
+                  {sale.image_url && (
+                    <div className="flex-shrink-0 mr-3">
+                      <img 
+                        src={sale.image_url} 
+                        alt={sale.title}
+                        className="w-12 h-12 object-cover rounded-lg"
+                      />
+                    </div>
+                  )}
                   <div className="w-2 h-2 bg-red-500 rounded-full mr-3 flex-shrink-0 mt-2"></div>
                   <div className="flex-1">
                     <span className="text-sm text-gray-700 font-medium block">{sale.title}</span>
