@@ -256,11 +256,15 @@ const Admin = () => {
   const fetchUsers = async () => {
     setUsersLoading(true);
     try {
+      // Fetch all users from auth
+      const { data: { users: authUsers }, error: authError } = await (supabase as any).auth.admin.listUsers();
+      
+      if (authError) throw authError;
+
       // Fetch user profiles
       const { data: profilesData, error: profilesError } = await (supabase as any)
         .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*');
 
       if (profilesError) throw profilesError;
 
@@ -271,16 +275,28 @@ const Admin = () => {
 
       if (rolesError) throw rolesError;
 
-      // Create user list with available data
-      const usersWithDetails = profilesData?.map(profile => {
-        const userRole = rolesData?.find(r => r.user_id === profile.user_id);
+      // Create user list combining auth users with profiles
+      const usersWithDetails = authUsers?.map(authUser => {
+        const userProfile = profilesData?.find(p => p.user_id === authUser.id);
+        const userRole = rolesData?.find(r => r.user_id === authUser.id);
         
         return {
-          ...profile,
-          email: '회원 정보', // Auth 데이터는 보안상 숨김
+          id: userProfile?.id || null,
+          user_id: authUser.id,
+          pet_name: userProfile?.pet_name || '프로필 미등록',
+          pet_age: userProfile?.pet_age || null,
+          pet_gender: userProfile?.pet_gender || null,
+          pet_breed: userProfile?.pet_breed || null,
+          pet_image_url: userProfile?.pet_image_url || null,
+          email: authUser.email,
+          created_at: userProfile?.created_at || authUser.created_at,
+          updated_at: userProfile?.updated_at || authUser.updated_at,
           role: userRole?.role || 'user'
         };
       }) || [];
+
+      // Sort by created_at descending
+      usersWithDetails.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
       setUsers(usersWithDetails);
     } catch (error) {
