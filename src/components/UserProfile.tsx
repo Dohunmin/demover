@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Camera, Edit, Save, X } from "lucide-react";
+import { User, Camera, Edit, Save, X, Trash2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -15,7 +16,7 @@ interface Profile {
   user_id?: string;
   pet_name?: string;
   pet_age?: number;
-  pet_gender?: string; // Allow any string from database
+  pet_gender?: string;
   pet_breed?: string;
   pet_image_url?: string;
   created_at?: string;
@@ -31,6 +32,9 @@ const UserProfile = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -195,6 +199,82 @@ const UserProfile = () => {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (!deletePassword.trim()) {
+      toast.error("비밀번호를 입력해주세요.");
+      return;
+    }
+
+    setIsDeleting(true);
+    
+    try {
+      // First verify the password
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user?.email || "",
+        password: deletePassword
+      });
+
+      if (signInError) {
+        toast.error("비밀번호가 올바르지 않습니다.");
+        setIsDeleting(false);
+        return;
+      }
+
+      // Delete profile first
+      if (profile?.id) {
+        const { error: profileError } = await (supabase as any)
+          .from('profiles')
+          .delete()
+          .eq('user_id', user?.id);
+
+        if (profileError) {
+          console.error('Profile deletion error:', profileError);
+        }
+      }
+
+      // Delete user roles
+      const { error: rolesError } = await (supabase as any)
+        .from('user_roles')
+        .delete()
+        .eq('user_id', user?.id);
+
+      if (rolesError) {
+        console.error('Roles deletion error:', rolesError);
+      }
+
+      // Delete storage files
+      if (profile?.pet_image_url) {
+        try {
+          const { error: storageError } = await (supabase as any).storage
+            .from('pet-profiles')
+            .remove([`${user?.id}/`]);
+          
+          if (storageError) {
+            console.error('Storage deletion error:', storageError);
+          }
+        } catch (error) {
+          console.error('Storage cleanup error:', error);
+        }
+      }
+
+      // Sign out the user
+      await supabase.auth.signOut();
+      
+      toast.success("회원 탈퇴가 완료되었습니다.");
+      
+      // Redirect to home or login page
+      window.location.href = '/auth';
+      
+    } catch (error) {
+      console.error('Account deletion error:', error);
+      toast.error("회원 탈퇴 중 오류가 발생했습니다.");
+    } finally {
+      setIsDeleting(false);
+      setDeletePassword("");
+      setIsDeleteDialogOpen(false);
+    }
+  };
+
   const handleCancel = () => {
     setEditData({});
     setImageFile(null);
@@ -211,198 +291,260 @@ const UserProfile = () => {
   };
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <div className="bg-white/10 border border-white/30 rounded-xl p-3 hover:bg-white/20 transition-all duration-200 cursor-pointer backdrop-blur-sm">
-          <div className="flex items-center space-x-3">
-            <Avatar className="w-10 h-10 border-2 border-white/30 flex-shrink-0">
-              <AvatarImage 
-                src={profile?.pet_image_url} 
-                alt="반려견 프로필" 
-                className="object-cover"
-              />
-              <AvatarFallback className="bg-gradient-to-br from-white/20 to-white/10 text-white">
-                <User className="w-5 h-5" />
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 text-left min-w-0 overflow-hidden">
-              <div className="text-white font-semibold text-sm truncate">
-                {profile?.pet_name || '프로필 설정'}
-              </div>
-              <div className="text-blue-100 text-xs truncate">
-                {user?.email ? (
-                  user.email.length > 20 ? 
-                    `${user.email.substring(0, 18)}...` : 
-                    user.email
-                ) : '이메일 정보 없음'}
-              </div>
-            </div>
-            <div className="text-white/70 flex-shrink-0">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
-          </div>
-        </div>
-      </DialogTrigger>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>
-            프로필 정보
-          </DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-4">
-          {/* Profile Image Section */}
-          <div className="flex flex-col items-center space-y-3">
-            <div className="relative">
-              <Avatar 
-                className="w-24 h-24 cursor-pointer transition-transform hover:scale-105" 
-                onClick={() => !isEditMode && (imagePreview || profile?.pet_image_url) && setIsImageDialogOpen(true)}
-              >
+    <>
+      <Dialog>
+        <DialogTrigger asChild>
+          <div className="bg-white/10 border border-white/30 rounded-xl p-3 hover:bg-white/20 transition-all duration-200 cursor-pointer backdrop-blur-sm">
+            <div className="flex items-center space-x-3">
+              <Avatar className="w-10 h-10 border-2 border-white/30 flex-shrink-0">
                 <AvatarImage 
-                  src={imagePreview || profile?.pet_image_url} 
+                  src={profile?.pet_image_url} 
                   alt="반려견 프로필" 
                   className="object-cover"
                 />
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
-                  <User className="w-8 h-8" />
+                <AvatarFallback className="bg-gradient-to-br from-white/20 to-white/10 text-white">
+                  <User className="w-5 h-5" />
                 </AvatarFallback>
               </Avatar>
-              {isEditMode && (
-                <label className="absolute -bottom-2 -right-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-2 cursor-pointer shadow-lg transition-colors">
-                  <Camera className="w-4 h-4" />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="hidden"
+              <div className="flex-1 text-left min-w-0 overflow-hidden">
+                <div className="text-white font-semibold text-sm truncate">
+                  {profile?.pet_name || '프로필 설정'}
+                </div>
+                <div className="text-blue-100 text-xs truncate">
+                  {user?.email ? (
+                    user.email.length > 20 ? 
+                      `${user.email.substring(0, 18)}...` : 
+                      user.email
+                  ) : '이메일 정보 없음'}
+                </div>
+              </div>
+              <div className="text-white/70 flex-shrink-0">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </DialogTrigger>
+        <DialogContent className="max-w-md relative">
+          <DialogHeader>
+            <DialogTitle>
+              프로필 정보
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Profile Image Section */}
+            <div className="flex flex-col items-center space-y-3">
+              <div className="relative">
+                <Avatar 
+                  className="w-24 h-24 cursor-pointer transition-transform hover:scale-105" 
+                  onClick={() => !isEditMode && (imagePreview || profile?.pet_image_url) && setIsImageDialogOpen(true)}
+                >
+                  <AvatarImage 
+                    src={imagePreview || profile?.pet_image_url} 
+                    alt="반려견 프로필" 
+                    className="object-cover"
                   />
-                </label>
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+                    <User className="w-8 h-8" />
+                  </AvatarFallback>
+                </Avatar>
+                {isEditMode && (
+                  <label className="absolute -bottom-2 -right-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-2 cursor-pointer shadow-lg transition-colors">
+                    <Camera className="w-4 h-4" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+              </div>
+              {!isEditMode && (
+                <Button
+                  variant="outline"
+                  size="default"
+                  onClick={handleEdit}
+                  className="px-4 py-2 h-10"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  프로필 수정
+                </Button>
               )}
             </div>
-            {!isEditMode && (
-              <Button
-                variant="outline"
-                size="default"
-                onClick={handleEdit}
-                className="px-4 py-2 h-10"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                프로필 수정
-              </Button>
-            )}
-          </div>
 
-          {/* Profile Information */}
-          <div className="space-y-3">
-            <div>
-              <Label className="text-sm font-medium text-gray-600">이메일</Label>
-              <p className="text-gray-900">{user?.email}</p>
+            {/* Profile Information */}
+            <div className="space-y-3">
+              <div>
+                <Label className="text-sm font-medium text-gray-600">이메일</Label>
+                <p className="text-gray-900">{user?.email}</p>
+              </div>
+
+              {isEditMode ? (
+                // Edit Mode
+                <>
+                  <div>
+                    <Label htmlFor="pet_name">반려견 이름</Label>
+                    <Input
+                      id="pet_name"
+                      value={editData.pet_name || ''}
+                      onChange={(e) => setEditData({...editData, pet_name: e.target.value})}
+                      placeholder="반려견 이름을 입력하세요"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="pet_age">나이</Label>
+                    <Input
+                      id="pet_age"
+                      type="number"
+                      value={editData.pet_age || ''}
+                      onChange={(e) => setEditData({...editData, pet_age: parseInt(e.target.value) || undefined})}
+                      placeholder="나이를 입력하세요"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="pet_gender">성별</Label>
+                    <Select
+                      value={editData.pet_gender || ''}
+                      onValueChange={(value: 'male' | 'female') => setEditData({...editData, pet_gender: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="성별을 선택하세요" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="male">남아</SelectItem>
+                        <SelectItem value="female">여아</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="pet_breed">품종</Label>
+                    <Input
+                      id="pet_breed"
+                      value={editData.pet_breed || ''}
+                      onChange={(e) => setEditData({...editData, pet_breed: e.target.value})}
+                      placeholder="품종을 입력하세요"
+                    />
+                  </div>
+
+                  <div className="flex space-x-2 pt-4">
+                    <Button 
+                      onClick={handleSave} 
+                      disabled={loading}
+                      className="flex-1 h-11"
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      {loading ? '저장 중...' : '저장'}
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={handleCancel}
+                      className="flex-1 h-11"
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      취소
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                // View Mode
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600">이름</Label>
+                      <p className="text-gray-900">{profile?.pet_name || '미설정'}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600">나이</Label>
+                      <p className="text-gray-900">{getAgeText(profile?.pet_age)}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600">성별</Label>
+                      <p className="text-gray-900">{getGenderText(profile?.pet_gender)}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600">품종</Label>
+                      <p className="text-gray-900">{profile?.pet_breed || '미설정'}</p>
+                    </div>
+                  </div>
+
+                  <div className="pt-2">
+                    <Label className="text-sm font-medium text-gray-600">가입일</Label>
+                    <p className="text-gray-900">
+                      {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('ko-KR') : '정보 없음'}
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
-
-            {isEditMode ? (
-              // Edit Mode
-              <>
-                <div>
-                  <Label htmlFor="pet_name">반려견 이름</Label>
-                  <Input
-                    id="pet_name"
-                    value={editData.pet_name || ''}
-                    onChange={(e) => setEditData({...editData, pet_name: e.target.value})}
-                    placeholder="반려견 이름을 입력하세요"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="pet_age">나이</Label>
-                  <Input
-                    id="pet_age"
-                    type="number"
-                    value={editData.pet_age || ''}
-                    onChange={(e) => setEditData({...editData, pet_age: parseInt(e.target.value) || undefined})}
-                    placeholder="나이를 입력하세요"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="pet_gender">성별</Label>
-                  <Select
-                    value={editData.pet_gender || ''}
-                    onValueChange={(value: 'male' | 'female') => setEditData({...editData, pet_gender: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="성별을 선택하세요" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">남아</SelectItem>
-                      <SelectItem value="female">여아</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="pet_breed">품종</Label>
-                  <Input
-                    id="pet_breed"
-                    value={editData.pet_breed || ''}
-                    onChange={(e) => setEditData({...editData, pet_breed: e.target.value})}
-                    placeholder="품종을 입력하세요"
-                  />
-                </div>
-
-                <div className="flex space-x-2 pt-4">
-                  <Button 
-                    onClick={handleSave} 
-                    disabled={loading}
-                    className="flex-1 h-11"
-                  >
-                    <Save className="w-4 h-4 mr-2" />
-                    {loading ? '저장 중...' : '저장'}
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={handleCancel}
-                    className="flex-1 h-11"
-                  >
-                    <X className="w-4 h-4 mr-2" />
-                    취소
-                  </Button>
-                </div>
-              </>
-            ) : (
-              // View Mode
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium text-gray-600">이름</Label>
-                    <p className="text-gray-900">{profile?.pet_name || '미설정'}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-600">나이</Label>
-                    <p className="text-gray-900">{getAgeText(profile?.pet_age)}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-600">성별</Label>
-                    <p className="text-gray-900">{getGenderText(profile?.pet_gender)}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-600">품종</Label>
-                    <p className="text-gray-900">{profile?.pet_breed || '미설정'}</p>
-                  </div>
-                </div>
-
-                <div className="pt-2">
-                  <Label className="text-sm font-medium text-gray-600">가입일</Label>
-                  <p className="text-gray-900">
-                    {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('ko-KR') : '정보 없음'}
-                  </p>
-                </div>
-              </>
-            )}
           </div>
-        </div>
-      </DialogContent>
+
+          {/* Delete Account Button - positioned at bottom right */}
+          {!isEditMode && (
+            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute bottom-3 right-3 text-red-500 hover:text-red-700 hover:bg-red-50"
+                >
+                  <Trash2 className="w-4 h-4 mr-1" />
+                  회원 탈퇴
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-red-600">회원 탈퇴</AlertDialogTitle>
+                  <AlertDialogDescription className="space-y-4">
+                    <div className="text-gray-700">
+                      <p className="font-semibold mb-2">⚠️ 경고</p>
+                      <p className="mb-4">정말로 탈퇴하시겠습니까?</p>
+                      <ul className="text-sm text-gray-600 space-y-1 mb-4">
+                        <li>• 모든 프로필 정보가 삭제됩니다</li>
+                        <li>• 업로드한 사진들이 모두 삭제됩니다</li>
+                        <li>• 이 작업은 되돌릴 수 없습니다</li>
+                      </ul>
+                      <div className="space-y-2">
+                        <Label htmlFor="deletePassword" className="text-sm font-medium">
+                          비밀번호를 한번 더 입력해주세요
+                        </Label>
+                        <Input
+                          id="deletePassword"
+                          type="password"
+                          placeholder="현재 비밀번호"
+                          value={deletePassword}
+                          onChange={(e) => setDeletePassword(e.target.value)}
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => {
+                    setDeletePassword("");
+                    setIsDeleteDialogOpen(false);
+                  }}>
+                    취소
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDeleteAccount}
+                    disabled={isDeleting || !deletePassword.trim()}
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    {isDeleting ? "탈퇴 처리 중..." : "회원 탈퇴"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Image Enlargement Dialog */}
       <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
@@ -424,7 +566,7 @@ const UserProfile = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </Dialog>
+    </>
   );
 };
 
