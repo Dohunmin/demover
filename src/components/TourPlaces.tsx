@@ -50,6 +50,7 @@ const TourPlaces = () => {
   useEffect(() => {
     fetchTourPlaces();
     fetchPetTourPlaces();
+    testApiKey();
   }, [currentPage]);
 
   const fetchTourPlaces = async (keyword?: string) => {
@@ -82,6 +83,26 @@ const TourPlaces = () => {
       toast.error('관광지 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const testApiKey = async () => {
+    try {
+      const response = await fetch(`https://iuoofmeyakduqteyptkq.supabase.co/functions/v1/test-api-key`, {
+        headers: {
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml1b29mbWV5YWtkdXF0ZXlwdGtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQzMTYzNDMsImV4cCI6MjA2OTg5MjM0M30.bY_V1Mv5M2-fLUTFcsn4tdXzVFHsSSTGmlm6cEVltp4`,
+        },
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('API Key Test Result:', result);
+        if (!result.hasApiKey) {
+          toast.error('한국관광공사 API 키가 설정되지 않았습니다.');
+        }
+      }
+    } catch (error) {
+      console.error('API Key Test Error:', error);
     }
   };
 
