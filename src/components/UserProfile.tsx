@@ -326,9 +326,9 @@ const UserProfile = () => {
             </div>
           </div>
         </DialogTrigger>
-        <DialogContent className="max-w-md relative">
+        <DialogContent className="max-w-md relative bg-white border shadow-xl">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-lg font-semibold text-gray-900">
               프로필 정보
             </DialogTitle>
           </DialogHeader>
@@ -376,67 +376,72 @@ const UserProfile = () => {
             </div>
 
             {/* Profile Information */}
-            <div className="space-y-3">
-              <div>
+            <div className="space-y-4">
+              <div className="pb-2 border-b">
                 <Label className="text-sm font-medium text-gray-600">이메일</Label>
-                <p className="text-gray-900">{user?.email}</p>
+                <p className="text-gray-900 mt-1">{user?.email}</p>
               </div>
 
               {isEditMode ? (
                 // Edit Mode
                 <>
-                  <div>
-                    <Label htmlFor="pet_name">반려견 이름</Label>
-                    <Input
-                      id="pet_name"
-                      value={editData.pet_name || ''}
-                      onChange={(e) => setEditData({...editData, pet_name: e.target.value})}
-                      placeholder="반려견 이름을 입력하세요"
-                    />
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="pet_name" className="text-sm font-medium text-gray-700">반려견 이름</Label>
+                      <Input
+                        id="pet_name"
+                        value={editData.pet_name || ''}
+                        onChange={(e) => setEditData({...editData, pet_name: e.target.value})}
+                        placeholder="반려견 이름을 입력하세요"
+                        className="mt-1"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="pet_age" className="text-sm font-medium text-gray-700">나이</Label>
+                      <Input
+                        id="pet_age"
+                        type="number"
+                        value={editData.pet_age || ''}
+                        onChange={(e) => setEditData({...editData, pet_age: parseInt(e.target.value) || undefined})}
+                        placeholder="나이를 입력하세요"
+                        className="mt-1"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="pet_gender" className="text-sm font-medium text-gray-700">성별</Label>
+                      <Select
+                        value={editData.pet_gender || ''}
+                        onValueChange={(value: 'male' | 'female') => setEditData({...editData, pet_gender: value})}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="성별을 선택하세요" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="male">남아</SelectItem>
+                          <SelectItem value="female">여아</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="pet_breed" className="text-sm font-medium text-gray-700">품종</Label>
+                      <Input
+                        id="pet_breed"
+                        value={editData.pet_breed || ''}
+                        onChange={(e) => setEditData({...editData, pet_breed: e.target.value})}
+                        placeholder="품종을 입력하세요"
+                        className="mt-1"
+                      />
+                    </div>
                   </div>
 
-                  <div>
-                    <Label htmlFor="pet_age">나이</Label>
-                    <Input
-                      id="pet_age"
-                      type="number"
-                      value={editData.pet_age || ''}
-                      onChange={(e) => setEditData({...editData, pet_age: parseInt(e.target.value) || undefined})}
-                      placeholder="나이를 입력하세요"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="pet_gender">성별</Label>
-                    <Select
-                      value={editData.pet_gender || ''}
-                      onValueChange={(value: 'male' | 'female') => setEditData({...editData, pet_gender: value})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="성별을 선택하세요" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="male">남아</SelectItem>
-                        <SelectItem value="female">여아</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="pet_breed">품종</Label>
-                    <Input
-                      id="pet_breed"
-                      value={editData.pet_breed || ''}
-                      onChange={(e) => setEditData({...editData, pet_breed: e.target.value})}
-                      placeholder="품종을 입력하세요"
-                    />
-                  </div>
-
-                  <div className="flex space-x-2 pt-4">
+                  <div className="flex space-x-3 pt-6">
                     <Button 
                       onClick={handleSave} 
                       disabled={loading}
-                      className="flex-1 h-11"
+                      className="flex-1 h-11 bg-blue-600 hover:bg-blue-700"
                     >
                       <Save className="w-4 h-4 mr-2" />
                       {loading ? '저장 중...' : '저장'}
@@ -454,30 +459,32 @@ const UserProfile = () => {
               ) : (
                 // View Mode
                 <>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-sm font-medium text-gray-600">이름</Label>
-                      <p className="text-gray-900">{profile?.pet_name || '미설정'}</p>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-sm font-medium text-gray-600">이름</Label>
+                        <p className="text-gray-900 mt-1 font-medium">{profile?.pet_name || '미설정'}</p>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-sm font-medium text-gray-600">나이</Label>
+                        <p className="text-gray-900 mt-1 font-medium">{getAgeText(profile?.pet_age)}</p>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-sm font-medium text-gray-600">성별</Label>
+                        <p className="text-gray-900 mt-1 font-medium">{getGenderText(profile?.pet_gender)}</p>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-sm font-medium text-gray-600">품종</Label>
+                        <p className="text-gray-900 mt-1 font-medium">{profile?.pet_breed || '미설정'}</p>
+                      </div>
                     </div>
-                    <div>
-                      <Label className="text-sm font-medium text-gray-600">나이</Label>
-                      <p className="text-gray-900">{getAgeText(profile?.pet_age)}</p>
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium text-gray-600">성별</Label>
-                      <p className="text-gray-900">{getGenderText(profile?.pet_gender)}</p>
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium text-gray-600">품종</Label>
-                      <p className="text-gray-900">{profile?.pet_breed || '미설정'}</p>
-                    </div>
-                  </div>
 
-                  <div className="pt-2">
-                    <Label className="text-sm font-medium text-gray-600">가입일</Label>
-                    <p className="text-gray-900">
-                      {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('ko-KR') : '정보 없음'}
-                    </p>
+                    <div className="bg-gray-50 p-3 rounded-lg">
+                      <Label className="text-sm font-medium text-gray-600">가입일</Label>
+                      <p className="text-gray-900 mt-1 font-medium">
+                        {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('ko-KR') : '정보 없음'}
+                      </p>
+                    </div>
                   </div>
                 </>
               )}
