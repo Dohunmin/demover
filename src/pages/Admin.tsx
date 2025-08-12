@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Edit, Trash2, Calendar, Tag, Users, UserPlus, Shield, User } from "lucide-react";
+import { ArrowLeft, Plus, Edit, Trash2, Calendar, Tag, Users, UserPlus, Shield, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -49,6 +49,7 @@ const Admin = () => {
   const [editingPost, setEditingPost] = useState<NewsPost | null>(null);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [isUserDetailOpen, setIsUserDetailOpen] = useState(false);
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("news");
   
   // Form state
@@ -548,7 +549,10 @@ const Admin = () => {
                   <div className="space-y-6">
                     {/* Profile Image */}
                     <div className="flex justify-center">
-                      <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200">
+                      <div 
+                        className="w-20 h-20 rounded-full overflow-hidden bg-gray-200 cursor-pointer transition-transform hover:scale-105"
+                        onClick={() => selectedUser.pet_image_url && setIsImageDialogOpen(true)}
+                      >
                         {selectedUser.pet_image_url ? (
                           <img 
                             src={selectedUser.pet_image_url} 
@@ -647,6 +651,29 @@ const Admin = () => {
                     </div>
                   </div>
                 )}
+              </DialogContent>
+            </Dialog>
+
+            {/* Image Enlargement Dialog */}
+            <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
+              <DialogContent className="max-w-2xl p-0 bg-transparent border-none">
+                <div className="relative">
+                  {selectedUser?.pet_image_url && (
+                    <img
+                      src={selectedUser.pet_image_url}
+                      alt="반려견 프로필 확대"
+                      className="w-full h-auto max-h-[80vh] object-contain rounded-lg"
+                    />
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsImageDialogOpen(false)}
+                    className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white rounded-full h-8 w-8 p-0"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
               </DialogContent>
             </Dialog>
           </TabsContent>
