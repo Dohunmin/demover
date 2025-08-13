@@ -74,6 +74,24 @@ Deno.serve(async (req) => {
     console.log("[RESPONSE_LENGTH] korea-tour-api", debugId, responseText.length);
     console.log("[RESPONSE_PREVIEW] korea-tour-api", debugId, responseText.substring(0, 200));
     
+    // SERVICE ERROR 체크
+    if (responseText.includes('SERVICE ERROR') || responseText.includes('SERVICE_ERROR')) {
+      console.error("[SERVICE_ERROR] korea-tour-api", debugId, "API returned SERVICE ERROR");
+      return new Response(JSON.stringify({
+        ok: false,
+        func: "korea-tour-api",
+        debugId: debugId,
+        error: "한국관광공사 API 서비스 에러: 인증키가 유효하지 않거나 서비스 사용량을 초과했습니다.",
+        raw_response: responseText.substring(0, 500)
+      }), {
+        status: 400,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json"
+        }
+      });
+    }
+    
     // 응답 반환
     return new Response(responseText, {
       status: response.status,
