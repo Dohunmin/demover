@@ -1,136 +1,108 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type"
+};
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+Deno.serve(async (req) => {
+  // CORS 프리플라이트 처리
+  if (req.method === "OPTIONS") {
+    console.log("[OPTIONS] pet-tour-api CORS preflight");
+    return new Response("ok", { headers: corsHeaders });
   }
 
+  const debugId = crypto.randomUUID();
+  
   try {
-    const { searchParams } = new URL(req.url)
-    const keyword = searchParams.get('keyword')
-    const pageNo = searchParams.get('pageNo') || '1'
-    const numOfRows = searchParams.get('numOfRows') || '100'
-    const areaCode = searchParams.get('areaCode')
-    const sigunguCode = searchParams.get('sigunguCode')
-    const operation = searchParams.get('operation') || 'areaBasedList1'
-
-    const serviceKey = Deno.env.get('KTO_TOUR_SERVICE_KEY')
-    if (!serviceKey) {
-      throw new Error('KTO_TOUR_SERVICE_KEY not found')
+    console.log("[START] pet-tour-api", debugId, "Method:", req.method);
+    console.log("[REQUEST] pet-tour-api", debugId, "URL:", req.url);
+    
+    // 요청 본문 파싱
+    const body = req.method === "GET" ? {} : await req.json();
+    console.log("[BODY] pet-tour-api", debugId, JSON.stringify(body));
+    
+    // 파라미터 추출
+    const operation = body.op || 'areaBasedList1';
+    const pageNo = body.pageNo || 1;
+    const numOfRows = body.numOfRows || 100;
+    const keyword = body.keyword || null;
+    const areaCode = body.areaCode || null;
+    const sigunguCode = body.sigunguCode || null;
+    
+    console.log("[PARAMS] pet-tour-api", debugId, { operation, pageNo, numOfRows, keyword, areaCode, sigunguCode });
+    
+    // API 키 가져오기
+    const SERVICE_KEY = Deno.env.get('KTO_TOUR_SERVICE_KEY');
+    if (!SERVICE_KEY) {
+      throw new Error('KTO_TOUR_SERVICE_KEY not found in environment');
     }
+    console.log("[KEY] pet-tour-api", debugId, "Service key length:", SERVICE_KEY.length);
     
-    const cleanServiceKey = serviceKey.trim()
-
-    const baseUrl = 'https://apis.data.go.kr/B551011/PetTourService'
+    // URL 구성 - Pet Tour Service 사용
+    const url = new URL(`https://apis.data.go.kr/B551011/PetTourService/${operation}`);
+    url.searchParams.set("serviceKey", SERVICE_KEY);
+    url.searchParams.set("_type", "json");
+    url.searchParams.set("MobileOS", "ETC");
+    url.searchParams.set("MobileApp", "LovableApp");
+    url.searchParams.set("pageNo", pageNo.toString());
+    url.searchParams.set("numOfRows", numOfRows.toString());
     
-    // 정확한 필수 파라미터만 사용
-    const params = new URLSearchParams({
-      serviceKey: cleanServiceKey,
-      pageNo: pageNo,
-      numOfRows: numOfRows,
-      MobileApp: 'AppName',
-      MobileOS: 'ETC',
-      _type: 'json'
-    })
-
     if (keyword) {
-      params.append('keyword', keyword)
+      url.searchParams.set("keyword", keyword);
     }
     if (areaCode) {
-      params.append('areaCode', areaCode)
+      url.searchParams.set("areaCode", areaCode.toString());
     }
     if (sigunguCode) {
-      params.append('sigunguCode', sigunguCode)
+      url.searchParams.set("sigunguCode", sigunguCode.toString());
     }
-
-    const apiUrl = `${baseUrl}/${operation}?${params.toString()}`
-    console.log('=== Pet Tour API DEBUG ===')
-    console.log('Service Key exists:', !!cleanServiceKey)
-    console.log('Full API URL (masked):', apiUrl.replace(cleanServiceKey, 'MASKED_KEY'))
     
-    const response = await fetch(apiUrl, {
-      method: 'GET', 
+    console.log("[URL] pet-tour-api", debugId, url.toString());
+    
+    // 외부 API 호출
+    const response = await fetch(url.toString(), {
+      method: 'GET',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Accept': '*/*',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
-        'Connection': 'keep-alive'
+        "Accept": "application/json",
+        "User-Agent": "LovableRelay/1.0",
+        "Connection": "keep-alive"
+      },
+      redirect: "follow"
+    });
+    
+    console.log("[STATUS] pet-tour-api", debugId, response.status, response.statusText);
+    
+    const responseText = await response.text();
+    console.log("[RESPONSE_LENGTH] pet-tour-api", debugId, responseText.length);
+    console.log("[RESPONSE_PREVIEW] pet-tour-api", debugId, responseText.substring(0, 200));
+    
+    // 응답 반환
+    return new Response(responseText, {
+      status: response.status,
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "application/json"
       }
-    })
-    console.log('Pet Tour API Response status:', response.status)
+    });
     
-    const responseText = await response.text()
-    console.log('Pet Tour API Response text (first 500 chars):', responseText.substring(0, 500))
-    
-    if (!response.ok) {
-      console.error('Pet Tour API Error:', response.status, responseText)
-      throw new Error(`HTTP error! status: ${response.status} - ${responseText.substring(0, 200)}`)
-    }
-
-    let data
-    try {
-      data = JSON.parse(responseText)
-      console.log('Pet Tour API: Successfully parsed JSON')
-    } catch (parseError) {
-      console.error('Pet Tour API JSON parse error:', parseError)
-      console.log('Raw response (probably XML):', responseText)
-      throw new Error(`Invalid JSON response: ${responseText.substring(0, 200)}`)
-    }
-    
-    // 응답 데이터 가공
-    const items = data.response?.body?.items?.item || []
-    const processedData = Array.isArray(items) ? items.map((item: any) => ({
-      contentId: item.contentid,
-      title: item.title,
-      addr1: item.addr1 || '',
-      addr2: item.addr2 || '',
-      image: item.firstimage || item.firstimage2 || '',
-      tel: item.tel || '',
-      mapx: item.mapx || '',
-      mapy: item.mapy || '',
-      areacode: item.areacode || '',
-      sigungucode: item.sigungucode || ''
-    })) : [items].map((item: any) => ({
-      contentId: item.contentid,
-      title: item.title,
-      addr1: item.addr1 || '',
-      addr2: item.addr2 || '',
-      image: item.firstimage || item.firstimage2 || '',
-      tel: item.tel || '',
-      mapx: item.mapx || '',
-      mapy: item.mapy || '',
-      areacode: item.areacode || '',
-      sigungucode: item.sigungucode || ''
-    }))
-
-    const result = {
-      pageNo: parseInt(pageNo),
-      numOfRows: parseInt(numOfRows),
-      totalCount: data.response?.body?.totalCount || 0,
-      data: processedData
-    }
-
-    return new Response(
-      JSON.stringify(result),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      },
-    )
   } catch (error) {
-    console.error('Pet Tour API Error:', error)
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      },
-    )
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("[ERROR] pet-tour-api", debugId, errorMessage);
+    console.error("[ERROR_STACK] pet-tour-api", debugId, error instanceof Error ? error.stack : "No stack");
+    
+    return new Response(JSON.stringify({
+      ok: false,
+      func: "pet-tour-api",
+      debugId: debugId,
+      error: errorMessage
+    }), {
+      status: 500,
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "application/json"
+      }
+    });
+  } finally {
+    console.log("[END] pet-tour-api", debugId);
   }
-})
+});
