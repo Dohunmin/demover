@@ -47,8 +47,11 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
 
   // 카카오 지도 SDK 로드
   useEffect(() => {
+    // 카카오 JavaScript 키 - 실제 키로 교체해주세요
+    const KAKAO_JS_KEY = 'YOUR_KAKAO_JS_KEY_HERE'; // 이 부분을 실제 JavaScript 키로 교체해주세요
+    
     const script = document.createElement('script');
-    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${import.meta.env.VITE_KAKAO_JS_KEY}&autoload=false&libraries=services,clusterer,drawing`;
+    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JS_KEY}&autoload=false&libraries=services,clusterer,drawing`;
     script.async = true;
     script.onload = () => {
       window.kakao.maps.load(() => {
