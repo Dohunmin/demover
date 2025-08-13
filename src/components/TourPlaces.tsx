@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Phone, Search, Heart, PawPrint } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface TourPlace {
@@ -42,130 +43,111 @@ const TourPlaces = () => {
   const fetchTourPlaces = async (keyword?: string) => {
     setLoading(true);
     
-    // API가 계속 실패하므로 임시 더미 데이터 사용
-    const dummyData = [
-      {
-        contentId: "1",
-        title: "경복궁",
-        addr1: "서울특별시 종로구 사직로 161",
-        addr2: "",
-        image: "/api/placeholder/300/200",
-        tel: "02-3700-3900",
-        mapx: "126.977",
-        mapy: "37.578",
-        areacode: "1",
-        sigungucode: "1"
-      },
-      {
-        contentId: "2", 
-        title: "제주 한라산",
-        addr1: "제주특별자치도 제주시 해안동",
-        addr2: "",
-        image: "/api/placeholder/300/200",
-        tel: "064-713-9950",
-        mapx: "126.531",
-        mapy: "33.362",
-        areacode: "39",
-        sigungucode: "1"
-      },
-      {
-        contentId: "3",
-        title: "부산 해운대해수욕장", 
-        addr1: "부산광역시 해운대구 우동",
-        addr2: "",
-        image: "/api/placeholder/300/200",
-        tel: "051-749-4000",
-        mapx: "129.160",
-        mapy: "35.158",
-        areacode: "6",
-        sigungucode: "2"
-      },
-      {
-        contentId: "4",
-        title: "서울 남산타워",
-        addr1: "서울특별시 용산구 남산공원길 105",
-        addr2: "",
-        image: "/api/placeholder/300/200",
-        tel: "02-3455-9277",
-        mapx: "126.988",
-        mapy: "37.551",
-        areacode: "1",
-        sigungucode: "15"
-      },
-      {
-        contentId: "5",
-        title: "강릉 경포해수욕장",
-        addr1: "강원특별자치도 강릉시 창해로 514",
-        addr2: "",
-        image: "/api/placeholder/300/200",
-        tel: "033-640-4414",
-        mapx: "128.908",
-        mapy: "37.795",
-        areacode: "32",
-        sigungucode: "1"
-      }
-    ];
+    try {
+      // Supabase DB RPC 함수 호출 - HTTP 확장 사용
+      const { data, error } = await supabase.rpc('tour_area_list', {
+        page_no: currentPage,
+        rows: 50,
+        keyword: keyword || null
+      });
 
-    setTimeout(() => {
-      const filteredData = keyword 
-        ? dummyData.filter(place => place.title.includes(keyword) || place.addr1.includes(keyword))
-        : dummyData;
+      if (error) {
+        console.error('DB RPC 오류:', error);
+        throw error;
+      }
+
+      console.log('DB RPC API 응답:', data);
       
-      setTourPlaces(filteredData);
-      setTotalCount(filteredData.length);
+      // 타입 안전을 위한 타입 가드
+      const apiData = data as any;
+      
+      // 에러 응답 처리
+      if (apiData?.error) {
+        console.log('API 응답 에러:', apiData.raw_content);
+        throw new Error(apiData.error);
+      }
+      
+      // 정상 JSON 응답 처리
+      const items = apiData?.response?.body?.items?.item || [];
+      const processedData = Array.isArray(items) ? items : items ? [items] : [];
+      
+      setTourPlaces(processedData.map((item: any) => ({
+        contentId: item.contentid,
+        title: item.title,
+        addr1: item.addr1 || '',
+        addr2: item.addr2 || '',
+        image: item.firstimage || item.firstimage2 || '',
+        tel: item.tel || '',
+        mapx: item.mapx || '',
+        mapy: item.mapy || '',
+        areacode: item.areacode || '',
+        sigungucode: item.sigungucode || ''
+      })));
+      
+      setTotalCount(apiData?.response?.body?.totalCount || 0);
+      toast.success("관광지 정보를 성공적으로 불러왔습니다");
+      
+    } catch (error) {
+      console.error('관광지 정보 가져오기 실패:', error);
+      toast.error("관광지 정보를 불러오는데 실패했습니다");
+      setTourPlaces([]);
+    } finally {
       setLoading(false);
-      toast.success("임시 데이터로 표시 중입니다");
-    }, 500);
+    }
   };
 
   const fetchPetTourPlaces = async () => {
     setPetLoading(true);
     
-    // 펫 여행지 임시 더미 데이터
-    const petDummyData = [
-      {
-        contentId: "p1",
-        title: "반려견 동반 카페 서울숲",
-        addr1: "서울특별시 성동구 뚝섬로",
-        addr2: "",
-        image: "/api/placeholder/300/200",
-        tel: "02-460-2905",
-        mapx: "127.044",
-        mapy: "37.544",
-        areacode: "1",
-        sigungucode: "21"
-      },
-      {
-        contentId: "p2",
-        title: "제주 애견동반 펜션",
-        addr1: "제주특별자치도 서귀포시 성산읍",
-        addr2: "",
-        image: "/api/placeholder/300/200", 
-        tel: "064-782-0000",
-        mapx: "126.926",
-        mapy: "33.461",
-        areacode: "39",
-        sigungucode: "4"
-      },
-      {
-        contentId: "p3",
-        title: "부산 반려동물 해변",
-        addr1: "부산광역시 기장군 일광면",
-        addr2: "",
-        image: "/api/placeholder/300/200",
-        tel: "051-709-4000",
-        mapx: "129.223",
-        mapy: "35.260",
-        areacode: "6",
-        sigungucode: "3"
-      }
-    ];
+    try {
+      // Supabase DB RPC 함수 호출 - HTTP 확장 사용
+      const { data, error } = await supabase.rpc('tour_pet_list', {
+        page_no: 1,
+        rows: 100
+      });
 
-    setTimeout(() => {
-      setPetTourPlaces(petDummyData);
+      if (error) {
+        console.error('Pet Tour DB RPC 오류:', error);
+        throw error;
+      }
+
+      console.log('Pet Tour DB RPC API 응답:', data);
+      
+      // 타입 안전을 위한 타입 가드
+      const apiData = data as any;
+      
+      // 에러 응답 처리
+      if (apiData?.error) {
+        console.log('Pet API 응답 에러:', apiData.raw_content);
+        throw new Error(apiData.error);
+      }
+      
+      // 정상 JSON 응답 처리
+      const items = apiData?.response?.body?.items?.item || [];
+      const processedData = Array.isArray(items) ? items : items ? [items] : [];
+      
+      setPetTourPlaces(processedData.map((item: any) => ({
+        contentId: item.contentid,
+        title: item.title,
+        addr1: item.addr1 || '',
+        addr2: item.addr2 || '',
+        image: item.firstimage || item.firstimage2 || '',
+        tel: item.tel || '',
+        mapx: item.mapx || '',
+        mapy: item.mapy || '',
+        areacode: item.areacode || '',
+        sigungucode: item.sigungucode || ''
+      })));
+      
+      toast.success("반려동물 여행지 정보를 성공적으로 불러왔습니다");
+      
+    } catch (error) {
+      console.error('반려동물 여행지 정보 가져오기 실패:', error);
+      toast.error("반려동물 여행지 정보를 불러오는데 실패했습니다");
+      setPetTourPlaces([]);
+    } finally {
       setPetLoading(false);
-      toast.success("임시 펫 여행지 데이터로 표시 중입니다");
-    }, 500);
+    }
   };
 
   const handleSearch = () => {
@@ -353,7 +335,7 @@ const TourPlaces = () => {
         </div>
       )}
 
-      {activeTab === "general" && totalCount > 5 && (
+      {activeTab === "general" && totalCount > 50 && (
         <div className="flex justify-center mt-6">
           <div className="flex gap-2">
             {currentPage > 1 && (
@@ -368,7 +350,7 @@ const TourPlaces = () => {
             <span className="flex items-center px-3 text-sm text-gray-600">
               {currentPage}
             </span>
-            {currentPage * 5 < totalCount && (
+            {currentPage * 50 < totalCount && (
               <Button 
                 variant="outline" 
                 size="sm" 
