@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
     console.log("[KEY] korea-tour-api", debugId, "Service key length:", SERVICE_KEY.length);
     
     // URL 구성
-    const url = new URL(`https://apis.data.go.kr/B551011/KorService1/${operation}`);
+    const url = new URL(`http://apis.data.go.kr/B551011/KorService1/${operation}`);
     url.searchParams.set("serviceKey", SERVICE_KEY);
     url.searchParams.set("_type", "json");
     url.searchParams.set("MobileOS", "ETC");

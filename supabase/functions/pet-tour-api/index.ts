@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
     console.log("[KEY] pet-tour-api", debugId, "Service key length:", SERVICE_KEY.length);
     
     // URL 구성 - Pet Tour Service 사용
-    const url = new URL(`https://apis.data.go.kr/B551011/PetTourService/${operation}`);
+    const url = new URL(`http://apis.data.go.kr/B551011/PetTourService/${operation}`);
     url.searchParams.set("serviceKey", SERVICE_KEY);
     url.searchParams.set("_type", "json");
     url.searchParams.set("MobileOS", "ETC");
