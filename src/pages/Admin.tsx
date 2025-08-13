@@ -87,7 +87,7 @@ const Admin = () => {
         .select('role')
         .eq('user_id', currentUser.id)
         .eq('role', 'admin')
-        .single();
+        .maybeSingle();
       
       if (error) {
         console.log('Not an admin user');

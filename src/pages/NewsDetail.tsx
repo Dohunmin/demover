@@ -74,7 +74,7 @@ const NewsDetail = () => {
         .select('id')
         .eq('user_id', user.id)
         .eq('news_post_id', post.id)
-        .single();
+        .maybeSingle();
 
       setIsBookmarked(!!data && !error);
     } catch (error) {
