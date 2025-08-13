@@ -150,39 +150,23 @@ const UserProfile = () => {
       }
 
       const saveData = {
+        id: user.id,
         user_id: user.id,
         pet_name: editData.pet_name || null,
         pet_age: editData.pet_age || null,
         pet_gender: editData.pet_gender || null,
         pet_breed: editData.pet_breed || null,
         pet_image_url: imageUrl || null,
+        email: user.email,
         updated_at: new Date().toISOString()
       };
 
-      // Check if profile exists
-      const { data: existingProfile } = await (supabase as any)
+      // Use upsert to handle both insert and update
+      const result = await (supabase as any)
         .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      let result;
-      if (existingProfile) {
-        // Update existing profile
-        result = await (supabase as any)
-          .from('profiles')
-          .update(saveData)
-          .eq('user_id', user.id);
-      } else {
-        // Create new profile
-        result = await (supabase as any)
-          .from('profiles')
-          .insert({
-            id: user.id,
-            ...saveData,
-            created_at: new Date().toISOString()
-          });
-      }
+        .upsert(saveData, { 
+          onConflict: 'id' 
+        });
 
       if (result.error) throw result.error;
 
