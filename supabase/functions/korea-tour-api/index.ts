@@ -32,10 +32,12 @@ Deno.serve(async (req) => {
     console.log("[PARAMS] korea-tour-api", debugId, { operation, pageNo, numOfRows, keyword, areaCode, sigunguCode });
     
     // API 키 가져오기
-    const SERVICE_KEY = Deno.env.get('KTO_TOUR_SERVICE_KEY');
-    if (!SERVICE_KEY) {
+    const SERVICE_KEY_RAW = Deno.env.get('KTO_TOUR_SERVICE_KEY');
+    if (!SERVICE_KEY_RAW) {
       throw new Error('KTO_TOUR_SERVICE_KEY not found in environment');
     }
+    // 공백 문자 제거
+    const SERVICE_KEY = SERVICE_KEY_RAW.trim();
     console.log("[KEY] korea-tour-api", debugId, "Service key length:", SERVICE_KEY.length);
     
     // URL 구성
