@@ -24,20 +24,18 @@ serve(async (req) => {
       throw new Error('KTO_TOUR_SERVICE_KEY not found')
     }
     
-    // API 키에서 불필요한 공백 및 특수문자 제거
     const cleanServiceKey = serviceKey.trim()
 
     const baseUrl = 'https://apis.data.go.kr/B551011/PetTourService'
     
-    // API 호출 URL 구성
+    // 정확한 필수 파라미터만 사용
     const params = new URLSearchParams({
-      serviceKey: cleanServiceKey, // URLSearchParams가 자동으로 인코딩
-      '_type': 'json',
-      'MobileOS': 'ETC',
-      'MobileApp': 'LovableApp', 
-      'pageNo': pageNo,
-      'numOfRows': numOfRows,
-      'arrange': 'A' // 정렬 기준 추가
+      serviceKey: cleanServiceKey,
+      pageNo: pageNo,
+      numOfRows: numOfRows,
+      MobileApp: 'AppName',
+      MobileOS: 'ETC',
+      _type: 'json'
     })
 
     if (keyword) {
@@ -55,25 +53,17 @@ serve(async (req) => {
     console.log('Service Key exists:', !!cleanServiceKey)
     console.log('Full API URL (masked):', apiUrl.replace(cleanServiceKey, 'MASKED_KEY'))
     
-    const response = await fetch(apiUrl, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
-    })
+    const response = await fetch(apiUrl)
     console.log('Pet Tour API Response status:', response.status)
     
     const responseText = await response.text()
     console.log('Pet Tour API Response text (first 500 chars):', responseText.substring(0, 500))
     
-    // response.ok 체크 후 파싱
     if (!response.ok) {
       console.error('Pet Tour API Error:', response.status, responseText)
       throw new Error(`HTTP error! status: ${response.status} - ${responseText.substring(0, 200)}`)
     }
 
-    // JSON 파싱 시도
     let data
     try {
       data = JSON.parse(responseText)
@@ -81,7 +71,7 @@ serve(async (req) => {
     } catch (parseError) {
       console.error('Pet Tour API JSON parse error:', parseError)
       console.log('Raw response (probably XML):', responseText)
-      throw new Error(`Invalid JSON response (probably XML): ${responseText.substring(0, 200)}`)
+      throw new Error(`Invalid JSON response: ${responseText.substring(0, 200)}`)
     }
     
     // 응답 데이터 가공
