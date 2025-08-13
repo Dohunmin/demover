@@ -114,9 +114,11 @@ serve(async (req) => {
       const tourismResponse = await fetch(tourismUrl, {
         method: 'GET',
         headers: {
-          'User-Agent': 'Mozilla/5.0 (compatible; Supabase-Edge-Function)',
-          'Accept': 'application/json',
-          'Cache-Control': 'no-cache'
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Accept': '*/*',
+          'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive'
         }
       });
       console.log('Tourism API Response Status:', tourismResponse.status);
@@ -163,9 +165,11 @@ serve(async (req) => {
       const petTourismResponse = await fetch(petTourismUrl, {
         method: 'GET',
         headers: {
-          'User-Agent': 'Mozilla/5.0 (compatible; Supabase-Edge-Function)',
-          'Accept': 'application/json',
-          'Cache-Control': 'no-cache'
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Accept': '*/*',
+          'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive'
         }
       });
       console.log('Pet Tourism API Response Status:', petTourismResponse.status);
