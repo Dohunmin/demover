@@ -1,13 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { PawPrint, MapPin, Search, Heart, Sparkles } from "lucide-react";
 import TourPlaces from "@/components/TourPlaces";
+import KakaoMap from "@/components/KakaoMap";
 import { useAuth } from "@/hooks/useAuth";
 
 const Travel = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [currentView, setCurrentView] = useState<'places' | 'map'>('places');
+
+  const showMap = () => setCurrentView('map');
+  const showPlaces = () => setCurrentView('places');
 
   // 로그인하지 않은 사용자를 위한 안내
   if (!user) {
@@ -57,6 +62,10 @@ const Travel = () => {
     );
   }
 
+  if (currentView === 'map') {
+    return <KakaoMap onBack={showPlaces} />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 max-w-md mx-auto pb-20">
       {/* Header */}
@@ -77,7 +86,7 @@ const Travel = () => {
 
       {/* Main Content */}
       <main className="pt-4">
-        <TourPlaces />
+        <TourPlaces onShowMap={showMap} />
       </main>
     </div>
   );

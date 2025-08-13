@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Phone, Search, Heart, PawPrint } from "lucide-react";
+import { MapPin, Phone, Search, Heart, PawPrint, Map } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -20,7 +20,11 @@ interface TourPlace {
   sigungucode: string;
 }
 
-const TourPlaces = () => {
+interface TourPlacesProps {
+  onShowMap?: () => void;
+}
+
+const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
   const [tourPlaces, setTourPlaces] = useState<TourPlace[]>([]);
   const [petTourPlaces, setPetTourPlaces] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -192,6 +196,16 @@ const TourPlaces = () => {
                 <Search className="w-4 h-4" />
               )}
             </Button>
+            {onShowMap && (
+              <Button 
+                onClick={onShowMap}
+                variant="outline"
+                className="px-6"
+              >
+                <Map className="w-4 h-4 mr-2" />
+                지도
+              </Button>
+            )}
           </div>
         </Card>
       </div>
