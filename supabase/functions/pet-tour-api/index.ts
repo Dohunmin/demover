@@ -14,7 +14,7 @@ serve(async (req) => {
     const { searchParams } = new URL(req.url)
     const keyword = searchParams.get('keyword')
     const pageNo = searchParams.get('pageNo') || '1'
-    const numOfRows = searchParams.get('numOfRows') || '10'
+    const numOfRows = searchParams.get('numOfRows') || '100'
     const areaCode = searchParams.get('areaCode')
     const sigunguCode = searchParams.get('sigunguCode')
     const operation = searchParams.get('operation') || 'areaBasedList1'
@@ -23,15 +23,18 @@ serve(async (req) => {
     if (!serviceKey) {
       throw new Error('KTO_TOUR_SERVICE_KEY not found')
     }
+    
+    // API 키에서 불필요한 공백 및 특수문자 제거
+    const cleanServiceKey = serviceKey.trim()
 
     const baseUrl = 'https://apis.data.go.kr/B551011/PetTourService'
     
-    // 필수 파라미터를 정확히 설정 (디코딩된 키 사용)
+    // API 호출 URL 구성 (키 인코딩 방식 변경)
     const params = [
-      `serviceKey=${encodeURIComponent(serviceKey)}`,
-      '_type=json',  // 필수: JSON 응답 요청
-      'MobileOS=ETC',  // 필수
-      'MobileApp=LovableApp',  // 필수
+      `serviceKey=${cleanServiceKey}`, // 인코딩하지 않고 직접 사용
+      '_type=json',
+      'MobileOS=ETC',
+      'MobileApp=LovableApp',
       `pageNo=${pageNo}`,
       `numOfRows=${numOfRows}`
     ]
@@ -47,9 +50,17 @@ serve(async (req) => {
     }
 
     const apiUrl = `${baseUrl}/${operation}?${params.join('&')}`
-    console.log('Calling Pet Tour API:', apiUrl)
+    console.log('=== Pet Tour API DEBUG ===')
+    console.log('Service Key exists:', !!cleanServiceKey)
+    console.log('Full API URL (masked):', apiUrl.replace(cleanServiceKey, 'MASKED_KEY'))
     
-    const response = await fetch(apiUrl)
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; LovableApp/1.0)',
+        'Accept': 'application/json'
+      }
+    })
     console.log('Pet Tour API Response status:', response.status)
     
     const responseText = await response.text()

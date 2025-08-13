@@ -65,19 +65,35 @@ const TourPlaces = () => {
     setError(null);
     
     try {
-      const response = await supabase.functions.invoke('korea-tour-api', {
-        body: {
-          pageNo: currentPage.toString(),
-          numOfRows: '50',
-          ...(keyword && { keyword })
+      const params = new URLSearchParams({
+        pageNo: currentPage.toString(),
+        numOfRows: '50'
+      });
+      
+      if (keyword) {
+        params.append('keyword', keyword);
+      }
+      
+      // GET 요청으로 변경
+      const url = `https://wdmqabtatkibyveilzut.supabase.co/functions/v1/korea-tour-api?${params.toString()}`;
+      
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkbXFhYnRhdGtpYnl2ZWlsenV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQwMjkxNzksImV4cCI6MjA2OTYwNTE3OX0.iBXrQyNDJ3OqoCTOi4XjSr-0Qd8B7y_upuCaQcWPwCI`,
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkbXFhYnRhdGtpYnl2ZWlsenV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQwMjkxNzksImV4cCI6MjA2OTYwNTE3OX0.iBXrQyNDJ3OqoCTOi4XjSr-0Qd8B7y_upuCaQcWPwCI'
         }
       });
       
-      if (response.error) {
-        throw new Error(response.error.message);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const data = response.data;
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
       setTourPlaces(data?.data || []);
       setTotalCount(data?.totalCount || 0);
       
@@ -100,18 +116,31 @@ const TourPlaces = () => {
     setPetError(null);
     
     try {
-      const response = await supabase.functions.invoke('pet-tour-api', {
-        body: {
-          pageNo: '1',
-          numOfRows: '100' // 모든 반려동물 여행지 데이터 가져오기
+      const params = new URLSearchParams({
+        pageNo: '1',
+        numOfRows: '100'
+      });
+      
+      // GET 요청으로 변경
+      const url = `https://wdmqabtatkibyveilzut.supabase.co/functions/v1/pet-tour-api?${params.toString()}`;
+      
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkbXFhYnRhdGtpYnl2ZWlsenV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQwMjkxNzksImV4cCI6MjA2OTYwNTE3OX0.iBXrQyNDJ3OqoCTOi4XjSr-0Qd8B7y_upuCaQcWPwCI`,
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkbXFhYnRhdGtpYnl2ZWlsenV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQwMjkxNzksImV4cCI6MjA2OTYwNTE3OX0.iBXrQyNDJ3OqoCTOi4XjSr-0Qd8B7y_upuCaQcWPwCI'
         }
       });
       
-      if (response.error) {
-        throw new Error(response.error.message);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const data = response.data;
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
       setPetTourPlaces(data?.data || []);
       
       if (data?.data?.length > 0) {

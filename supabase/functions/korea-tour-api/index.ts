@@ -22,16 +22,19 @@ serve(async (req) => {
     if (!serviceKey) {
       throw new Error('KTO_TOUR_SERVICE_KEY not found')
     }
+    
+    // API 키에서 불필요한 공백 및 특수문자 제거
+    const cleanServiceKey = serviceKey.trim()
 
     const baseUrl = 'https://apis.data.go.kr/B551011/KorService1'
     const operation = keyword ? 'searchKeyword1' : 'areaBasedList1'
     
-    // 필수 파라미터를 정확히 설정 (디코딩된 키 사용)
+    // API 호출 URL 구성 (키 인코딩 방식 변경)
     const params = [
-      `serviceKey=${encodeURIComponent(serviceKey)}`,
-      '_type=json',  // 필수: JSON 응답 요청
-      'MobileOS=ETC',  // 필수
-      'MobileApp=LovableApp',  // 필수
+      `serviceKey=${cleanServiceKey}`, // 인코딩하지 않고 직접 사용
+      '_type=json',
+      'MobileOS=ETC',
+      'MobileApp=LovableApp',
       `pageNo=${pageNo}`,
       `numOfRows=${numOfRows}`
     ]
@@ -48,13 +51,12 @@ serve(async (req) => {
 
     const apiUrl = `${baseUrl}/${operation}?${params.join('&')}`
     console.log('=== API CALL DEBUG INFO ===')
-    console.log('Service Key exists:', !!serviceKey)
-    console.log('Service Key length:', serviceKey?.length)
-    console.log('Service Key start:', serviceKey?.substring(0, 20) + '...')
+    console.log('Service Key exists:', !!cleanServiceKey)
+    console.log('Service Key length:', cleanServiceKey?.length)
+    console.log('Service Key (masked):', cleanServiceKey?.substring(0, 10) + '...')
     console.log('Base URL:', baseUrl)
     console.log('Operation:', operation)
-    console.log('Full API URL:', apiUrl)
-    console.log('API Params:', params.join('&'))
+    console.log('Full API URL (masked):', apiUrl.replace(cleanServiceKey, 'MASKED_KEY'))
     
     const response = await fetch(apiUrl, {
       method: 'GET',
