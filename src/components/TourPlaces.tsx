@@ -24,7 +24,6 @@ const TourPlaces = () => {
   const [tourPlaces, setTourPlaces] = useState<TourPlace[]>([]);
   const [petTourPlaces, setPetTourPlaces] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [petLoading, setPetLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -34,79 +33,32 @@ const TourPlaces = () => {
     fetchTourPlaces();
   }, [currentPage]);
 
-  useEffect(() => {
-    if (activeTab === "pet") {
-      fetchPetTourPlaces();
-    }
-  }, [activeTab]);
-
   const fetchTourPlaces = async (keyword?: string) => {
     setLoading(true);
     
     try {
-      console.log('DB RPC 우선 호출 시작:', { keyword, currentPage });
+      console.log('Combined Tour API 호출 시작:', { keyword, currentPage });
       
-      // 1차: DB RPC 우선 시도 (TLS 문제 회피)
-      const { data: rpcData, error: rpcError } = await (supabase as any).rpc('tour_area_list', {
-        page_no: currentPage,
-        rows: 50,
-        keyword: keyword || null
+      // 새로운 combined-tour-api 호출
+      const { data, error } = await supabase.functions.invoke('combined-tour-api', {
+        body: {
+          areaCode: '1', // 서울
+          numOfRows: '10',
+          pageNo: currentPage.toString()
+        }
       });
 
-      if (!rpcError && rpcData) {
-        console.log('DB RPC 성공:', rpcData);
-        
-        const apiData = rpcData as any;
-        
-        if (!apiData?.error && apiData?.response?.body?.items?.item) {
-          const items = apiData.response.body.items.item;
-          const processedData = Array.isArray(items) ? items : items ? [items] : [];
-          
-          setTourPlaces(processedData.map((item: any) => ({
-            contentId: item.contentid,
-            title: item.title,
-            addr1: item.addr1 || '',
-            addr2: item.addr2 || '',
-            image: item.firstimage || item.firstimage2 || '',
-            tel: item.tel || '',
-            mapx: item.mapx || '',
-            mapy: item.mapy || '',
-            areacode: item.areacode || '',
-            sigungucode: item.sigungucode || ''
-          })));
-          
-          setTotalCount(apiData.response.body.totalCount || 0);
-          toast.success("관광지 정보를 성공적으로 불러왔습니다 (DB RPC)");
-          return;
-        }
+      if (error) {
+        console.error('Combined Tour API 오류:', error);
+        toast.error('여행지 정보를 불러오는데 실패했습니다.');
+        return;
       }
 
-      console.warn('DB RPC 실패, Edge Function 시도:', rpcError);
-      
-      // 2차: Edge Function 백업 시도
-      const { data: edgeData, error: edgeError } = await supabase.functions.invoke('korea-tour-api', {
-        body: {
-          op: keyword ? 'searchKeyword1' : 'areaBasedList1',
-          pageNo: currentPage,
-          numOfRows: 50,
-          keyword: keyword || null
-        }
-      });
+      console.log('Combined Tour API 응답:', data);
 
-      if (!edgeError && edgeData && !edgeData.ok === false) {
-        console.log('Edge Function 성공:', edgeData);
-        
-        let apiData = edgeData;
-        if (typeof edgeData === 'string') {
-          try {
-            apiData = JSON.parse(edgeData);
-          } catch (parseError) {
-            console.error('JSON 파싱 실패:', parseError);
-            throw new Error('API 응답 파싱 실패');
-          }
-        }
-        
-        const items = apiData?.response?.body?.items?.item || [];
+      // 일반 관광지 데이터 처리
+      if (data.tourismData?.response?.body?.items?.item) {
+        const items = data.tourismData.response.body.items.item;
         const processedData = Array.isArray(items) ? items : items ? [items] : [];
         
         setTourPlaces(processedData.map((item: any) => ({
@@ -122,113 +74,23 @@ const TourPlaces = () => {
           sigungucode: item.sigungucode || ''
         })));
         
-        setTotalCount(apiData?.response?.body?.totalCount || 0);
-        toast.success("관광지 정보를 성공적으로 불러왔습니다 (Edge Function)");
-        return;
+        setTotalCount(data.tourismData.response.body.totalCount || 0);
       }
 
-      throw new Error(`모든 경로 실패 - RPC: ${rpcError?.message}, Edge: ${edgeError?.message}`);
-        
-    } catch (finalError) {
-      console.error('모든 시도 실패:', finalError);
-      toast.error("관광지 정보를 불러오는데 실패했습니다");
-      setTourPlaces([]);
+      // 반려동물 동반 여행지 데이터 처리
+      if (data.petTourismData?.response?.body?.items?.item) {
+        const petItems = data.petTourismData.response.body.items.item;
+        const processedPetData = Array.isArray(petItems) ? petItems : petItems ? [petItems] : [];
+        setPetTourPlaces(processedPetData);
+      }
+
+      toast.success("여행지 정보를 성공적으로 불러왔습니다!");
+
+    } catch (error) {
+      console.error('여행지 정보 조회 실패:', error);
+      toast.error('여행지 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchPetTourPlaces = async () => {
-    setPetLoading(true);
-    
-    try {
-      console.log('Pet DB RPC 우선 호출 시작');
-      
-      // 1차: DB RPC 우선 시도 (TLS 문제 회피)
-      const { data: rpcData, error: rpcError } = await (supabase as any).rpc('tour_pet_list', {
-        page_no: 1,
-        rows: 100
-      });
-
-      if (!rpcError && rpcData) {
-        console.log('Pet DB RPC 성공:', rpcData);
-        
-        const apiData = rpcData as any;
-        
-        if (!apiData?.error && apiData?.response?.body?.items?.item) {
-          const items = apiData.response.body.items.item;
-          const processedData = Array.isArray(items) ? items : items ? [items] : [];
-          
-          setPetTourPlaces(processedData.map((item: any) => ({
-            contentId: item.contentid,
-            title: item.title,
-            addr1: item.addr1 || '',
-            addr2: item.addr2 || '',
-            image: item.firstimage || item.firstimage2 || '',
-            tel: item.tel || '',
-            mapx: item.mapx || '',
-            mapy: item.mapy || '',
-            areacode: item.areacode || '',
-            sigungucode: item.sigungucode || ''
-          })));
-          
-          toast.success("반려동물 여행지 정보를 성공적으로 불러왔습니다 (DB RPC)");
-          return;
-        }
-      }
-
-      console.warn('Pet DB RPC 실패, Edge Function 시도:', rpcError);
-      
-      // 2차: Edge Function 백업 시도
-      const { data: edgeData, error: edgeError } = await supabase.functions.invoke('pet-tour-api', {
-        body: {
-          op: 'areaBasedList1',
-          pageNo: 1,
-          numOfRows: 100
-        }
-      });
-
-      if (!edgeError && edgeData && !edgeData.ok === false) {
-        console.log('Pet Edge Function 성공:', edgeData);
-        
-        let apiData = edgeData;
-        if (typeof edgeData === 'string') {
-          try {
-            apiData = JSON.parse(edgeData);
-          } catch (parseError) {
-            console.error('Pet JSON 파싱 실패:', parseError);
-            throw new Error('Pet API 응답 파싱 실패');
-          }
-        }
-        
-        const items = apiData?.response?.body?.items?.item || [];
-        const processedData = Array.isArray(items) ? items : items ? [items] : [];
-        
-        setPetTourPlaces(processedData.map((item: any) => ({
-          contentId: item.contentid,
-          title: item.title,
-          addr1: item.addr1 || '',
-          addr2: item.addr2 || '',
-          image: item.firstimage || item.firstimage2 || '',
-          tel: item.tel || '',
-          mapx: item.mapx || '',
-          mapy: item.mapy || '',
-          areacode: item.areacode || '',
-          sigungucode: item.sigungucode || ''
-        })));
-        
-        toast.success("반려동물 여행지 정보를 성공적으로 불러왔습니다 (Edge Function)");
-        return;
-      }
-
-      throw new Error(`Pet 모든 경로 실패 - RPC: ${rpcError?.message}, Edge: ${edgeError?.message}`);
-        
-    } catch (finalError) {
-      console.error('Pet 모든 시도 실패:', finalError);
-      toast.error("반려동물 여행지 정보를 불러오는데 실패했습니다");
-      setPetTourPlaces([]);
-    } finally {
-      setPetLoading(false);
     }
   };
 
@@ -243,204 +105,192 @@ const TourPlaces = () => {
     }
   };
 
-  const formatAddress = (addr1: string, addr2: string) => {
-    return `${addr1} ${addr2}`.trim();
-  };
+  const renderTourPlace = (place: any, index: number) => (
+    <Card key={place.contentid || index} className="p-4 shadow-sm border-0 bg-white rounded-2xl hover:shadow-md transition-shadow">
+      <div className="flex gap-4">
+        {place.firstimage && (
+          <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+            <img 
+              src={place.firstimage} 
+              alt={place.title}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+              }}
+            />
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <h4 className="font-semibold text-gray-900 mb-1 line-clamp-1">
+            {place.title}
+          </h4>
+          {place.addr1 && (
+            <div className="flex items-start gap-1 mb-2">
+              <MapPin className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-gray-600 line-clamp-2">
+                {place.addr1} {place.addr2}
+              </p>
+            </div>
+          )}
+          {place.tel && (
+            <div className="flex items-center gap-1 mb-2">
+              <Phone className="w-3 h-3 text-gray-400 flex-shrink-0" />
+              <p className="text-xs text-gray-600">
+                {place.tel}
+              </p>
+            </div>
+          )}
+          <div className="flex items-center justify-between">
+            <Badge variant="secondary" className="text-xs">
+              {activeTab === "pet" ? "반려동물 동반" : "일반 관광지"}
+            </Badge>
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
 
   return (
-    <div className="px-5 mb-8">
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex gap-2">
-          <Button
-            variant={activeTab === "general" ? "default" : "outline"}
-            size="sm"
+    <div className="space-y-6">
+      {/* 검색 영역 */}
+      <div className="px-5">
+        <Card className="p-4 bg-white border-0 shadow-lg rounded-2xl">
+          <div className="flex gap-2">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder="여행지를 검색하세요..."
+                value={searchKeyword}
+                onChange={(e) => setSearchKeyword(e.target.value)}
+                onKeyPress={handleKeyPress}
+                className="pl-10 border-gray-200 focus:border-green-500"
+              />
+            </div>
+            <Button 
+              onClick={handleSearch}
+              disabled={loading}
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 px-6"
+            >
+              {loading ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              ) : (
+                <Search className="w-4 h-4" />
+              )}
+            </Button>
+          </div>
+        </Card>
+      </div>
+
+      {/* 탭 영역 */}
+      <div className="px-5">
+        <div className="flex bg-gray-100 rounded-xl p-1">
+          <button
             onClick={() => setActiveTab("general")}
-            className="text-xs"
+            className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all ${
+              activeTab === "general"
+                ? "bg-white text-green-600 shadow-sm"
+                : "text-gray-600 hover:text-gray-800"
+            }`}
           >
+            <MapPin className="w-4 h-4 mr-2 inline" />
             일반 관광지
-          </Button>
-          <Button
-            variant={activeTab === "pet" ? "default" : "outline"}
-            size="sm"
+          </button>
+          <button
             onClick={() => setActiveTab("pet")}
-            className="text-xs"
+            className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all ${
+              activeTab === "pet"
+                ? "bg-white text-green-600 shadow-sm"
+                : "text-gray-600 hover:text-gray-800"
+            }`}
           >
-            <PawPrint className="w-3 h-3 mr-1" />
+            <PawPrint className="w-4 h-4 mr-2 inline" />
             반려동물 동반
-          </Button>
+          </button>
         </div>
       </div>
 
-      {activeTab === "general" && (
-        <div className="mb-4">
-          <div className="flex gap-2">
-            <Input
-              placeholder="여행지를 검색해보세요"
-              value={searchKeyword}
-              onChange={(e) => setSearchKeyword(e.target.value)}
-              onKeyPress={handleKeyPress}
-              className="flex-1"
-            />
-            <Button onClick={handleSearch} size="sm">
-              <Search className="w-4 h-4" />
-            </Button>
+      {/* 콘텐츠 영역 */}
+      <div className="px-5">
+        {loading ? (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+            <p className="text-gray-600 mt-2">로딩 중...</p>
           </div>
-        </div>
-      )}
-
-      {(loading || petLoading) ? (
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-gray-600 mt-2">
-            {activeTab === "general" ? "관광지 정보" : "반려동물 여행지 정보"}를 불러오는 중...
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {activeTab === "general" ? (
-            tourPlaces.length > 0 ? (
-              tourPlaces.map((place) => (
-                <Card key={place.contentId} className="p-4 shadow-sm border-0 bg-white rounded-2xl">
-                  <div className="flex gap-4">
-                    {place.image && (
-                      <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                        <img 
-                          src={place.image} 
-                          alt={place.title}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-gray-900 mb-1 line-clamp-1">
-                        {place.title}
-                      </h4>
-                      {formatAddress(place.addr1, place.addr2) && (
-                        <div className="flex items-center text-sm text-gray-600 mb-1">
-                          <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
-                          <span className="line-clamp-1">{formatAddress(place.addr1, place.addr2)}</span>
-                        </div>
-                      )}
-                      {place.tel && (
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Phone className="w-3 h-3 mr-1 flex-shrink-0" />
-                          <span className="line-clamp-1">{place.tel}</span>
-                        </div>
-                      )}
-                    </div>
-                    <Button variant="ghost" size="sm" className="p-2 h-auto">
-                      <Heart className="w-4 h-4" />
-                    </Button>
+        ) : (
+          <div className="space-y-4">
+            {activeTab === "general" ? (
+              tourPlaces.length > 0 ? (
+                <>
+                  <div className="text-sm text-gray-600 mb-4">
+                    총 {totalCount.toLocaleString()}개의 관광지
                   </div>
-                </Card>
-              ))
-            ) : (
-              <Card className="p-8 text-center">
-                <p className="text-gray-500">
-                  {searchKeyword ? '검색 결과가 없습니다.' : '여행지 정보가 없습니다.'}
-                </p>
-                <Button 
-                  onClick={() => fetchTourPlaces()}
-                  variant="outline"
-                  size="sm"
-                  className="mt-4"
-                >
-                  다시 불러오기
-                </Button>
-              </Card>
-            )
-          ) : (
-            petTourPlaces.length > 0 ? (
-              petTourPlaces.map((place, index) => (
-                <Card key={place.contentId || index} className="p-4 shadow-sm border-0 bg-white rounded-2xl">
-                  <div className="flex gap-4">
-                    {place.image && (
-                      <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                        <img 
-                          src={place.image} 
-                          alt={place.title}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-semibold text-gray-900 line-clamp-1">
-                          {place.title}
-                        </h4>
-                        <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700">
-                          <PawPrint className="w-2 h-2 mr-1" />
-                          반려동물 동반 가능
-                        </Badge>
-                      </div>
-                      {place.addr1 && (
-                        <div className="flex items-center text-sm text-gray-600 mb-1">
-                          <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
-                          <span className="line-clamp-1">
-                            {formatAddress(place.addr1, place.addr2 || '')}
-                          </span>
-                        </div>
-                      )}
-                      {place.tel && (
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Phone className="w-3 h-3 mr-1 flex-shrink-0" />
-                          <span className="line-clamp-1">{place.tel}</span>
-                        </div>
-                      )}
-                    </div>
-                    <Button variant="ghost" size="sm" className="p-2 h-auto">
-                      <Heart className="w-4 h-4" />
-                    </Button>
+                  {tourPlaces.map((place, index) => renderTourPlace(place, index))}
+                </>
+              ) : (
+                <Card className="p-8 text-center bg-white border-0 shadow-lg rounded-2xl">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <MapPin className="w-8 h-8 text-gray-400" />
                   </div>
+                  <h2 className="text-lg font-bold text-gray-900 mb-2">
+                    여행지 정보가 없습니다
+                  </h2>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    다른 검색어로 시도해보세요
+                  </p>
                 </Card>
-              ))
+              )
             ) : (
-              <Card className="p-8 text-center">
-                <p className="text-gray-500">반려동물 동반 여행지 정보가 없습니다.</p>
-                <Button 
-                  onClick={() => fetchPetTourPlaces()}
-                  variant="outline"
-                  size="sm"
-                  className="mt-4"
-                >
-                  다시 불러오기
-                </Button>
-              </Card>
-            )
-          )}
-        </div>
-      )}
+              petTourPlaces.length > 0 ? (
+                <>
+                  <div className="text-sm text-gray-600 mb-4">
+                    총 {petTourPlaces.length}개의 반려동물 동반 여행지
+                  </div>
+                  {petTourPlaces.map((place, index) => renderTourPlace(place, index))}
+                </>
+              ) : (
+                <Card className="p-8 text-center bg-white border-0 shadow-lg rounded-2xl">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <PawPrint className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h2 className="text-lg font-bold text-gray-900 mb-2">
+                    반려동물 동반 여행지가 없습니다
+                  </h2>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    다른 지역을 선택해보세요
+                  </p>
+                </Card>
+              )
+            )}
+          </div>
+        )}
+      </div>
 
-      {activeTab === "general" && totalCount > 50 && (
-        <div className="flex justify-center mt-6">
-          <div className="flex gap-2">
-            {currentPage > 1 && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setCurrentPage(currentPage - 1)}
-              >
-                이전
-              </Button>
-            )}
-            <span className="flex items-center px-3 text-sm text-gray-600">
-              {currentPage}
-            </span>
-            {currentPage * 50 < totalCount && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setCurrentPage(currentPage + 1)}
-              >
-                다음
-              </Button>
-            )}
+      {/* 페이지네이션 */}
+      {!loading && tourPlaces.length > 0 && activeTab === "general" && (
+        <div className="px-5">
+          <div className="flex justify-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+            >
+              이전
+            </Button>
+            <div className="flex items-center px-3 py-1 bg-green-50 rounded-lg">
+              <span className="text-sm font-medium text-green-700">
+                {currentPage}
+              </span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={tourPlaces.length < 10}
+            >
+              다음
+            </Button>
           </div>
         </div>
       )}
