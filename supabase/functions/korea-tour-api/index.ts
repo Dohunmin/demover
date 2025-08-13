@@ -29,9 +29,9 @@ serve(async (req) => {
     const baseUrl = 'https://apis.data.go.kr/B551011/KorService1'
     const operation = keyword ? 'searchKeyword1' : 'areaBasedList1'
     
-    // API 호출 URL 구성 (키 인코딩 방식 변경)
+    // API 호출 URL 구성 (키 URL 인코딩)
     const params = [
-      `serviceKey=${cleanServiceKey}`, // 인코딩하지 않고 직접 사용
+      `serviceKey=${encodeURIComponent(cleanServiceKey)}`, // URL 인코딩 적용
       '_type=json',
       'MobileOS=ETC',
       'MobileApp=LovableApp',
