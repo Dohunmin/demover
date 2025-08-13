@@ -55,7 +55,7 @@ const UserProfile = () => {
       .from('profiles')
       .select('*')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
       console.log('Profile fetch result:', { data, error });
 
@@ -164,7 +164,7 @@ const UserProfile = () => {
         .from('profiles')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       let result;
       if (existingProfile) {
