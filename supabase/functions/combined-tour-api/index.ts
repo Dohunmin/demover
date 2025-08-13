@@ -21,46 +21,73 @@ serve(async (req) => {
 
     console.log('Calling Korean Tourism APIs with params:', { areaCode, numOfRows, pageNo });
 
-    // 1. 한국관광공사 국문 관광정보 서비스 호출
-    const tourismUrl = `https://apis.data.go.kr/B551011/KorService2/areaBasedList1?serviceKey=${apiKey}&_type=json&MobileOS=ETC&MobileApp=TestApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}`;
-    
-    // 2. 한국관광공사 반려동물 동반여행 서비스 호출  
-    const petTourismUrl = `https://apis.data.go.kr/B551011/KorPetTourService/areaBasedList1?serviceKey=${apiKey}&_type=json&MobileOS=ETC&MobileApp=TestApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}`;
+    // 응답 데이터 초기화
+    let tourismData = null;
+    let petTourismData = null;
+    let tourismError = null;
+    let petTourismError = null;
 
-    console.log('Tourism API URL:', tourismUrl);
-    console.log('Pet Tourism API URL:', petTourismUrl);
-
-    // 두 API를 병렬로 호출
-    const [tourismResponse, petTourismResponse] = await Promise.all([
-      fetch(tourismUrl),
-      fetch(petTourismUrl)
-    ]);
-
-    console.log('Tourism API Response Status:', tourismResponse.status);
-    console.log('Pet Tourism API Response Status:', petTourismResponse.status);
-
-    if (!tourismResponse.ok) {
-      throw new Error(`Tourism API failed with status: ${tourismResponse.status}`);
+    // 1. 한국관광공사 국문 관광정보 서비스 호출 (개별 처리)
+    try {
+      const tourismUrl = `https://apis.data.go.kr/B551011/KorService2/areaBasedList1?serviceKey=${apiKey}&_type=json&MobileOS=ETC&MobileApp=TestApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}`;
+      console.log('Tourism API URL:', tourismUrl);
+      
+      const tourismResponse = await fetch(tourismUrl);
+      console.log('Tourism API Response Status:', tourismResponse.status);
+      
+      if (tourismResponse.ok) {
+        tourismData = await tourismResponse.json();
+        console.log('Tourism API Success');
+      } else {
+        tourismError = `Tourism API failed with status: ${tourismResponse.status}`;
+        console.error(tourismError);
+      }
+    } catch (error) {
+      tourismError = `Tourism API error: ${error.message}`;
+      console.error(tourismError);
     }
 
-    if (!petTourismResponse.ok) {
-      throw new Error(`Pet Tourism API failed with status: ${petTourismResponse.status}`);
+    // 2. 한국관광공사 반려동물 동반여행 서비스 호출 (개별 처리)
+    try {
+      const petTourismUrl = `https://apis.data.go.kr/B551011/KorPetTourService/areaBasedList1?serviceKey=${apiKey}&_type=json&MobileOS=ETC&MobileApp=TestApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}`;
+      console.log('Pet Tourism API URL:', petTourismUrl);
+      
+      const petTourismResponse = await fetch(petTourismUrl);
+      console.log('Pet Tourism API Response Status:', petTourismResponse.status);
+      
+      if (petTourismResponse.ok) {
+        petTourismData = await petTourismResponse.json();
+        console.log('Pet Tourism API Success');
+      } else {
+        petTourismError = `Pet Tourism API failed with status: ${petTourismResponse.status}`;
+        console.error(petTourismError);
+      }
+    } catch (error) {
+      petTourismError = `Pet Tourism API error: ${error.message}`;
+      console.error(petTourismError);
     }
 
-    // JSON 응답 파싱
-    const tourismData = await tourismResponse.json();
-    const petTourismData = await petTourismResponse.json();
+    // 결과 확인 및 응답 구성
+    if (!tourismData && !petTourismData) {
+      throw new Error(`Both APIs failed. Tourism: ${tourismError}, Pet Tourism: ${petTourismError}`);
+    }
 
-    console.log('Tourism API Response:', JSON.stringify(tourismData, null, 2));
-    console.log('Pet Tourism API Response:', JSON.stringify(petTourismData, null, 2));
-
-    // 결합된 응답 반환
+    // 부분적으로라도 성공한 경우 데이터 반환
     const combinedData = {
-      tourismData,
-      petTourismData,
+      tourismData: tourismData || { error: tourismError },
+      petTourismData: petTourismData || { error: petTourismError },
       requestParams: { areaCode, numOfRows, pageNo },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      status: {
+        tourism: tourismData ? 'success' : 'failed',
+        petTourism: petTourismData ? 'success' : 'failed'
+      }
     };
+
+    console.log('Final response prepared:', {
+      tourismSuccess: !!tourismData,
+      petTourismSuccess: !!petTourismData
+    });
 
     return new Response(JSON.stringify(combinedData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

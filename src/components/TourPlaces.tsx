@@ -56,8 +56,10 @@ const TourPlaces = () => {
 
       console.log('Combined Tour API 응답:', data);
 
+      let hasData = false;
+
       // 일반 관광지 데이터 처리
-      if (data.tourismData?.response?.body?.items?.item) {
+      if (data.tourismData && !data.tourismData.error && data.tourismData.response?.body?.items?.item) {
         const items = data.tourismData.response.body.items.item;
         const processedData = Array.isArray(items) ? items : items ? [items] : [];
         
@@ -75,16 +77,28 @@ const TourPlaces = () => {
         })));
         
         setTotalCount(data.tourismData.response.body.totalCount || 0);
+        hasData = true;
+      } else {
+        console.warn('일반 관광지 데이터 없음:', data.tourismData?.error || 'No data');
+        setTourPlaces([]);
       }
 
       // 반려동물 동반 여행지 데이터 처리
-      if (data.petTourismData?.response?.body?.items?.item) {
+      if (data.petTourismData && !data.petTourismData.error && data.petTourismData.response?.body?.items?.item) {
         const petItems = data.petTourismData.response.body.items.item;
         const processedPetData = Array.isArray(petItems) ? petItems : petItems ? [petItems] : [];
         setPetTourPlaces(processedPetData);
+        hasData = true;
+      } else {
+        console.warn('반려동물 여행지 데이터 없음:', data.petTourismData?.error || 'No data');
+        setPetTourPlaces([]);
       }
 
-      toast.success("여행지 정보를 성공적으로 불러왔습니다!");
+      if (hasData) {
+        toast.success("여행지 정보를 성공적으로 불러왔습니다!");
+      } else {
+        toast.warning("일부 데이터를 불러오는데 실패했지만 계속 진행합니다.");
+      }
 
     } catch (error) {
       console.error('여행지 정보 조회 실패:', error);
