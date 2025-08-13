@@ -14,16 +14,140 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookmarks: {
+        Row: {
+          created_at: string
+          id: string
+          news_post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          news_post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          news_post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_bookmarks_news_post"
+            columns: ["news_post_id"]
+            isOneToOne: false
+            referencedRelation: "news_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      news_posts: {
+        Row: {
+          author_id: string
+          category: string
+          content: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          category: string
+          content?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          category?: string
+          content?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          pet_age: number | null
+          pet_breed: string | null
+          pet_gender: string | null
+          pet_image_url: string | null
+          pet_name: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          pet_age?: number | null
+          pet_breed?: string | null
+          pet_gender?: string | null
+          pet_image_url?: string | null
+          pet_name?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          pet_age?: number | null
+          pet_breed?: string | null
+          pet_gender?: string | null
+          pet_image_url?: string | null
+          pet_name?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "user" | "admin" | "moderator"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +274,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["user", "admin", "moderator"],
+    },
   },
 } as const
