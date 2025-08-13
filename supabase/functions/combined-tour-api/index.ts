@@ -29,7 +29,7 @@ serve(async (req) => {
 
     // 1. 한국관광공사 국문 관광정보 서비스 호출 (개별 처리)
     try {
-      const tourismUrl = `https://apis.data.go.kr/B551011/KorService2/areaBasedList1?serviceKey=${apiKey}&_type=json&MobileOS=ETC&MobileApp=TestApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}`;
+      const tourismUrl = `http://apis.data.go.kr/B551011/KorService2/areaBasedList1?serviceKey=${apiKey}&_type=json&MobileOS=ETC&MobileApp=TestApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}`;
       console.log('Tourism API URL:', tourismUrl);
       
       const tourismResponse = await fetch(tourismUrl, {
@@ -57,7 +57,7 @@ serve(async (req) => {
 
     // 2. 한국관광공사 반려동물 동반여행 서비스 호출 (개별 처리)
     try {
-      const petTourismUrl = `https://apis.data.go.kr/B551011/KorPetTourService/areaBasedList1?serviceKey=${apiKey}&_type=json&MobileOS=ETC&MobileApp=TestApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}`;
+      const petTourismUrl = `http://apis.data.go.kr/B551011/KorPetTourService/areaBasedList1?serviceKey=${apiKey}&_type=json&MobileOS=ETC&MobileApp=TestApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}`;
       console.log('Pet Tourism API URL:', petTourismUrl);
       
       const petTourismResponse = await fetch(petTourismUrl, {
