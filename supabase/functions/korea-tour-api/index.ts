@@ -29,27 +29,28 @@ serve(async (req) => {
     const baseUrl = 'https://apis.data.go.kr/B551011/KorService1'
     const operation = keyword ? 'searchKeyword1' : 'areaBasedList1'
     
-    // API 호출 URL 구성 (키 URL 인코딩)
-    const params = [
-      `serviceKey=${encodeURIComponent(cleanServiceKey)}`, // URL 인코딩 적용
-      '_type=json',
-      'MobileOS=ETC',
-      'MobileApp=LovableApp',
-      `pageNo=${pageNo}`,
-      `numOfRows=${numOfRows}`
-    ]
+    // API 호출 URL 구성
+    const params = new URLSearchParams({
+      serviceKey: cleanServiceKey, // URLSearchParams가 자동으로 인코딩
+      '_type': 'json',
+      'MobileOS': 'ETC', 
+      'MobileApp': 'LovableApp',
+      'pageNo': pageNo,
+      'numOfRows': numOfRows,
+      'arrange': 'A' // 정렬 기준 추가
+    })
 
     if (keyword) {
-      params.push(`keyword=${encodeURIComponent(keyword)}`)
+      params.append('keyword', keyword)
     }
     if (areaCode) {
-      params.push(`areaCode=${areaCode}`)
+      params.append('areaCode', areaCode)
     }
     if (sigunguCode) {
-      params.push(`sigunguCode=${sigunguCode}`)
+      params.append('sigunguCode', sigunguCode)
     }
 
-    const apiUrl = `${baseUrl}/${operation}?${params.join('&')}`
+    const apiUrl = `${baseUrl}/${operation}?${params.toString()}`
     console.log('=== API CALL DEBUG INFO ===')
     console.log('Service Key exists:', !!cleanServiceKey)
     console.log('Service Key length:', cleanServiceKey?.length)
@@ -61,8 +62,8 @@ serve(async (req) => {
     const response = await fetch(apiUrl, {
       method: 'GET',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; LovableApp/1.0)',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
       }
     })
     
