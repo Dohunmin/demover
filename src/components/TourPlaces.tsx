@@ -44,9 +44,46 @@ const TourPlaces = () => {
     setLoading(true);
     
     try {
-      console.log('Edge Function 호출 시작:', { keyword, currentPage });
+      console.log('DB RPC 우선 호출 시작:', { keyword, currentPage });
       
-      // 1차: Edge Function 시도
+      // 1차: DB RPC 우선 시도 (TLS 문제 회피)
+      const { data: rpcData, error: rpcError } = await supabase.rpc('tour_area_list', {
+        page_no: currentPage,
+        rows: 50,
+        keyword: keyword || null
+      });
+
+      if (!rpcError && rpcData) {
+        console.log('DB RPC 성공:', rpcData);
+        
+        const apiData = rpcData as any;
+        
+        if (!apiData?.error && apiData?.response?.body?.items?.item) {
+          const items = apiData.response.body.items.item;
+          const processedData = Array.isArray(items) ? items : items ? [items] : [];
+          
+          setTourPlaces(processedData.map((item: any) => ({
+            contentId: item.contentid,
+            title: item.title,
+            addr1: item.addr1 || '',
+            addr2: item.addr2 || '',
+            image: item.firstimage || item.firstimage2 || '',
+            tel: item.tel || '',
+            mapx: item.mapx || '',
+            mapy: item.mapy || '',
+            areacode: item.areacode || '',
+            sigungucode: item.sigungucode || ''
+          })));
+          
+          setTotalCount(apiData.response.body.totalCount || 0);
+          toast.success("관광지 정보를 성공적으로 불러왔습니다 (DB RPC)");
+          return;
+        }
+      }
+
+      console.warn('DB RPC 실패, Edge Function 시도:', rpcError);
+      
+      // 2차: Edge Function 백업 시도
       const { data: edgeData, error: edgeError } = await supabase.functions.invoke('korea-tour-api', {
         body: {
           op: keyword ? 'searchKeyword1' : 'areaBasedList1',
@@ -56,15 +93,9 @@ const TourPlaces = () => {
         }
       });
 
-      if (edgeError) {
-        console.warn('Edge Function 실패:', edgeError);
-        throw new Error(`Edge Function 오류: ${edgeError.message}`);
-      }
-
-      if (edgeData && !edgeData.ok === false) {
+      if (!edgeError && edgeData && !edgeData.ok === false) {
         console.log('Edge Function 성공:', edgeData);
         
-        // Edge Function에서 받은 데이터가 문자열일 수 있으므로 파싱
         let apiData = edgeData;
         if (typeof edgeData === 'string') {
           try {
@@ -96,56 +127,12 @@ const TourPlaces = () => {
         return;
       }
 
-      throw new Error('Edge Function 응답이 비어있음');
-      
-    } catch (edgeError) {
-      console.warn('Edge Function 완전 실패, DB RPC 시도:', edgeError);
-      
-      try {
-        // 2차: DB RPC 백업 시도
-        const { data: rpcData, error: rpcError } = await supabase.rpc('tour_area_list', {
-          page_no: currentPage,
-          rows: 50,
-          keyword: keyword || null
-        });
-
-        if (rpcError) {
-          console.error('DB RPC도 실패:', rpcError);
-          throw rpcError;
-        }
-
-        console.log('DB RPC 성공:', rpcData);
+      throw new Error(`모든 경로 실패 - RPC: ${rpcError?.message}, Edge: ${edgeError?.message}`);
         
-        const apiData = rpcData as any;
-        
-        if (apiData?.error) {
-          throw new Error(apiData.error);
-        }
-        
-        const items = apiData?.response?.body?.items?.item || [];
-        const processedData = Array.isArray(items) ? items : items ? [items] : [];
-        
-        setTourPlaces(processedData.map((item: any) => ({
-          contentId: item.contentid,
-          title: item.title,
-          addr1: item.addr1 || '',
-          addr2: item.addr2 || '',
-          image: item.firstimage || item.firstimage2 || '',
-          tel: item.tel || '',
-          mapx: item.mapx || '',
-          mapy: item.mapy || '',
-          areacode: item.areacode || '',
-          sigungucode: item.sigungucode || ''
-        })));
-        
-        setTotalCount(apiData?.response?.body?.totalCount || 0);
-        toast.success("관광지 정보를 성공적으로 불러왔습니다 (DB RPC)");
-        
-      } catch (rpcError) {
-        console.error('모든 시도 실패:', rpcError);
-        toast.error("관광지 정보를 불러오는데 실패했습니다");
-        setTourPlaces([]);
-      }
+    } catch (finalError) {
+      console.error('모든 시도 실패:', finalError);
+      toast.error("관광지 정보를 불러오는데 실패했습니다");
+      setTourPlaces([]);
     } finally {
       setLoading(false);
     }
@@ -155,9 +142,44 @@ const TourPlaces = () => {
     setPetLoading(true);
     
     try {
-      console.log('Pet Edge Function 호출 시작');
+      console.log('Pet DB RPC 우선 호출 시작');
       
-      // 1차: Edge Function 시도
+      // 1차: DB RPC 우선 시도 (TLS 문제 회피)
+      const { data: rpcData, error: rpcError } = await supabase.rpc('tour_pet_list', {
+        page_no: 1,
+        rows: 100
+      });
+
+      if (!rpcError && rpcData) {
+        console.log('Pet DB RPC 성공:', rpcData);
+        
+        const apiData = rpcData as any;
+        
+        if (!apiData?.error && apiData?.response?.body?.items?.item) {
+          const items = apiData.response.body.items.item;
+          const processedData = Array.isArray(items) ? items : items ? [items] : [];
+          
+          setPetTourPlaces(processedData.map((item: any) => ({
+            contentId: item.contentid,
+            title: item.title,
+            addr1: item.addr1 || '',
+            addr2: item.addr2 || '',
+            image: item.firstimage || item.firstimage2 || '',
+            tel: item.tel || '',
+            mapx: item.mapx || '',
+            mapy: item.mapy || '',
+            areacode: item.areacode || '',
+            sigungucode: item.sigungucode || ''
+          })));
+          
+          toast.success("반려동물 여행지 정보를 성공적으로 불러왔습니다 (DB RPC)");
+          return;
+        }
+      }
+
+      console.warn('Pet DB RPC 실패, Edge Function 시도:', rpcError);
+      
+      // 2차: Edge Function 백업 시도
       const { data: edgeData, error: edgeError } = await supabase.functions.invoke('pet-tour-api', {
         body: {
           op: 'areaBasedList1',
@@ -166,12 +188,7 @@ const TourPlaces = () => {
         }
       });
 
-      if (edgeError) {
-        console.warn('Pet Edge Function 실패:', edgeError);
-        throw new Error(`Pet Edge Function 오류: ${edgeError.message}`);
-      }
-
-      if (edgeData && !edgeData.ok === false) {
+      if (!edgeError && edgeData && !edgeData.ok === false) {
         console.log('Pet Edge Function 성공:', edgeData);
         
         let apiData = edgeData;
@@ -204,54 +221,12 @@ const TourPlaces = () => {
         return;
       }
 
-      throw new Error('Pet Edge Function 응답이 비어있음');
-      
-    } catch (edgeError) {
-      console.warn('Pet Edge Function 완전 실패, DB RPC 시도:', edgeError);
-      
-      try {
-        // 2차: DB RPC 백업 시도
-        const { data: rpcData, error: rpcError } = await supabase.rpc('tour_pet_list', {
-          page_no: 1,
-          rows: 100
-        });
-
-        if (rpcError) {
-          console.error('Pet DB RPC도 실패:', rpcError);
-          throw rpcError;
-        }
-
-        console.log('Pet DB RPC 성공:', rpcData);
+      throw new Error(`Pet 모든 경로 실패 - RPC: ${rpcError?.message}, Edge: ${edgeError?.message}`);
         
-        const apiData = rpcData as any;
-        
-        if (apiData?.error) {
-          throw new Error(apiData.error);
-        }
-        
-        const items = apiData?.response?.body?.items?.item || [];
-        const processedData = Array.isArray(items) ? items : items ? [items] : [];
-        
-        setPetTourPlaces(processedData.map((item: any) => ({
-          contentId: item.contentid,
-          title: item.title,
-          addr1: item.addr1 || '',
-          addr2: item.addr2 || '',
-          image: item.firstimage || item.firstimage2 || '',
-          tel: item.tel || '',
-          mapx: item.mapx || '',
-          mapy: item.mapy || '',
-          areacode: item.areacode || '',
-          sigungucode: item.sigungucode || ''
-        })));
-        
-        toast.success("반려동물 여행지 정보를 성공적으로 불러왔습니다 (DB RPC)");
-        
-      } catch (rpcError) {
-        console.error('Pet 모든 시도 실패:', rpcError);
-        toast.error("반려동물 여행지 정보를 불러오는데 실패했습니다");
-        setPetTourPlaces([]);
-      }
+    } catch (finalError) {
+      console.error('Pet 모든 시도 실패:', finalError);
+      toast.error("반려동물 여행지 정보를 불러오는데 실패했습니다");
+      setPetTourPlaces([]);
     } finally {
       setPetLoading(false);
     }
