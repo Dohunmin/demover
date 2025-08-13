@@ -5,6 +5,64 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// XML을 JSON으로 변환하는 간단한 파서
+function parseXmlToJson(xmlText: string) {
+  try {
+    // OpenAPI_ServiceResponse 구조 파싱
+    const headerMatch = xmlText.match(/<header>(.*?)<\/header>/s);
+    const bodyMatch = xmlText.match(/<body>(.*?)<\/body>/s);
+    
+    if (!headerMatch || !bodyMatch) {
+      throw new Error('Invalid XML structure');
+    }
+    
+    const header = parseXmlNode(headerMatch[1]);
+    const body = parseXmlNode(bodyMatch[1]);
+    
+    return {
+      response: {
+        header,
+        body
+      }
+    };
+  } catch (error) {
+    console.error('XML parsing error:', error);
+    return null;
+  }
+}
+
+function parseXmlNode(xmlContent: string) {
+  const result: any = {};
+  
+  // resultCode, resultMsg 등 단순 태그 파싱
+  const simpleTagRegex = /<(\w+)>([^<]*)<\/\1>/g;
+  let match;
+  
+  while ((match = simpleTagRegex.exec(xmlContent)) !== null) {
+    const [, tagName, value] = match;
+    result[tagName] = value;
+  }
+  
+  // items 구조 파싱
+  const itemsMatch = xmlContent.match(/<items>(.*?)<\/items>/s);
+  if (itemsMatch) {
+    const itemsContent = itemsMatch[1];
+    const itemRegex = /<item>(.*?)<\/item>/gs;
+    const items = [];
+    
+    let itemMatch;
+    while ((itemMatch = itemRegex.exec(itemsContent)) !== null) {
+      const itemContent = itemMatch[1];
+      const itemData = parseXmlNode(itemContent);
+      items.push(itemData);
+    }
+    
+    result.items = { item: items };
+  }
+  
+  return result;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -44,7 +102,21 @@ serve(async (req) => {
       console.log('Tourism API Response Status:', tourismResponse.status);
       
       if (tourismResponse.ok) {
-        tourismData = await tourismResponse.json();
+        const responseText = await tourismResponse.text();
+        console.log('Tourism API Raw Response:', responseText.substring(0, 200));
+        
+        // XML 응답인지 확인
+        if (responseText.trim().startsWith('<?xml') || responseText.trim().startsWith('<OpenAPI_ServiceResponse>')) {
+          // XML 파싱 로직 (간단한 정규식 사용)
+          tourismData = parseXmlToJson(responseText);
+        } else {
+          try {
+            tourismData = JSON.parse(responseText);
+          } catch (jsonError) {
+            console.error('JSON Parse Error:', jsonError);
+            tourismError = `Tourism API JSON parse error: ${jsonError.message}`;
+          }
+        }
         console.log('Tourism API Success');
       } else {
         const responseText = await tourismResponse.text();
@@ -73,7 +145,21 @@ serve(async (req) => {
       console.log('Pet Tourism API Response Status:', petTourismResponse.status);
       
       if (petTourismResponse.ok) {
-        petTourismData = await petTourismResponse.json();
+        const responseText = await petTourismResponse.text();
+        console.log('Pet Tourism API Raw Response:', responseText.substring(0, 200));
+        
+        // XML 응답인지 확인
+        if (responseText.trim().startsWith('<?xml') || responseText.trim().startsWith('<OpenAPI_ServiceResponse>')) {
+          // XML 파싱 로직 (간단한 정규식 사용)
+          petTourismData = parseXmlToJson(responseText);
+        } else {
+          try {
+            petTourismData = JSON.parse(responseText);
+          } catch (jsonError) {
+            console.error('JSON Parse Error:', jsonError);
+            petTourismError = `Pet Tourism API JSON parse error: ${jsonError.message}`;
+          }
+        }
         console.log('Pet Tourism API Success');
       } else {
         const responseText = await petTourismResponse.text();
