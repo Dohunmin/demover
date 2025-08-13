@@ -178,6 +178,7 @@ const UserProfile = () => {
         result = await (supabase as any)
           .from('profiles')
           .insert({
+            id: user.id,
             ...saveData,
             created_at: new Date().toISOString()
           });
