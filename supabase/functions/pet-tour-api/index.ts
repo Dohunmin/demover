@@ -40,29 +40,13 @@ Deno.serve(async (req) => {
     const SERVICE_KEY = SERVICE_KEY_RAW.trim();
     console.log("[KEY] pet-tour-api", debugId, "Service key length:", SERVICE_KEY.length);
     
-    // URL 구성 - Pet Tour Service 사용
-    const url = new URL(`http://apis.data.go.kr/B551011/PetTourService/${operation}`);
-    url.searchParams.set("serviceKey", SERVICE_KEY);
-    url.searchParams.set("_type", "json");
-    url.searchParams.set("MobileOS", "AND");
-    url.searchParams.set("MobileApp", "TourGuide");
-    url.searchParams.set("pageNo", pageNo.toString());
-    url.searchParams.set("numOfRows", numOfRows.toString());
+    // 수동으로 URL 구성 (URL 인코딩 방지)
+    let finalUrl = `http://apis.data.go.kr/B551011/PetTourService/${operation}?serviceKey=${SERVICE_KEY}&_type=json&MobileOS=AND&MobileApp=TourGuide&pageNo=${pageNo}&numOfRows=${numOfRows}`;
     
-    if (keyword) {
-      url.searchParams.set("keyword", keyword);
-    }
-    if (areaCode) {
-      url.searchParams.set("areaCode", areaCode.toString());
-    }
-    if (sigunguCode) {
-      url.searchParams.set("sigunguCode", sigunguCode.toString());
-    }
-    
-    console.log("[URL] pet-tour-api", debugId, url.toString());
+    console.log("[URL] pet-tour-api", debugId, finalUrl);
     
     // 외부 API 호출
-    const response = await fetch(url.toString(), {
+    const response = await fetch(finalUrl, {
       method: 'GET',
       headers: {
         "Accept": "application/json",
