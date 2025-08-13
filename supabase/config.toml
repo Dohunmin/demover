@@ -2,3 +2,6 @@ project_id = "fffcagbbbikhfcydncjb"
 
 [functions.combined-tour-api]
 verify_jwt = false
+
+[functions.mock-tour-api]
+verify_jwt = false

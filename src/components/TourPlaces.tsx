@@ -39,8 +39,8 @@ const TourPlaces = () => {
     try {
       console.log('Combined Tour API 호출 시작:', { keyword, currentPage });
       
-      // 새로운 combined-tour-api 호출
-      const { data, error } = await supabase.functions.invoke('combined-tour-api', {
+      // 임시로 mock API 사용 (실제 API 문제 해결 후 combined-tour-api로 변경)
+      const { data, error } = await supabase.functions.invoke('mock-tour-api', {
         body: {
           areaCode: '1', // 서울
           numOfRows: '10',

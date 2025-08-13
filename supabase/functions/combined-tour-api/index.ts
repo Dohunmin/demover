@@ -32,14 +32,22 @@ serve(async (req) => {
       const tourismUrl = `https://apis.data.go.kr/B551011/KorService2/areaBasedList1?serviceKey=${apiKey}&_type=json&MobileOS=ETC&MobileApp=TestApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}`;
       console.log('Tourism API URL:', tourismUrl);
       
-      const tourismResponse = await fetch(tourismUrl);
+      const tourismResponse = await fetch(tourismUrl, {
+        method: 'GET',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; Supabase-Edge-Function)',
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
+        }
+      });
       console.log('Tourism API Response Status:', tourismResponse.status);
       
       if (tourismResponse.ok) {
         tourismData = await tourismResponse.json();
         console.log('Tourism API Success');
       } else {
-        tourismError = `Tourism API failed with status: ${tourismResponse.status}`;
+        const responseText = await tourismResponse.text();
+        tourismError = `Tourism API failed with status: ${tourismResponse.status}, body: ${responseText}`;
         console.error(tourismError);
       }
     } catch (error) {
@@ -52,14 +60,22 @@ serve(async (req) => {
       const petTourismUrl = `https://apis.data.go.kr/B551011/KorPetTourService/areaBasedList1?serviceKey=${apiKey}&_type=json&MobileOS=ETC&MobileApp=TestApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}`;
       console.log('Pet Tourism API URL:', petTourismUrl);
       
-      const petTourismResponse = await fetch(petTourismUrl);
+      const petTourismResponse = await fetch(petTourismUrl, {
+        method: 'GET',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; Supabase-Edge-Function)',
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
+        }
+      });
       console.log('Pet Tourism API Response Status:', petTourismResponse.status);
       
       if (petTourismResponse.ok) {
         petTourismData = await petTourismResponse.json();
         console.log('Pet Tourism API Success');
       } else {
-        petTourismError = `Pet Tourism API failed with status: ${petTourismResponse.status}`;
+        const responseText = await petTourismResponse.text();
+        petTourismError = `Pet Tourism API failed with status: ${petTourismResponse.status}, body: ${responseText}`;
         console.error(petTourismError);
       }
     } catch (error) {
