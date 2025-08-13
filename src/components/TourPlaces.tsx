@@ -65,47 +65,110 @@ const TourPlaces = () => {
     setError(null);
     
     try {
+      // 먼저 클라이언트에서 직접 API 호출 시도
+      const serviceKey = 'lZf40IMmpeOv3MWEUV+xoRC+zuAYiUYcDyMVbm5AVPsFZ+ZAbhezzET3VZlh8y8dTZGsDIot0RVq0RzYgvoECA==';
       const params = new URLSearchParams({
+        serviceKey: serviceKey,
         pageNo: currentPage.toString(),
-        numOfRows: '50'
+        numOfRows: '50',
+        MobileApp: 'LovableApp',
+        MobileOS: 'ETC',
+        _type: 'json'
       });
       
       if (keyword) {
         params.append('keyword', keyword);
       }
       
-      // GET 요청으로 변경
-      const url = `https://wdmqabtatkibyveilzut.supabase.co/functions/v1/korea-tour-api?${params.toString()}`;
+      const apiUrl = `https://apis.data.go.kr/B551011/KorService1/${keyword ? 'searchKeyword1' : 'areaBasedList1'}?${params.toString()}`;
       
-      const response = await fetch(url, {
+      console.log('클라이언트에서 직접 API 호출 시도:', apiUrl.replace(serviceKey, 'MASKED_KEY'));
+      
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        mode: 'cors',
         headers: {
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkbXFhYnRhdGtpYnl2ZWlsenV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQwMjkxNzksImV4cCI6MjA2OTYwNTE3OX0.iBXrQyNDJ3OqoCTOi4XjSr-0Qd8B7y_upuCaQcWPwCI`,
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkbXFhYnRhdGtpYnl2ZWlsenV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQwMjkxNzksImV4cCI6MjA2OTYwNTE3OX0.iBXrQyNDJ3OqoCTOi4XjSr-0Qd8B7y_upuCaQcWPwCI'
+          'Accept': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         }
       });
-      
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`클라이언트 API 호출 실패: ${response.status}`);
       }
-      
+
       const data = await response.json();
+      console.log('클라이언트 API 성공 응답:', data);
       
-      if (data.error) {
-        throw new Error(data.error);
-      }
+      const items = data.response?.body?.items?.item || [];
+      const processedData = Array.isArray(items) ? items : items ? [items] : [];
       
-      setTourPlaces(data?.data || []);
-      setTotalCount(data?.totalCount || 0);
+      setTourPlaces(processedData.map((item: any) => ({
+        contentId: item.contentid,
+        title: item.title,
+        addr1: item.addr1 || '',
+        addr2: item.addr2 || '',
+        image: item.firstimage || item.firstimage2 || '',
+        tel: item.tel || '',
+        mapx: item.mapx || '',
+        mapy: item.mapy || '',
+        areacode: item.areacode || '',
+        sigungucode: item.sigungucode || ''
+      })));
       
-      if (data?.data?.length > 0) {
+      setTotalCount(data.response?.body?.totalCount || 0);
+      
+      if (processedData.length > 0) {
         toast.success('여행지 정보를 성공적으로 불러왔습니다!');
       }
-    } catch (error) {
-      console.error('한국관광공사 API 호출 실패:', error);
-      setError('여행지 정보를 불러오는데 실패했습니다. 다시 시도해주세요.');
-      setTourPlaces([]);
-      setTotalCount(0);
-      toast.error('여행지 정보를 불러오는데 실패했습니다.');
+      
+    } catch (clientError) {
+      console.error('클라이언트 직접 호출 실패, Edge Function 시도:', clientError);
+      
+      // 클라이언트 호출 실패시 Edge Function 폴백
+      try {
+        const params = new URLSearchParams({
+          pageNo: currentPage.toString(),
+          numOfRows: '50'
+        });
+        
+        if (keyword) {
+          params.append('keyword', keyword);
+        }
+        
+        const url = `https://wdmqabtatkibyveilzut.supabase.co/functions/v1/korea-tour-api?${params.toString()}`;
+        
+        const response = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkbXFhYnRhdGtpYnl2ZWlsenV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQwMjkxNzksImV4cCI6MjA2OTYwNTE3OX0.iBXrQyNDJ3OqoCTOi4XjSr-0Qd8B7y_upuCaQcWPwCI`,
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkbXFhYnRhdGtpYnl2ZWlsenV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQwMjkxNzksImV4cCI6MjA2OTYwNTE3OX0.iBXrQyNDJ3OqoCTOi4XjSr-0Qd8B7y_upuCaQcWPwCI'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.error) {
+          throw new Error(data.error);
+        }
+        
+        setTourPlaces(data?.data || []);
+        setTotalCount(data?.totalCount || 0);
+        
+        if (data?.data?.length > 0) {
+          toast.success('여행지 정보를 성공적으로 불러왔습니다!');
+        }
+        
+      } catch (edgeError) {
+        console.error('Edge Function도 실패:', edgeError);
+        setError('여행지 정보를 불러오는데 실패했습니다. 다시 시도해주세요.');
+        setTourPlaces([]);
+        setTotalCount(0);
+        toast.error('여행지 정보를 불러오는데 실패했습니다.');
+      }
     } finally {
       setLoading(false);
     }
