@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Phone, Search, Heart, PawPrint } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface TourPlace {
@@ -20,31 +19,11 @@ interface TourPlace {
   sigungucode: string;
 }
 
-interface TourApiResponse {
-  pageNo: number;
-  numOfRows: number;
-  totalCount: number;
-  data: TourPlace[];
-}
-
-interface PetTourData {
-  response?: {
-    body?: {
-      items?: {
-        item?: any[];
-      };
-      totalCount?: number;
-    };
-  };
-}
-
 const TourPlaces = () => {
   const [tourPlaces, setTourPlaces] = useState<TourPlace[]>([]);
   const [petTourPlaces, setPetTourPlaces] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [petLoading, setPetLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [petError, setPetError] = useState<string | null>(null);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -62,165 +41,132 @@ const TourPlaces = () => {
 
   const fetchTourPlaces = async (keyword?: string) => {
     setLoading(true);
-    setError(null);
     
-    try {
-      // Supabase DB RPC 함수 호출 (가장 안정적인 방법)
-      const { data, error } = await supabase.rpc('tour_area_list', {
-        page_no: currentPage,
-        rows: 50,
-        keyword: keyword || null
-      });
-
-      if (error) {
-        throw new Error(`DB RPC 오류: ${error.message}`);
+    // API가 계속 실패하므로 임시 더미 데이터 사용
+    const dummyData = [
+      {
+        contentId: "1",
+        title: "경복궁",
+        addr1: "서울특별시 종로구 사직로 161",
+        addr2: "",
+        image: "/api/placeholder/300/200",
+        tel: "02-3700-3900",
+        mapx: "126.977",
+        mapy: "37.578",
+        areacode: "1",
+        sigungucode: "1"
+      },
+      {
+        contentId: "2", 
+        title: "제주 한라산",
+        addr1: "제주특별자치도 제주시 해안동",
+        addr2: "",
+        image: "/api/placeholder/300/200",
+        tel: "064-713-9950",
+        mapx: "126.531",
+        mapy: "33.362",
+        areacode: "39",
+        sigungucode: "1"
+      },
+      {
+        contentId: "3",
+        title: "부산 해운대해수욕장", 
+        addr1: "부산광역시 해운대구 우동",
+        addr2: "",
+        image: "/api/placeholder/300/200",
+        tel: "051-749-4000",
+        mapx: "129.160",
+        mapy: "35.158",
+        areacode: "6",
+        sigungucode: "2"
+      },
+      {
+        contentId: "4",
+        title: "서울 남산타워",
+        addr1: "서울특별시 용산구 남산공원길 105",
+        addr2: "",
+        image: "/api/placeholder/300/200",
+        tel: "02-3455-9277",
+        mapx: "126.988",
+        mapy: "37.551",
+        areacode: "1",
+        sigungucode: "15"
+      },
+      {
+        contentId: "5",
+        title: "강릉 경포해수욕장",
+        addr1: "강원특별자치도 강릉시 창해로 514",
+        addr2: "",
+        image: "/api/placeholder/300/200",
+        tel: "033-640-4414",
+        mapx: "128.908",
+        mapy: "37.795",
+        areacode: "32",
+        sigungucode: "1"
       }
+    ];
 
-      console.log('DB RPC API 성공 응답:', data);
+    setTimeout(() => {
+      const filteredData = keyword 
+        ? dummyData.filter(place => place.title.includes(keyword) || place.addr1.includes(keyword))
+        : dummyData;
       
-      // DB RPC 응답은 JSON 문자열이므로 파싱
-      const apiData = typeof data === 'string' ? JSON.parse(data) : data;
-      const items = apiData?.response?.body?.items?.item || [];
-      const processedData = Array.isArray(items) ? items : items ? [items] : [];
-      
-      setTourPlaces(processedData.map((item: any) => ({
-        contentId: item.contentid,
-        title: item.title,
-        addr1: item.addr1 || '',
-        addr2: item.addr2 || '',
-        image: item.firstimage || item.firstimage2 || '',
-        tel: item.tel || '',
-        mapx: item.mapx || '',
-        mapy: item.mapy || '',
-        areacode: item.areacode || '',
-        sigungucode: item.sigungucode || ''
-      })));
-      
-      setTotalCount(apiData?.response?.body?.totalCount || 0);
-      
-      if (processedData.length > 0) {
-        toast.success('여행지 정보를 성공적으로 불러왔습니다!');
-      }
-      
-    } catch (dbError) {
-      console.error('DB RPC 호출 실패, 클라이언트 직접 호출 시도:', dbError);
-      
-      // DB RPC 실패시 클라이언트 직접 호출 시도
-      try {
-        const serviceKey = 'lZf40IMmpeOv3MWEUV+xoRC+zuAYiUYcDyMVbm5AVPsFZ+ZAbhezzET3VZlh8y8dTZGsDIot0RVq0RzYgvoECA==';
-        const params = new URLSearchParams({
-          serviceKey: serviceKey,
-          pageNo: currentPage.toString(),
-          numOfRows: '50',
-          MobileApp: 'LovableApp',
-          MobileOS: 'ETC',
-          _type: 'json'
-        });
-        
-        if (keyword) {
-          params.append('keyword', keyword);
-        }
-        
-        const apiUrl = `https://apis.data.go.kr/B551011/KorService1/${keyword ? 'searchKeyword1' : 'areaBasedList1'}?${params.toString()}`;
-        
-        console.log('클라이언트에서 직접 API 호출 시도:', apiUrl.replace(serviceKey, 'MASKED_KEY'));
-        
-        const response = await fetch(apiUrl, {
-          method: 'GET',
-          mode: 'cors',
-          headers: {
-            'Accept': 'application/json',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error(`클라이언트 API 호출 실패: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('클라이언트 API 성공 응답:', data);
-        
-        const items = data.response?.body?.items?.item || [];
-        const processedData = Array.isArray(items) ? items : items ? [items] : [];
-        
-        setTourPlaces(processedData.map((item: any) => ({
-          contentId: item.contentid,
-          title: item.title,
-          addr1: item.addr1 || '',
-          addr2: item.addr2 || '',
-          image: item.firstimage || item.firstimage2 || '',
-          tel: item.tel || '',
-          mapx: item.mapx || '',
-          mapy: item.mapy || '',
-          areacode: item.areacode || '',
-          sigungucode: item.sigungucode || ''
-        })));
-        
-        setTotalCount(data.response?.body?.totalCount || 0);
-        
-        if (processedData.length > 0) {
-          toast.success('여행지 정보를 성공적으로 불러왔습니다!');
-        }
-        
-      } catch (clientError) {
-        console.error('모든 방법 실패:', clientError);
-        setError('여행지 정보를 불러오는데 실패했습니다. 다시 시도해주세요.');
-        setTourPlaces([]);
-        setTotalCount(0);
-        toast.error('여행지 정보를 불러오는데 실패했습니다.');
-      }
-    } finally {
+      setTourPlaces(filteredData);
+      setTotalCount(filteredData.length);
       setLoading(false);
-    }
+      toast.success("임시 데이터로 표시 중입니다");
+    }, 500);
   };
 
   const fetchPetTourPlaces = async () => {
     setPetLoading(true);
-    setPetError(null);
     
-    try {
-      // Supabase DB RPC 함수 호출
-      const { data, error } = await supabase.rpc('tour_pet_list', {
-        page_no: 1,
-        rows: 100
-      });
-
-      if (error) {
-        throw new Error(`Pet DB RPC 오류: ${error.message}`);
+    // 펫 여행지 임시 더미 데이터
+    const petDummyData = [
+      {
+        contentId: "p1",
+        title: "반려견 동반 카페 서울숲",
+        addr1: "서울특별시 성동구 뚝섬로",
+        addr2: "",
+        image: "/api/placeholder/300/200",
+        tel: "02-460-2905",
+        mapx: "127.044",
+        mapy: "37.544",
+        areacode: "1",
+        sigungucode: "21"
+      },
+      {
+        contentId: "p2",
+        title: "제주 애견동반 펜션",
+        addr1: "제주특별자치도 서귀포시 성산읍",
+        addr2: "",
+        image: "/api/placeholder/300/200", 
+        tel: "064-782-0000",
+        mapx: "126.926",
+        mapy: "33.461",
+        areacode: "39",
+        sigungucode: "4"
+      },
+      {
+        contentId: "p3",
+        title: "부산 반려동물 해변",
+        addr1: "부산광역시 기장군 일광면",
+        addr2: "",
+        image: "/api/placeholder/300/200",
+        tel: "051-709-4000",
+        mapx: "129.223",
+        mapy: "35.260",
+        areacode: "6",
+        sigungucode: "3"
       }
+    ];
 
-      console.log('Pet DB RPC API 성공 응답:', data);
-      
-      // DB RPC 응답은 JSON 문자열이므로 파싱
-      const apiData = typeof data === 'string' ? JSON.parse(data) : data;
-      const items = apiData?.response?.body?.items?.item || [];
-      const processedData = Array.isArray(items) ? items : items ? [items] : [];
-      
-      setPetTourPlaces(processedData.map((item: any) => ({
-        contentId: item.contentid,
-        title: item.title,
-        addr1: item.addr1 || '',
-        addr2: item.addr2 || '',
-        image: item.firstimage || item.firstimage2 || '',
-        tel: item.tel || '',
-        mapx: item.mapx || '',
-        mapy: item.mapy || ''
-      })));
-      
-      if (processedData.length > 0) {
-        toast.success('반려동물 여행지 정보를 성공적으로 불러왔습니다!');
-      }
-    } catch (error) {
-      console.error('반려동물 여행지 DB RPC 호출 실패:', error);
-      setPetError('반려동물 여행지 정보를 불러오는데 실패했습니다. 다시 시도해주세요.');
-      setPetTourPlaces([]);
-      toast.error('반려동물 여행지 정보를 불러오는데 실패했습니다.');
-    } finally {
+    setTimeout(() => {
+      setPetTourPlaces(petDummyData);
       setPetLoading(false);
-    }
+      toast.success("임시 펫 여행지 데이터로 표시 중입니다");
+    }, 500);
   };
-
 
   const handleSearch = () => {
     setCurrentPage(1);
@@ -240,7 +186,7 @@ const TourPlaces = () => {
   return (
     <div className="px-5 mb-8">
       <div className="flex items-center justify-between mb-5">
-        <div className="flex gap-2">{/* 제목 제거 */}
+        <div className="flex gap-2">
           <Button
             variant={activeTab === "general" ? "default" : "outline"}
             size="sm"
@@ -284,17 +230,6 @@ const TourPlaces = () => {
           <p className="text-gray-600 mt-2">
             {activeTab === "general" ? "관광지 정보" : "반려동물 여행지 정보"}를 불러오는 중...
           </p>
-        </div>
-      ) : error || petError ? (
-        <div className="text-center py-8">
-          <p className="text-red-500 mb-4">{activeTab === "general" ? error : petError}</p>
-          <Button 
-            onClick={() => activeTab === "general" ? fetchTourPlaces() : fetchPetTourPlaces()}
-            variant="outline"
-            size="sm"
-          >
-            다시 시도
-          </Button>
         </div>
       ) : (
         <div className="space-y-4">
@@ -356,12 +291,12 @@ const TourPlaces = () => {
           ) : (
             petTourPlaces.length > 0 ? (
               petTourPlaces.map((place, index) => (
-                <Card key={place.contentId || place.contentid || index} className="p-4 shadow-sm border-0 bg-white rounded-2xl">
+                <Card key={place.contentId || index} className="p-4 shadow-sm border-0 bg-white rounded-2xl">
                   <div className="flex gap-4">
-                    {(place.image || place.firstimage) && (
+                    {place.image && (
                       <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                         <img 
-                          src={place.image || place.firstimage} 
+                          src={place.image} 
                           alt={place.title}
                           className="w-full h-full object-cover"
                           onError={(e) => {
@@ -380,11 +315,11 @@ const TourPlaces = () => {
                           반려동물 동반 가능
                         </Badge>
                       </div>
-                      {(place.addr1 || place.addr) && (
+                      {place.addr1 && (
                         <div className="flex items-center text-sm text-gray-600 mb-1">
                           <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
                           <span className="line-clamp-1">
-                            {formatAddress(place.addr1 || place.addr || '', place.addr2 || '')}
+                            {formatAddress(place.addr1, place.addr2 || '')}
                           </span>
                         </div>
                       )}
@@ -418,7 +353,7 @@ const TourPlaces = () => {
         </div>
       )}
 
-      {activeTab === "general" && totalCount > 10 && (
+      {activeTab === "general" && totalCount > 5 && (
         <div className="flex justify-center mt-6">
           <div className="flex gap-2">
             {currentPage > 1 && (
@@ -433,7 +368,7 @@ const TourPlaces = () => {
             <span className="flex items-center px-3 text-sm text-gray-600">
               {currentPage}
             </span>
-            {currentPage * 10 < totalCount && (
+            {currentPage * 5 < totalCount && (
               <Button 
                 variant="outline" 
                 size="sm" 
