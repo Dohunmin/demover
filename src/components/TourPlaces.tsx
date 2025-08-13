@@ -65,7 +65,7 @@ const TourPlaces = () => {
     setError(null);
     
     try {
-      // 먼저 클라이언트에서 직접 API 호출 시도
+      // 1차: 클라이언트에서 직접 API 호출 시도
       const serviceKey = 'lZf40IMmpeOv3MWEUV+xoRC+zuAYiUYcDyMVbm5AVPsFZ+ZAbhezzET3VZlh8y8dTZGsDIot0RVq0RzYgvoECA==';
       const params = new URLSearchParams({
         serviceKey: serviceKey,
