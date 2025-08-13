@@ -10,152 +10,20 @@ export type Database = {
   // Allows to automatically instanciate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.12 (cd3cf9e)"
+    PostgrestVersion: "13.0.4"
   }
   public: {
     Tables: {
-      bookmarks: {
-        Row: {
-          created_at: string
-          id: string
-          news_post_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          news_post_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          news_post_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_bookmarks_news_post"
-            columns: ["news_post_id"]
-            isOneToOne: false
-            referencedRelation: "news_posts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      news_posts: {
-        Row: {
-          author_id: string
-          category: string
-          content: string | null
-          created_at: string
-          id: string
-          image_url: string | null
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          author_id: string
-          category: string
-          content?: string | null
-          created_at?: string
-          id?: string
-          image_url?: string | null
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          author_id?: string
-          category?: string
-          content?: string | null
-          created_at?: string
-          id?: string
-          image_url?: string | null
-          title?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      profiles: {
-        Row: {
-          created_at: string
-          id: string
-          pet_age: number | null
-          pet_breed: string | null
-          pet_gender: string | null
-          pet_image_url: string | null
-          pet_name: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          pet_age?: number | null
-          pet_breed?: string | null
-          pet_gender?: string | null
-          pet_image_url?: string | null
-          pet_name?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          pet_age?: number | null
-          pet_breed?: string | null
-          pet_gender?: string | null
-          pet_image_url?: string | null
-          pet_name?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      user_roles: {
-        Row: {
-          created_at: string
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args: {
-          _user_id: string
-          _role: Database["public"]["Enums"]["app_role"]
-        }
-        Returns: boolean
-      }
-      tour_area_list: {
-        Args: { page_no?: number; rows?: number; keyword?: string }
-        Returns: Json
-      }
-      tour_pet_list: {
-        Args: { page_no?: number; rows?: number }
-        Returns: Json
-      }
+      [_ in never]: never
     }
     Enums: {
-      app_role: "user" | "admin" | "moderator"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -282,8 +150,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      app_role: ["user", "admin", "moderator"],
-    },
+    Enums: {},
   },
 } as const
