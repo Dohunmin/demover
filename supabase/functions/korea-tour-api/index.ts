@@ -40,12 +40,12 @@ Deno.serve(async (req) => {
     const SERVICE_KEY = SERVICE_KEY_RAW.trim();
     console.log("[KEY] korea-tour-api", debugId, "Service key length:", SERVICE_KEY.length);
     
-    // URL 구성
+    // URL 구성 - 올바른 한국관광공사 API 엔드포인트 사용
     const url = new URL(`http://apis.data.go.kr/B551011/KorService1/${operation}`);
     url.searchParams.set("serviceKey", SERVICE_KEY);
     url.searchParams.set("_type", "json");
-    url.searchParams.set("MobileOS", "ETC");
-    url.searchParams.set("MobileApp", "LovableApp");
+    url.searchParams.set("MobileOS", "AND");
+    url.searchParams.set("MobileApp", "TourGuide");
     url.searchParams.set("pageNo", pageNo.toString());
     url.searchParams.set("numOfRows", numOfRows.toString());
     

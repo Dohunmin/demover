@@ -44,8 +44,8 @@ Deno.serve(async (req) => {
     const url = new URL(`http://apis.data.go.kr/B551011/PetTourService/${operation}`);
     url.searchParams.set("serviceKey", SERVICE_KEY);
     url.searchParams.set("_type", "json");
-    url.searchParams.set("MobileOS", "ETC");
-    url.searchParams.set("MobileApp", "LovableApp");
+    url.searchParams.set("MobileOS", "AND");
+    url.searchParams.set("MobileApp", "TourGuide");
     url.searchParams.set("pageNo", pageNo.toString());
     url.searchParams.set("numOfRows", numOfRows.toString());
     
