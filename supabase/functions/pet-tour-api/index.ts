@@ -40,8 +40,9 @@ Deno.serve(async (req) => {
     const SERVICE_KEY = SERVICE_KEY_RAW.trim();
     console.log("[KEY] pet-tour-api", debugId, "Service key length:", SERVICE_KEY.length);
     
-    // 수동으로 URL 구성 (URL 인코딩 방지)
-    let finalUrl = `http://apis.data.go.kr/B551011/PetTourService/${operation}?serviceKey=${SERVICE_KEY}&_type=json&MobileOS=AND&MobileApp=TourGuide&pageNo=${pageNo}&numOfRows=${numOfRows}`;
+    // KorService2로 URL 구성 (serviceKey는 직접 붙이기)
+    const BASE_URL = "https://apis.data.go.kr/B551011/KorService2";
+    let finalUrl = `${BASE_URL}/detailPetTour1?serviceKey=${SERVICE_KEY}&_type=json&MobileOS=ETC&MobileApp=LovableApp&pageNo=${pageNo}&numOfRows=${numOfRows}`;
     
     console.log("[URL] pet-tour-api", debugId, finalUrl);
     

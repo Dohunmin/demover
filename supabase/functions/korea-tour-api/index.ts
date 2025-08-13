@@ -40,13 +40,13 @@ Deno.serve(async (req) => {
     const SERVICE_KEY = SERVICE_KEY_RAW.trim();
     console.log("[KEY] korea-tour-api", debugId, "Service key length:", SERVICE_KEY.length);
     
-    const url = new URL(`http://apis.data.go.kr/B551011/KorService1/${operation}`);
+    const BASE_URL = "https://apis.data.go.kr/B551011/KorService2";
     // 서비스 키를 URL 인코딩하지 않고 직접 추가
-    // 수동으로 URL 구성 (URL 인코딩 방지)
-    let finalUrl = `http://apis.data.go.kr/B551011/KorService1/${operation}?serviceKey=${SERVICE_KEY}&_type=json&MobileOS=AND&MobileApp=TourGuide&pageNo=${pageNo}&numOfRows=${numOfRows}`;
+    // KorService2로 URL 구성 (serviceKey는 직접 붙이기)
+    let finalUrl = `${BASE_URL}/${operation}?serviceKey=${SERVICE_KEY}&_type=json&MobileOS=ETC&MobileApp=LovableApp&pageNo=${pageNo}&numOfRows=${numOfRows}`;
     
     if (keyword) {
-      finalUrl += `&keyword=${keyword}`;
+      finalUrl += `&keyword=${encodeURIComponent(keyword)}`;
     }
     if (areaCode) {
       finalUrl += `&areaCode=${areaCode}`;
@@ -74,14 +74,27 @@ Deno.serve(async (req) => {
     console.log("[RESPONSE_LENGTH] korea-tour-api", debugId, responseText.length);
     console.log("[RESPONSE_PREVIEW] korea-tour-api", debugId, responseText.substring(0, 200));
     
-    // SERVICE ERROR 체크
-    if (responseText.includes('SERVICE ERROR') || responseText.includes('SERVICE_ERROR')) {
-      console.error("[SERVICE_ERROR] korea-tour-api", debugId, "API returned SERVICE ERROR");
+    // 에러 바디 파싱 함수
+    function parseOpenApiError(xml: string) {
+      const pick = (t: string) => xml.match(new RegExp(`<${t}>([^<]*)</${t}>`))?.[1];
+      return { 
+        resultCode: pick("resultCode"), 
+        errMsg: pick("errMsg"), 
+        returnAuthMsg: pick("returnAuthMsg") 
+      };
+    }
+
+    // SERVICE ERROR 및 XML 에러 체크
+    if (responseText.includes('SERVICE ERROR') || responseText.includes('<errMsg>')) {
+      const errorInfo = parseOpenApiError(responseText);
+      console.error("[API_ERROR] korea-tour-api", debugId, "Error info:", errorInfo);
+      
       return new Response(JSON.stringify({
         ok: false,
         func: "korea-tour-api",
         debugId: debugId,
-        error: "한국관광공사 API 서비스 에러: 인증키가 유효하지 않거나 서비스 사용량을 초과했습니다.",
+        error: `API 에러 - ${errorInfo.errMsg || errorInfo.returnAuthMsg || 'SERVICE ERROR'}`,
+        errorDetails: errorInfo,
         raw_response: responseText.substring(0, 500)
       }), {
         status: 400,
