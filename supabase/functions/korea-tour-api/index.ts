@@ -55,7 +55,16 @@ serve(async (req) => {
     console.log('Operation:', operation)
     console.log('Full API URL (masked):', apiUrl.replace(cleanServiceKey, 'MASKED_KEY'))
     
-    const response = await fetch(apiUrl)
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': '*/*',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
+        'Connection': 'keep-alive'
+      }
+    })
     
     console.log('API Response status:', response.status)
     
