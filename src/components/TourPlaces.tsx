@@ -47,7 +47,7 @@ const TourPlaces = () => {
       console.log('DB RPC 우선 호출 시작:', { keyword, currentPage });
       
       // 1차: DB RPC 우선 시도 (TLS 문제 회피)
-      const { data: rpcData, error: rpcError } = await supabase.rpc('tour_area_list', {
+      const { data: rpcData, error: rpcError } = await (supabase as any).rpc('tour_area_list', {
         page_no: currentPage,
         rows: 50,
         keyword: keyword || null
@@ -145,7 +145,7 @@ const TourPlaces = () => {
       console.log('Pet DB RPC 우선 호출 시작');
       
       // 1차: DB RPC 우선 시도 (TLS 문제 회피)
-      const { data: rpcData, error: rpcError } = await supabase.rpc('tour_pet_list', {
+      const { data: rpcData, error: rpcError } = await (supabase as any).rpc('tour_pet_list', {
         page_no: 1,
         rows: 100
       });
