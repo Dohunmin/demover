@@ -65,42 +65,22 @@ const TourPlaces = () => {
     setError(null);
     
     try {
-      // 1차: 클라이언트에서 직접 API 호출 시도
-      const serviceKey = 'lZf40IMmpeOv3MWEUV+xoRC+zuAYiUYcDyMVbm5AVPsFZ+ZAbhezzET3VZlh8y8dTZGsDIot0RVq0RzYgvoECA==';
-      const params = new URLSearchParams({
-        serviceKey: serviceKey,
-        pageNo: currentPage.toString(),
-        numOfRows: '50',
-        MobileApp: 'LovableApp',
-        MobileOS: 'ETC',
-        _type: 'json'
-      });
-      
-      if (keyword) {
-        params.append('keyword', keyword);
-      }
-      
-      const apiUrl = `https://apis.data.go.kr/B551011/KorService1/${keyword ? 'searchKeyword1' : 'areaBasedList1'}?${params.toString()}`;
-      
-      console.log('클라이언트에서 직접 API 호출 시도:', apiUrl.replace(serviceKey, 'MASKED_KEY'));
-      
-      const response = await fetch(apiUrl, {
-        method: 'GET',
-        mode: 'cors',
-        headers: {
-          'Accept': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
+      // Supabase DB RPC 함수 호출 (가장 안정적인 방법)
+      const { data, error } = await supabase.rpc('tour_area_list', {
+        page_no: currentPage,
+        rows: 50,
+        keyword: keyword || null
       });
 
-      if (!response.ok) {
-        throw new Error(`클라이언트 API 호출 실패: ${response.status}`);
+      if (error) {
+        throw new Error(`DB RPC 오류: ${error.message}`);
       }
 
-      const data = await response.json();
-      console.log('클라이언트 API 성공 응답:', data);
+      console.log('DB RPC API 성공 응답:', data);
       
-      const items = data.response?.body?.items?.item || [];
+      // DB RPC 응답은 JSON 문자열이므로 파싱
+      const apiData = typeof data === 'string' ? JSON.parse(data) : data;
+      const items = apiData?.response?.body?.items?.item || [];
       const processedData = Array.isArray(items) ? items : items ? [items] : [];
       
       setTourPlaces(processedData.map((item: any) => ({
@@ -116,54 +96,75 @@ const TourPlaces = () => {
         sigungucode: item.sigungucode || ''
       })));
       
-      setTotalCount(data.response?.body?.totalCount || 0);
+      setTotalCount(apiData?.response?.body?.totalCount || 0);
       
       if (processedData.length > 0) {
         toast.success('여행지 정보를 성공적으로 불러왔습니다!');
       }
       
-    } catch (clientError) {
-      console.error('클라이언트 직접 호출 실패, Edge Function 시도:', clientError);
+    } catch (dbError) {
+      console.error('DB RPC 호출 실패, 클라이언트 직접 호출 시도:', dbError);
       
-      // 클라이언트 호출 실패시 Edge Function 폴백
+      // DB RPC 실패시 클라이언트 직접 호출 시도
       try {
+        const serviceKey = 'lZf40IMmpeOv3MWEUV+xoRC+zuAYiUYcDyMVbm5AVPsFZ+ZAbhezzET3VZlh8y8dTZGsDIot0RVq0RzYgvoECA==';
         const params = new URLSearchParams({
+          serviceKey: serviceKey,
           pageNo: currentPage.toString(),
-          numOfRows: '50'
+          numOfRows: '50',
+          MobileApp: 'LovableApp',
+          MobileOS: 'ETC',
+          _type: 'json'
         });
         
         if (keyword) {
           params.append('keyword', keyword);
         }
         
-        const url = `https://wdmqabtatkibyveilzut.supabase.co/functions/v1/korea-tour-api?${params.toString()}`;
+        const apiUrl = `https://apis.data.go.kr/B551011/KorService1/${keyword ? 'searchKeyword1' : 'areaBasedList1'}?${params.toString()}`;
         
-        const response = await fetch(url, {
+        console.log('클라이언트에서 직접 API 호출 시도:', apiUrl.replace(serviceKey, 'MASKED_KEY'));
+        
+        const response = await fetch(apiUrl, {
+          method: 'GET',
+          mode: 'cors',
           headers: {
-            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkbXFhYnRhdGtpYnl2ZWlsenV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQwMjkxNzksImV4cCI6MjA2OTYwNTE3OX0.iBXrQyNDJ3OqoCTOi4XjSr-0Qd8B7y_upuCaQcWPwCI`,
-            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkbXFhYnRhdGtpYnl2ZWlsenV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQwMjkxNzksImV4cCI6MjA2OTYwNTE3OX0.iBXrQyNDJ3OqoCTOi4XjSr-0Qd8B7y_upuCaQcWPwCI'
+            'Accept': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
           }
         });
-        
+
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          throw new Error(`클라이언트 API 호출 실패: ${response.status}`);
         }
-        
+
         const data = await response.json();
+        console.log('클라이언트 API 성공 응답:', data);
         
-        if (data.error) {
-          throw new Error(data.error);
-        }
+        const items = data.response?.body?.items?.item || [];
+        const processedData = Array.isArray(items) ? items : items ? [items] : [];
         
-        setTourPlaces(data?.data || []);
-        setTotalCount(data?.totalCount || 0);
+        setTourPlaces(processedData.map((item: any) => ({
+          contentId: item.contentid,
+          title: item.title,
+          addr1: item.addr1 || '',
+          addr2: item.addr2 || '',
+          image: item.firstimage || item.firstimage2 || '',
+          tel: item.tel || '',
+          mapx: item.mapx || '',
+          mapy: item.mapy || '',
+          areacode: item.areacode || '',
+          sigungucode: item.sigungucode || ''
+        })));
         
-        if (data?.data?.length > 0) {
+        setTotalCount(data.response?.body?.totalCount || 0);
+        
+        if (processedData.length > 0) {
           toast.success('여행지 정보를 성공적으로 불러왔습니다!');
         }
         
-      } catch (edgeError) {
-        console.error('Edge Function도 실패:', edgeError);
+      } catch (clientError) {
+        console.error('모든 방법 실패:', clientError);
         setError('여행지 정보를 불러오는데 실패했습니다. 다시 시도해주세요.');
         setTourPlaces([]);
         setTotalCount(0);
@@ -179,38 +180,39 @@ const TourPlaces = () => {
     setPetError(null);
     
     try {
-      const params = new URLSearchParams({
-        pageNo: '1',
-        numOfRows: '100'
+      // Supabase DB RPC 함수 호출
+      const { data, error } = await supabase.rpc('tour_pet_list', {
+        page_no: 1,
+        rows: 100
       });
-      
-      // GET 요청으로 변경
-      const url = `https://wdmqabtatkibyveilzut.supabase.co/functions/v1/pet-tour-api?${params.toString()}`;
-      
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkbXFhYnRhdGtpYnl2ZWlsenV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQwMjkxNzksImV4cCI6MjA2OTYwNTE3OX0.iBXrQyNDJ3OqoCTOi4XjSr-0Qd8B7y_upuCaQcWPwCI`,
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkbXFhYnRhdGtpYnl2ZWlsenV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQwMjkxNzksImV4cCI6MjA2OTYwNTE3OX0.iBXrQyNDJ3OqoCTOi4XjSr-0Qd8B7y_upuCaQcWPwCI'
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+
+      if (error) {
+        throw new Error(`Pet DB RPC 오류: ${error.message}`);
       }
+
+      console.log('Pet DB RPC API 성공 응답:', data);
       
-      const data = await response.json();
+      // DB RPC 응답은 JSON 문자열이므로 파싱
+      const apiData = typeof data === 'string' ? JSON.parse(data) : data;
+      const items = apiData?.response?.body?.items?.item || [];
+      const processedData = Array.isArray(items) ? items : items ? [items] : [];
       
-      if (data.error) {
-        throw new Error(data.error);
-      }
+      setPetTourPlaces(processedData.map((item: any) => ({
+        contentId: item.contentid,
+        title: item.title,
+        addr1: item.addr1 || '',
+        addr2: item.addr2 || '',
+        image: item.firstimage || item.firstimage2 || '',
+        tel: item.tel || '',
+        mapx: item.mapx || '',
+        mapy: item.mapy || ''
+      })));
       
-      setPetTourPlaces(data?.data || []);
-      
-      if (data?.data?.length > 0) {
+      if (processedData.length > 0) {
         toast.success('반려동물 여행지 정보를 성공적으로 불러왔습니다!');
       }
     } catch (error) {
-      console.error('반려동물 여행지 API 호출 실패:', error);
+      console.error('반려동물 여행지 DB RPC 호출 실패:', error);
       setPetError('반려동물 여행지 정보를 불러오는데 실패했습니다. 다시 시도해주세요.');
       setPetTourPlaces([]);
       toast.error('반려동물 여행지 정보를 불러오는데 실패했습니다.');

@@ -145,6 +145,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      tour_area_list: {
+        Args: { page_no?: number; rows?: number; keyword?: string }
+        Returns: Json
+      }
+      tour_pet_list: {
+        Args: { page_no?: number; rows?: number }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "user" | "admin" | "moderator"
