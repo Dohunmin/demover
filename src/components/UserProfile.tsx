@@ -129,10 +129,6 @@ const UserProfile = () => {
       return;
     }
     
-    console.log('Current user:', user);
-    console.log('User ID:', user.id);
-    console.log('User email:', user.email);
-    
     setLoading(true);
 
     try {
@@ -149,57 +145,58 @@ const UserProfile = () => {
         }
       }
 
-      const baseData = {
+      // Prepare profile data - always include both id and user_id for consistency
+      const profileData = {
+        id: user.id,              // Primary key - matches auth.users.id
+        user_id: user.id,         // For RLS policies
         pet_name: editData.pet_name || null,
         pet_age: editData.pet_age || null,
         pet_gender: editData.pet_gender || null,
         pet_breed: editData.pet_breed || null,
         pet_image_url: imageUrl || null,
         email: user.email,
+        full_name: user.user_metadata?.full_name || null,
         updated_at: new Date().toISOString()
       };
 
-      console.log('Saving profile data:', baseData);
+      console.log('Saving profile data for user:', user.id);
+      console.log('Profile data:', profileData);
 
-      // Check if profile exists by both id and user_id for safety
-      const { data: existingProfile } = await (supabase as any)
+      // Use upsert with id conflict resolution - this handles both insert and update
+      const { data, error } = await (supabase as any)
         .from('profiles')
-        .select('id, user_id')
-        .or(`id.eq.${user.id},user_id.eq.${user.id}`)
-        .maybeSingle();
+        .upsert(profileData, { 
+          onConflict: 'id',
+          ignoreDuplicates: false 
+        })
+        .select()
+        .single();
 
-      let result;
-      if (existingProfile) {
-        // Update existing profile using id as the key
-        console.log('Updating existing profile with id:', existingProfile.id);
-        result = await (supabase as any)
-          .from('profiles')
-          .update(baseData)
-          .eq('id', existingProfile.id);
-      } else {
-        // Insert new profile 
-        console.log('Inserting new profile');
-        const insertData = { 
-          ...baseData, 
-          id: user.id,
-          user_id: user.id 
-        };
-        result = await (supabase as any)
-          .from('profiles')
-          .insert(insertData);
+      if (error) {
+        console.error('Upsert error:', error);
+        throw error;
       }
 
-      if (result.error) throw result.error;
-
-      setProfile({ ...editData, pet_image_url: imageUrl, user_id: user.id });
+      console.log('Profile saved successfully:', data);
+      
+      // Update local state
+      setProfile(profileData);
       setIsEditMode(false);
       setImageFile(null);
       setImagePreview(null);
       toast.success('프로필이 저장되었습니다.');
-    } catch (error) {
+      
+    } catch (error: any) {
       console.error('Error saving profile:', error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
-      toast.error(`프로필 저장 실패: ${error.message || 'Unknown error'}`);
+      
+      // Provide specific error messages
+      if (error.code === '23505') {
+        toast.error('프로필 저장 중 중복 오류가 발생했습니다. 다시 시도해주세요.');
+      } else if (error.code === '42501') {
+        toast.error('프로필 저장 권한이 없습니다. 로그인 상태를 확인해주세요.');
+      } else {
+        toast.error(`프로필 저장 실패: ${error.message || '알 수 없는 오류'}`);
+      }
     } finally {
       setLoading(false);
     }
