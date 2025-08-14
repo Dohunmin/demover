@@ -108,7 +108,7 @@ serve(async (req) => {
     // 1. 한국관광공사 국문 관광정보 서비스 호출 (일반 관광지)
     try {
       // API 키를 직접 사용 (이미 인코딩된 상태로 저장되어 있음)
-      const tourismUrl = `https://apis.data.go.kr/B551011/KorService1/areaBasedList1?serviceKey=${apiKey}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}&_type=xml`;
+      const tourismUrl = `https://apis.data.go.kr/B551011/KorService2/areaBasedList2?serviceKey=${apiKey}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}&_type=json`;
       console.log('Tourism API URL:', tourismUrl);
       
       const tourismResponse = await fetch(tourismUrl, {
@@ -156,10 +156,10 @@ serve(async (req) => {
       console.error(tourismError);
     }
 
-    // 2. 한국관광공사 국문 관광정보 서비스 호출 (반려동물 동반 여행지 - contentTypeId=39)
+    // 2. 한국관광공사 반려동물 동반 여행지 서비스 호출
     try {
       // API 키를 직접 사용 (이미 인코딩된 상태로 저장되어 있음)
-      const petTourismUrl = `https://apis.data.go.kr/B551011/KorService1/areaBasedList1?serviceKey=${apiKey}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}&contentTypeId=39&_type=xml`;
+      const petTourismUrl = `https://apis.data.go.kr/B551011/KorPetTourService/areaBasedList2?serviceKey=${apiKey}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}&_type=json`;
       console.log('Pet Tourism API URL:', petTourismUrl);
       
       const petTourismResponse = await fetch(petTourismUrl, {
