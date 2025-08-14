@@ -89,7 +89,7 @@ export type Database = {
           pet_image_url: string | null
           pet_name: string | null
           updated_at: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           avatar_url?: string | null
@@ -103,7 +103,7 @@ export type Database = {
           pet_image_url?: string | null
           pet_name?: string | null
           updated_at?: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           avatar_url?: string | null
@@ -117,7 +117,7 @@ export type Database = {
           pet_image_url?: string | null
           pet_name?: string | null
           updated_at?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
