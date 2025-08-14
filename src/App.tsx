@@ -67,7 +67,7 @@ const AppWithNavigation = () => {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-20">
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
@@ -81,15 +81,15 @@ const AppWithNavigation = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
 
-      {/* 하단 네비게이션 - 모든 페이지에서 항상 표시 */}
+      {/* Footer - BottomNavigation 위에 표시 */}
+      <Footer />
+      
+      {/* 하단 네비게이션 - 고정 위치 */}
       <BottomNavigation 
         activeTab={activeTab} 
         onTabChange={handleTabChange}
         onMbtiClick={() => navigate("/mbti")}
       />
-      
-      {/* Footer - 모든 페이지에서 항상 표시 */}
-      <Footer />
     </div>
   );
 };
