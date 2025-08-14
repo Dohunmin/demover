@@ -209,7 +209,8 @@ serve(async (req) => {
       console.error(petTourismError);
     }
 
-    // 결과 확인 및 응답 구성
+    // 최소한 하나의 API라도 성공했다면 결과 반환
+    // Pet Tourism API가 실패해도 일반 관광지 정보는 제공
     if (!tourismData && !petTourismData) {
       throw new Error(`Both APIs failed. Tourism: ${tourismError}, Pet Tourism: ${petTourismError}`);
     }
