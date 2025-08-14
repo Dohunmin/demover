@@ -96,7 +96,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           full_name?: string | null
-          id: string
+          id?: string
           pet_age?: number | null
           pet_breed?: string | null
           pet_gender?: string | null
