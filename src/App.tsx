@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import BottomNavigation from "@/components/BottomNavigation";
+import Footer from "@/components/Footer";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import MbtiTest from "./pages/MbtiTest";
@@ -86,6 +87,9 @@ const AppWithNavigation = () => {
         onTabChange={handleTabChange}
         onMbtiClick={() => navigate("/mbti")}
       />
+      
+      {/* Footer - 모든 페이지에서 항상 표시 */}
+      <Footer />
     </div>
   );
 };
