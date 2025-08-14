@@ -90,7 +90,7 @@ serve(async (req) => {
   }
 
   try {
-    const { areaCode = '6', numOfRows = '10', pageNo = '1', keyword } = await req.json().catch(() => ({}));
+    const { areaCode = '1', numOfRows = '10', pageNo = '1', keyword } = await req.json().catch(() => ({}));
     
     const apiKey = Deno.env.get('KOREA_TOUR_API_KEY');
     if (!apiKey) {
@@ -209,8 +209,7 @@ serve(async (req) => {
       console.error(petTourismError);
     }
 
-    // 최소한 하나의 API라도 성공했다면 결과 반환
-    // Pet Tourism API가 실패해도 일반 관광지 정보는 제공
+    // 결과 확인 및 응답 구성
     if (!tourismData && !petTourismData) {
       throw new Error(`Both APIs failed. Tourism: ${tourismError}, Pet Tourism: ${petTourismError}`);
     }
