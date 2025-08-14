@@ -150,8 +150,7 @@ const UserProfile = () => {
       }
 
       const saveData = {
-        id: user.id,
-        user_id: user.id,
+        user_id: user.id,  // Only set user_id, let id be auto-generated
         pet_name: editData.pet_name || null,
         pet_age: editData.pet_age || null,
         pet_gender: editData.pet_gender || null,
@@ -161,11 +160,14 @@ const UserProfile = () => {
         updated_at: new Date().toISOString()
       };
 
-      // Use upsert to handle both insert and update
+      console.log('Saving profile data:', saveData);
+
+      // Use upsert to handle both insert and update, matching on user_id
       const result = await (supabase as any)
         .from('profiles')
         .upsert(saveData, { 
-          onConflict: 'id' 
+          onConflict: 'user_id',
+          ignoreDuplicates: false
         });
 
       if (result.error) throw result.error;
