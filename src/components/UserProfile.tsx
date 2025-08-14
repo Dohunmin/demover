@@ -149,8 +149,7 @@ const UserProfile = () => {
         }
       }
 
-      const saveData = {
-        id: user.id,        
+      const profileData = {
         user_id: user.id,   
         pet_name: editData.pet_name || null,
         pet_age: editData.pet_age || null,
@@ -161,7 +160,7 @@ const UserProfile = () => {
         updated_at: new Date().toISOString()
       };
 
-      console.log('Saving profile data:', saveData);
+      console.log('Saving profile data:', profileData);
 
       // Check if profile exists first
       const { data: existingProfile } = await (supabase as any)
@@ -172,18 +171,19 @@ const UserProfile = () => {
 
       let result;
       if (existingProfile) {
-        // Update existing profile
+        // Update existing profile (don't include id in update data)
         console.log('Updating existing profile');
         result = await (supabase as any)
           .from('profiles')
-          .update(saveData)
+          .update(profileData)
           .eq('user_id', user.id);
       } else {
-        // Insert new profile
+        // Insert new profile (include id for new records)
         console.log('Inserting new profile');
+        const insertData = { ...profileData, id: user.id };
         result = await (supabase as any)
           .from('profiles')
-          .insert(saveData);
+          .insert(insertData);
       }
 
       if (result.error) throw result.error;
