@@ -87,14 +87,12 @@ const AppWithNavigation = () => {
       {/* Footer - 페이지 하단에 고정 */}
       <Footer />
       
-      {/* 하단 네비게이션 - 모바일에서만 표시 */}
-      <div className="md:hidden">
-        <BottomNavigation 
-          activeTab={activeTab} 
-          onTabChange={handleTabChange}
-          onMbtiClick={() => navigate("/mbti")}
-        />
-      </div>
+      {/* 하단 네비게이션 - 모든 화면 크기에서 표시 */}
+      <BottomNavigation 
+        activeTab={activeTab} 
+        onTabChange={handleTabChange}
+        onMbtiClick={() => navigate("/mbti")}
+      />
     </div>
   );
 };
