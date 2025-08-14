@@ -67,29 +67,34 @@ const AppWithNavigation = () => {
   };
 
   return (
-    <div className="min-h-screen pb-20">
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/travel" element={<Travel />} />
-        <Route path="/mbti" element={<MbtiTest />} />
-        <Route path="/news" element={<News />} />
-        <Route path="/news/:id" element={<NewsDetail />} />
-        <Route path="/records" element={<Records />} />
-        <Route path="/admin" element={<Admin />} />
-        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+    <div className="flex flex-col min-h-screen">
+      {/* 메인 콘텐츠 영역 */}
+      <main className="flex-1 pb-4 md:pb-0">
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/travel" element={<Travel />} />
+          <Route path="/mbti" element={<MbtiTest />} />
+          <Route path="/news" element={<News />} />
+          <Route path="/news/:id" element={<NewsDetail />} />
+          <Route path="/records" element={<Records />} />
+          <Route path="/admin" element={<Admin />} />
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </main>
 
-      {/* Footer - BottomNavigation 위에 표시 */}
+      {/* Footer - 페이지 하단에 고정 */}
       <Footer />
       
-      {/* 하단 네비게이션 - 고정 위치 */}
-      <BottomNavigation 
-        activeTab={activeTab} 
-        onTabChange={handleTabChange}
-        onMbtiClick={() => navigate("/mbti")}
-      />
+      {/* 하단 네비게이션 - 모바일에서만 표시 */}
+      <div className="md:hidden">
+        <BottomNavigation 
+          activeTab={activeTab} 
+          onTabChange={handleTabChange}
+          onMbtiClick={() => navigate("/mbti")}
+        />
+      </div>
     </div>
   );
 };

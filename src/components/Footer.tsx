@@ -2,7 +2,7 @@ import React from "react";
 
 const Footer = () => {
   return (
-    <footer className="bg-muted/50 border-t px-6 py-4 text-xs text-muted-foreground mb-16">
+    <footer className="bg-muted/50 border-t px-6 py-4 text-xs text-muted-foreground mt-auto mb-16 md:mb-0">
       <div className="max-w-4xl mx-auto space-y-1">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
           <span>사업자등록번호: 205-48-09670</span>
