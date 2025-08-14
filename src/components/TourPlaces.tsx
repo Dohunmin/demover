@@ -48,7 +48,8 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
         body: {
           areaCode: '1', // 서울
           numOfRows: '10',
-          pageNo: currentPage.toString()
+          pageNo: currentPage.toString(),
+          keyword: keyword || ''
         }
       });
 

@@ -90,14 +90,14 @@ serve(async (req) => {
   }
 
   try {
-    const { areaCode = '1', numOfRows = '10', pageNo = '1' } = await req.json().catch(() => ({}));
+    const { areaCode = '1', numOfRows = '10', pageNo = '1', keyword } = await req.json().catch(() => ({}));
     
     const apiKey = Deno.env.get('KOREA_TOUR_API_KEY');
     if (!apiKey) {
       throw new Error('KOREA_TOUR_API_KEY not found in environment variables');
     }
 
-    console.log('Calling Korean Tourism APIs with params:', { areaCode, numOfRows, pageNo });
+    console.log('Calling Korean Tourism APIs with params:', { areaCode, numOfRows, pageNo, keyword });
 
     // 응답 데이터 초기화
     let tourismData = null;
@@ -108,7 +108,8 @@ serve(async (req) => {
     // 1. 한국관광공사 국문 관광정보 서비스 호출 (일반 관광지)
     try {
       // API 키를 직접 사용 (이미 인코딩된 상태로 저장되어 있음)
-      const tourismUrl = `https://apis.data.go.kr/B551011/KorService2/areaBasedList2?serviceKey=${apiKey}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}&_type=json`;
+      const keywordParam = keyword ? `&keyword=${encodeURIComponent(keyword)}` : '';
+      const tourismUrl = `https://apis.data.go.kr/B551011/KorService2/areaBasedList2?serviceKey=${apiKey}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}${keywordParam}&_type=json`;
       console.log('Tourism API URL:', tourismUrl);
       
       const tourismResponse = await fetch(tourismUrl, {
@@ -159,7 +160,8 @@ serve(async (req) => {
     // 2. 한국관광공사 반려동물 동반 여행지 서비스 호출
     try {
       // API 키를 직접 사용 (이미 인코딩된 상태로 저장되어 있음)
-      const petTourismUrl = `https://apis.data.go.kr/B551011/KorPetTourService/areaBasedList2?serviceKey=${apiKey}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}&_type=json`;
+      const keywordParam = keyword ? `&keyword=${encodeURIComponent(keyword)}` : '';
+      const petTourismUrl = `https://apis.data.go.kr/B551011/KorPetTourService/areaBasedList2?serviceKey=${apiKey}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}${keywordParam}&_type=json`;
       console.log('Pet Tourism API URL:', petTourismUrl);
       
       const petTourismResponse = await fetch(petTourismUrl, {
