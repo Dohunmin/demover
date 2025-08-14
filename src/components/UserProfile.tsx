@@ -150,8 +150,8 @@ const UserProfile = () => {
       }
 
       const saveData = {
-        id: user.id,        // Set id to user.id to match foreign key constraint
-        user_id: user.id,   // Also keep user_id for RLS policies
+        id: user.id,        
+        user_id: user.id,   
         pet_name: editData.pet_name || null,
         pet_age: editData.pet_age || null,
         pet_gender: editData.pet_gender || null,
@@ -163,13 +163,28 @@ const UserProfile = () => {
 
       console.log('Saving profile data:', saveData);
 
-      // Use upsert to handle both insert and update, matching on id (primary key)
-      const result = await (supabase as any)
+      // Check if profile exists first
+      const { data: existingProfile } = await (supabase as any)
         .from('profiles')
-        .upsert(saveData, { 
-          onConflict: 'id',
-          ignoreDuplicates: false
-        });
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      let result;
+      if (existingProfile) {
+        // Update existing profile
+        console.log('Updating existing profile');
+        result = await (supabase as any)
+          .from('profiles')
+          .update(saveData)
+          .eq('user_id', user.id);
+      } else {
+        // Insert new profile
+        console.log('Inserting new profile');
+        result = await (supabase as any)
+          .from('profiles')
+          .insert(saveData);
+      }
 
       if (result.error) throw result.error;
 
