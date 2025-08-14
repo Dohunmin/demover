@@ -90,7 +90,7 @@ serve(async (req) => {
   }
 
   try {
-    const { areaCode = '1', numOfRows = '10', pageNo = '1', keyword } = await req.json().catch(() => ({}));
+    const { areaCode = '6', numOfRows = '10', pageNo = '1', keyword } = await req.json().catch(() => ({}));
     
     const apiKey = Deno.env.get('KOREA_TOUR_API_KEY');
     if (!apiKey) {
