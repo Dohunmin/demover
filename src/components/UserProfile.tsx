@@ -161,23 +161,23 @@ const UserProfile = () => {
 
       console.log('Saving profile data:', baseData);
 
-      // Check if profile exists first
+      // Check if profile exists by both id and user_id for safety
       const { data: existingProfile } = await (supabase as any)
         .from('profiles')
-        .select('id')
-        .eq('user_id', user.id)
+        .select('id, user_id')
+        .or(`id.eq.${user.id},user_id.eq.${user.id}`)
         .maybeSingle();
 
       let result;
       if (existingProfile) {
-        // Update existing profile (don't include user_id or id in update data)
-        console.log('Updating existing profile');
+        // Update existing profile using id as the key
+        console.log('Updating existing profile with id:', existingProfile.id);
         result = await (supabase as any)
           .from('profiles')
           .update(baseData)
-          .eq('user_id', user.id);
+          .eq('id', existingProfile.id);
       } else {
-        // Insert new profile (include both id and user_id for new records)
+        // Insert new profile 
         console.log('Inserting new profile');
         const insertData = { 
           ...baseData, 
