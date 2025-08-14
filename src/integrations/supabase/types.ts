@@ -78,6 +78,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          area_code: string | null
           avatar_url: string | null
           created_at: string
           email: string | null
@@ -92,6 +93,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          area_code?: string | null
           avatar_url?: string | null
           created_at?: string
           email?: string | null
@@ -106,6 +108,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          area_code?: string | null
           avatar_url?: string | null
           created_at?: string
           email?: string | null

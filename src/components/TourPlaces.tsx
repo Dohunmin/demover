@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { MapPin, Phone, Search, Heart, PawPrint, Map } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 interface TourPlace {
   contentId: string;
@@ -25,6 +26,7 @@ interface TourPlacesProps {
 }
 
 const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
+  const { user } = useAuth();
   const [tourPlaces, setTourPlaces] = useState<TourPlace[]>([]);
   const [petTourPlaces, setPetTourPlaces] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -32,10 +34,32 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [activeTab, setActiveTab] = useState<"general" | "pet">("general");
+  const [userAreaCode, setUserAreaCode] = useState<string>('1');
+
+  // 사용자 프로필에서 지역 코드 가져오기
+  useEffect(() => {
+    const getUserAreaCode = async () => {
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('area_code')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        if (profile?.area_code) {
+          setUserAreaCode(profile.area_code);
+        }
+      }
+    };
+    
+    getUserAreaCode();
+  }, [user]);
 
   useEffect(() => {
-    fetchTourPlaces();
-  }, [currentPage]);
+    if (userAreaCode) {
+      fetchTourPlaces();
+    }
+  }, [currentPage, userAreaCode]);
 
   const fetchTourPlaces = async (keyword?: string) => {
     setLoading(true);
@@ -46,7 +70,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
       // 실제 API 호출
       const { data, error } = await supabase.functions.invoke('combined-tour-api', {
         body: {
-          areaCode: '1', // 서울
+          areaCode: userAreaCode,
           numOfRows: '10',
           pageNo: currentPage.toString(),
           keyword: keyword || ''
