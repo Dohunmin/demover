@@ -313,15 +313,15 @@ const MbtiTest = () => {
   // 메인 소개 화면
   if (!isTestStarted && !result) {
     return (
-      <div className="min-h-screen bg-gray-50 max-w-md mx-auto pb-20">
+      <div className="min-h-screen bg-background max-w-md mx-auto pb-20">
         {/* Header */}
-        <header className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 text-white p-6 rounded-b-3xl shadow-xl relative overflow-hidden">
+        <header className="bg-gradient-to-br from-primary to-accent text-primary-foreground p-6 rounded-b-3xl shadow-xl relative overflow-hidden">
           <div className="flex items-center space-x-3 mb-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate("/")}
-              className="text-white hover:bg-white/10 p-2"
+              className="text-primary-foreground hover:bg-white/10 p-2"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
@@ -330,49 +330,49 @@ const MbtiTest = () => {
                 <PawPrint className="w-6 h-6 mr-2" />
                 멍BTI
               </h1>
-              <p className="text-blue-100 text-sm">반려견 여행 성향 테스트</p>
+              <p className="text-primary-foreground/80 text-sm">반려견 여행 성향 테스트</p>
             </div>
           </div>
         </header>
 
         {/* Main Content */}
         <main className="p-5 space-y-6">
-          {/* 테스트 시작 버튼 - 상단으로 이동 */}
-          <div className="pt-2">
-            <Button 
-              onClick={handleStartTest}
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-            >
-              <PawPrint className="w-5 h-5 mr-2" />
-              테스트 시작하기
-            </Button>
-          </div>
-
           {/* 멍BTI 소개 */}
-          <Card className="p-6 bg-white rounded-2xl shadow-lg">
+          <Card className="p-6 bg-card rounded-2xl border-border/50 shadow-lg">
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl mx-auto mb-4 flex items-center justify-center">
-                <Heart className="w-8 h-8 text-white" />
+              <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-glow">
+                <Heart className="w-8 h-8 text-primary-foreground" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">🐾 멍BTI 여행 유형 테스트 🐾</h2>
-              <p className="text-gray-600 text-sm leading-relaxed">
+              <h2 className="text-xl font-bold text-foreground mb-4">🐾 멍BTI 여행 유형 테스트 🐾</h2>
+              <p className="text-muted-foreground text-sm leading-relaxed">
                 우리 강아지의 진짜 여행 스타일을 발견해 보세요!<br />
                 각 질문에 더 가깝다고 생각하는 답변을 선택해 주세요.
               </p>
             </div>
           </Card>
 
+          {/* 테스트 시작 버튼 - 설명 아래로 이동 */}
+          <div className="pt-2">
+            <Button 
+              onClick={handleStartTest}
+              className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground font-semibold py-6 px-8 rounded-xl shadow-lg hover:shadow-glow transition-all duration-300 text-lg"
+            >
+              <PawPrint className="w-6 h-6 mr-2" />
+              테스트 시작하기
+            </Button>
+          </div>
+
           {/* 여행 성향 기준 설명 */}
-          <Card className="p-6 bg-white rounded-2xl shadow-lg">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">
+          <Card className="p-6 bg-card rounded-2xl border-border/50 shadow-lg">
+            <h3 className="text-lg font-bold text-foreground mb-4">
               🎯 평가 기준
             </h3>
             <div className="space-y-3">
-              <div className="p-3 bg-red-50 rounded-xl">
-                <div className="font-medium text-red-700">E / C (에너지 레벨)</div>
-                <div className="text-xs text-red-600 mt-1">활동적 vs 차분한 성향</div>
+              <div className="p-3 bg-primary/10 rounded-xl border border-primary/20">
+                <div className="font-medium text-primary">E / C (에너지 레벨)</div>
+                <div className="text-xs text-muted-foreground mt-1">활동적 vs 차분한 성향</div>
               </div>
-              <div className="p-3 bg-blue-50 rounded-xl">
+              <div className="p-3 bg-accent/10 rounded-xl border border-accent/20">
                 <div className="font-medium text-blue-700">S / O (관계 추구)</div>
                 <div className="text-xs text-blue-600 mt-1">사교적 vs 주인바라기 성향</div>
               </div>
