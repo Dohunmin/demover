@@ -17,7 +17,7 @@ const BottomNavigation = ({ activeTab, onTabChange, onMbtiClick }: BottomNavigat
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t border-gray-200 px-2 py-2 z-50 max-w-full md:max-w-lg md:left-1/2 md:transform md:-translate-x-1/2 md:rounded-t-2xl md:border-x">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t border-gray-200 px-2 py-2 z-50 max-w-full md:max-w-4xl md:left-1/2 md:transform md:-translate-x-1/2 md:rounded-t-2xl md:border-x md:mx-auto">
       <div className="flex justify-around items-center">
         {tabs.map(({ id, label, icon: Icon }) => (
           <button
