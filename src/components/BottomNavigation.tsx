@@ -9,9 +9,9 @@ interface BottomNavigationProps {
 
 const BottomNavigation = ({ activeTab, onTabChange, onMbtiClick }: BottomNavigationProps) => {
   const tabs = [
-    { id: "home", label: "홈", icon: Home },
     { id: "mbti", label: "멍BTI", icon: Heart },
-    { id: "travel", label: "여행지", icon: MapPin },
+    { id: "travel", label: "여행지추천", icon: MapPin },
+    { id: "home", label: "홈", icon: Home },
     { id: "news", label: "소식", icon: Bell },
     { id: "record", label: "기록", icon: BookOpen },
   ];
