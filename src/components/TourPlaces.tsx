@@ -3,7 +3,16 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Phone, Search, Heart, PawPrint, Map } from "lucide-react";
+import { 
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { MapPin, Phone, Search, Heart, PawPrint, Map, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -154,6 +163,31 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
     if (e.key === 'Enter') {
       handleSearch();
     }
+  };
+
+  // 페이지네이션 관련 계산
+  const currentTotalCount = activeTab === "general" ? totalCount : petTotalCount;
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(currentTotalCount / itemsPerPage);
+  
+  // 페이지 번호 목록 생성 (최대 5개)
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxVisiblePages = 5;
+    
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    // 끝에서부터 계산하여 시작 페이지 조정
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(i);
+    }
+    
+    return pageNumbers;
   };
 
   const renderTourPlace = (place: any, index: number) => {
@@ -352,38 +386,78 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
       </div>
 
       {/* 페이지네이션 */}
-      {!loading && (
+      {!loading && totalPages > 1 && (
         (activeTab === "general" && tourPlaces.length > 0) || 
         (activeTab === "pet" && petTourPlaces.length > 0)
       ) && (
         <div className="px-5">
-          <div className="flex justify-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
-            >
-              이전
-            </Button>
-            <div className="flex items-center px-3 py-1 bg-green-50 rounded-lg">
-              <span className="text-sm font-medium text-green-700">
-                {currentPage}
-              </span>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(currentPage + 1)}
-              disabled={
-                activeTab === "general" 
-                  ? tourPlaces.length < 10
-                  : petTourPlaces.length < 10
-              }
-            >
-              다음
-            </Button>
-          </div>
+          <Pagination>
+            <PaginationContent>
+              {/* 첫 페이지로 이동 */}
+              <PaginationItem>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  className="gap-1"
+                >
+                  <ChevronsLeft className="h-4 w-4" />
+                  <span className="sr-only">첫 페이지</span>
+                </Button>
+              </PaginationItem>
+              
+              {/* 이전 페이지 */}
+              <PaginationItem>
+                <PaginationPrevious 
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+
+              {/* 페이지 번호들 */}
+              {getPageNumbers().map((pageNum) => (
+                <PaginationItem key={pageNum}>
+                  <PaginationLink
+                    onClick={() => setCurrentPage(pageNum)}
+                    isActive={pageNum === currentPage}
+                    className="cursor-pointer"
+                  >
+                    {pageNum}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+
+              {/* 생략 표시 (마지막 페이지가 표시되지 않을 때) */}
+              {getPageNumbers()[getPageNumbers().length - 1] < totalPages && (
+                <PaginationItem>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              )}
+
+              {/* 다음 페이지 */}
+              <PaginationItem>
+                <PaginationNext 
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+
+              {/* 마지막 페이지로 이동 */}
+              <PaginationItem>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  className="gap-1"
+                >
+                  <ChevronsRight className="h-4 w-4" />
+                  <span className="sr-only">마지막 페이지</span>
+                </Button>
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
         </div>
       )}
 
