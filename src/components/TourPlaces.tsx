@@ -184,6 +184,23 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
     }
   };
 
+  // 탭 전환 시 현재 탭의 검색어가 있으면 해당 검색 결과를 유지
+  const handleTabChange = (tab: "general" | "pet") => {
+    setActiveTab(tab);
+    // 현재 탭의 검색어가 있으면 해당 검색 결과로 갱신
+    const currentKeyword = tab === "general" ? generalSearchKeyword : petSearchKeyword;
+    if (currentKeyword) {
+      // 검색어가 있으면 해당 탭의 검색 결과를 다시 로드
+      if (tab === "general") {
+        setGeneralCurrentPage(1);
+        fetchTourPlaces(currentKeyword, "");
+      } else {
+        setPetCurrentPage(1);
+        fetchTourPlaces("", currentKeyword);
+      }
+    }
+  };
+
   // 페이지네이션 관련 계산
   const currentTotalCount = activeTab === "general" ? totalCount : petTotalCount;
   const currentPage = activeTab === "general" ? generalCurrentPage : petCurrentPage;
@@ -334,7 +351,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
       <div className="px-5">
         <div className="flex bg-gray-100 rounded-xl p-1">
           <button
-            onClick={() => setActiveTab("general")}
+            onClick={() => handleTabChange("general")}
             className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all ${
               activeTab === "general"
                 ? "bg-white text-green-600 shadow-sm"
@@ -343,9 +360,10 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
           >
             <MapPin className="w-4 h-4 mr-2 inline" />
             일반 관광지
+            {generalSearchKeyword && <span className="ml-1 text-xs text-green-500">●</span>}
           </button>
           <button
-            onClick={() => setActiveTab("pet")}
+            onClick={() => handleTabChange("pet")}
             className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all ${
               activeTab === "pet"
                 ? "bg-white text-green-600 shadow-sm"
@@ -354,6 +372,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
           >
             <PawPrint className="w-4 h-4 mr-2 inline" />
             반려동물 동반
+            {petSearchKeyword && <span className="ml-1 text-xs text-green-500">●</span>}
           </button>
         </div>
       </div>
