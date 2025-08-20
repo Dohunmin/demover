@@ -90,14 +90,14 @@ serve(async (req) => {
   }
 
   try {
-    const { areaCode = '6', numOfRows = '10', pageNo = '1', keyword = '' } = await req.json().catch(() => ({}));
+    const { areaCode = '6', numOfRows = '10', pageNo = '1', keyword = '', activeTab = 'general' } = await req.json().catch(() => ({}));
     
     const apiKey = Deno.env.get('KOREA_TOUR_API_KEY');
     if (!apiKey) {
       throw new Error('KOREA_TOUR_API_KEY not found in environment variables');
     }
 
-    console.log('Calling Korean Tourism APIs with params:', { areaCode, numOfRows, pageNo, keyword });
+    console.log('Calling Korean Tourism APIs with params:', { areaCode, numOfRows, pageNo, keyword, activeTab });
 
     // 응답 데이터 초기화
     let tourismData = null;
@@ -176,7 +176,7 @@ serve(async (req) => {
       console.error(tourismError);
     }
 
-    // 2. 한국관광공사 반려동물 동반 여행지 서비스 호출
+    // 2. 한국관광공사 반려동물 동반 여행지 서비스 호출 (키워드 검색은 지원하지 않음)
     try {
       // API 키 디코딩 시도 (중복 인코딩 문제 해결)
       let decodedApiKey = apiKey;
@@ -187,8 +187,8 @@ serve(async (req) => {
         decodedApiKey = apiKey;
       }
       
-      const keywordParam = keyword && keyword.trim() ? `&keyword=${encodeURIComponent(keyword.trim())}` : '';
-      const petTourismUrl = `https://apis.data.go.kr/B551011/KorPetTourService/areaBasedList?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}${keywordParam}&_type=xml`;
+      // 반려동물 API는 keyword 파라미터를 지원하지 않으므로 areaBasedList만 사용
+      const petTourismUrl = `https://apis.data.go.kr/B551011/KorPetTourService/areaBasedList?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}&_type=xml`;
       console.log('Pet Tourism API URL:', petTourismUrl);
       
       // HTTPS 요청 시도

@@ -43,7 +43,8 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
   const [petTourPlaces, setPetTourPlaces] = useState<any[]>([]);
   const [petTotalCount, setPetTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [searchKeyword, setSearchKeyword] = useState("");
+  const [generalSearchKeyword, setGeneralSearchKeyword] = useState("");
+  const [petSearchKeyword, setPetSearchKeyword] = useState("");
   const [generalCurrentPage, setGeneralCurrentPage] = useState(1);
   const [petCurrentPage, setPetCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -76,13 +77,16 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
     }
   }, [generalCurrentPage, petCurrentPage, userAreaCode]);
 
-  const fetchTourPlaces = async (keyword?: string) => {
+  const fetchTourPlaces = async (generalKeyword?: string, petKeyword?: string) => {
     setLoading(true);
     
     const currentPage = activeTab === "general" ? generalCurrentPage : petCurrentPage;
     
     try {
-      console.log('Combined Tour API 호출 시작:', { keyword, currentPage });
+      console.log('Combined Tour API 호출 시작:', { generalKeyword, petKeyword, currentPage });
+      
+      // 활성 탭에 따라 적절한 키워드 사용
+      const keywordToUse = activeTab === "general" ? generalKeyword : petKeyword;
       
       // 실제 API 호출
       const { data, error } = await supabase.functions.invoke('combined-tour-api', {
@@ -90,7 +94,8 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
           areaCode: userAreaCode,
           numOfRows: '10',
           pageNo: currentPage.toString(),
-          keyword: keyword || ''
+          keyword: keywordToUse || '',
+          activeTab: activeTab // 탭 정보도 전달
         }
       });
 
@@ -166,10 +171,11 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
   const handleSearch = () => {
     if (activeTab === "general") {
       setGeneralCurrentPage(1);
+      fetchTourPlaces(generalSearchKeyword, "");
     } else {
       setPetCurrentPage(1);
+      fetchTourPlaces("", petSearchKeyword);
     }
-    fetchTourPlaces(searchKeyword);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -293,8 +299,8 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
                 placeholder="여행지를 검색하세요..."
-                value={searchKeyword}
-                onChange={(e) => setSearchKeyword(e.target.value)}
+                value={activeTab === "general" ? generalSearchKeyword : petSearchKeyword}
+                onChange={(e) => activeTab === "general" ? setGeneralSearchKeyword(e.target.value) : setPetSearchKeyword(e.target.value)}
                 onKeyPress={handleKeyPress}
                 className="pl-10 border-gray-200 focus:border-green-500"
               />
