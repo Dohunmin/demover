@@ -105,7 +105,9 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
       let hasData = false;
 
       // 일반 관광지 데이터 처리
-      if (data.tourismData && !data.tourismData.error && data.tourismData.response?.body?.items?.item) {
+      if (data.tourismData && !data.tourismData.error && 
+          data.tourismData.response?.header?.resultCode === "0000" &&
+          data.tourismData.response?.body?.items?.item) {
         const items = data.tourismData.response.body.items.item;
         const processedData = Array.isArray(items) ? items : items ? [items] : [];
         
@@ -127,20 +129,24 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
         setTotalCount(data.tourismData.response.body.totalCount || 0);
         hasData = true;
       } else {
-        console.warn('일반 관광지 데이터 없음:', data.tourismData?.error || 'No data');
+        console.warn('일반 관광지 데이터 없음:', data.tourismData?.error || 'No data or API error');
         setTourPlaces([]);
+        setTotalCount(0);
       }
 
       // 반려동물 동반 여행지 데이터 처리
-      if (data.petTourismData && !data.petTourismData.error && data.petTourismData.response?.body?.items?.item) {
+      if (data.petTourismData && !data.petTourismData.error && 
+          data.petTourismData.response?.header?.resultCode === "0000" &&
+          data.petTourismData.response?.body?.items?.item) {
         const petItems = data.petTourismData.response.body.items.item;
         const processedPetData = Array.isArray(petItems) ? petItems : petItems ? [petItems] : [];
         setPetTourPlaces(processedPetData);
         setPetTotalCount(data.petTourismData.response.body.totalCount || 0);
         hasData = true;
       } else {
-        console.warn('반려동물 여행지 데이터 없음:', data.petTourismData?.error || 'No data');
+        console.warn('반려동물 여행지 데이터 없음:', data.petTourismData?.error || 'No data or API error');
         setPetTourPlaces([]);
+        setPetTotalCount(0);
       }
 
       if (hasData) {
