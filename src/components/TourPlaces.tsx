@@ -44,7 +44,8 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
   const [petTotalCount, setPetTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [generalCurrentPage, setGeneralCurrentPage] = useState(1);
+  const [petCurrentPage, setPetCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [activeTab, setActiveTab] = useState<"general" | "pet">("general");
   const [userAreaCode, setUserAreaCode] = useState<string>('1');
@@ -73,10 +74,12 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
     if (userAreaCode) {
       fetchTourPlaces();
     }
-  }, [currentPage, userAreaCode]);
+  }, [generalCurrentPage, petCurrentPage, userAreaCode]);
 
   const fetchTourPlaces = async (keyword?: string) => {
     setLoading(true);
+    
+    const currentPage = activeTab === "general" ? generalCurrentPage : petCurrentPage;
     
     try {
       console.log('Combined Tour API 호출 시작:', { keyword, currentPage });
@@ -155,7 +158,11 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
   };
 
   const handleSearch = () => {
-    setCurrentPage(1);
+    if (activeTab === "general") {
+      setGeneralCurrentPage(1);
+    } else {
+      setPetCurrentPage(1);
+    }
     fetchTourPlaces(searchKeyword);
   };
 
@@ -167,6 +174,8 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
 
   // 페이지네이션 관련 계산
   const currentTotalCount = activeTab === "general" ? totalCount : petTotalCount;
+  const currentPage = activeTab === "general" ? generalCurrentPage : petCurrentPage;
+  const setCurrentPage = activeTab === "general" ? setGeneralCurrentPage : setPetCurrentPage;
   const itemsPerPage = 10;
   const totalPages = Math.ceil(currentTotalCount / itemsPerPage);
   
