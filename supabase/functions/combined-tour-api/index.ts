@@ -116,8 +116,15 @@ serve(async (req) => {
         decodedApiKey = apiKey;
       }
       
-      const keywordParam = keyword && keyword.trim() ? `&keyword=${encodeURIComponent(keyword.trim())}` : '';
-      const tourismUrl = `https://apis.data.go.kr/B551011/KorService2/areaBasedList2?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}${keywordParam}&_type=xml`;
+      // 키워드가 있으면 검색 API 사용, 없으면 지역별 목록 API 사용
+      let tourismUrl;
+      if (keyword && keyword.trim()) {
+        // 검색 기반 정보 서비스 API 사용
+        tourismUrl = `https://apis.data.go.kr/B551011/KorService2/searchKeyword2?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&keyword=${encodeURIComponent(keyword.trim())}&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}&_type=xml`;
+      } else {
+        // 지역 기반 목록 API 사용
+        tourismUrl = `https://apis.data.go.kr/B551011/KorService2/areaBasedList2?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}&_type=xml`;
+      }
       console.log('Tourism API URL:', tourismUrl);
       
       // HTTPS 요청 시도
