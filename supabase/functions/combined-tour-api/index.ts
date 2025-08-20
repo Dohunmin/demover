@@ -176,7 +176,7 @@ serve(async (req) => {
       console.error(tourismError);
     }
 
-    // 2. 한국관광공사 반려동물 동반 여행지 서비스 호출 (키워드 검색은 지원하지 않음)
+    // 2. 한국관광공사 반려동물 동반 여행지 서비스 호출
     try {
       // API 키 디코딩 시도 (중복 인코딩 문제 해결)
       let decodedApiKey = apiKey;
@@ -187,8 +187,15 @@ serve(async (req) => {
         decodedApiKey = apiKey;
       }
       
-      // 반려동물 API는 keyword 파라미터를 지원하지 않으므로 areaBasedList만 사용
-      const petTourismUrl = `https://apis.data.go.kr/B551011/KorPetTourService/areaBasedList?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}&_type=xml`;
+      // 키워드가 있으면 검색 API 사용, 없으면 지역별 목록 API 사용
+      let petTourismUrl;
+      if (keyword && keyword.trim()) {
+        // 반려동물 검색 기반 정보 서비스 API 사용
+        petTourismUrl = `https://apis.data.go.kr/B551011/KorPetTourService/searchKeyword?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&keyword=${encodeURIComponent(keyword.trim())}&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}&_type=xml`;
+      } else {
+        // 반려동물 지역 기반 목록 API 사용
+        petTourismUrl = `https://apis.data.go.kr/B551011/KorPetTourService/areaBasedList?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}&_type=xml`;
+      }
       console.log('Pet Tourism API URL:', petTourismUrl);
       
       // HTTPS 요청 시도
