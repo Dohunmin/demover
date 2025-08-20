@@ -147,6 +147,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
           data.petTourismData.response?.body?.items?.item) {
         const petItems = data.petTourismData.response.body.items.item;
         const processedPetData = Array.isArray(petItems) ? petItems : petItems ? [petItems] : [];
+        console.log('처리된 반려동물 데이터:', processedPetData);
         setPetTourPlaces(processedPetData);
         setPetTotalCount(data.petTourismData.response.body.totalCount || 0);
         hasData = true;
@@ -432,8 +433,12 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
                 <>
                   <div className="text-sm text-gray-600 mb-4">
                     총 {petTotalCount.toLocaleString()}개의 반려동물 동반 여행지
+                    <div className="text-xs text-gray-400 mt-1">디버그: {petTourPlaces.length}개 렌더링</div>
                   </div>
-                  {petTourPlaces.map((place, index) => renderTourPlace(place, index))}
+                  {petTourPlaces.map((place, index) => {
+                    console.log(`반려동물 장소 ${index}:`, place);
+                    return renderTourPlace(place, index);
+                  })}
                 </>
               ) : (
                 <Card className="p-8 text-center bg-white border-0 shadow-lg rounded-2xl">
