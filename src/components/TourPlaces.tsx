@@ -75,7 +75,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
       const { data, error } = await supabase.functions.invoke('combined-tour-api', {
         body: {
           areaCode: userAreaCode,
-          numOfRows: '10',
+          numOfRows: '50',
           pageNo: currentPage.toString(),
           keyword: keyword || ''
         }
