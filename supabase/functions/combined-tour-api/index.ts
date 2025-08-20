@@ -116,7 +116,7 @@ serve(async (req) => {
         decodedApiKey = apiKey;
       }
       
-      const keywordParam = keyword ? `&keyword=${encodeURIComponent(keyword)}` : '';
+      const keywordParam = keyword && keyword.trim() ? `&keyword=${encodeURIComponent(keyword.trim())}` : '';
       const tourismUrl = `https://apis.data.go.kr/B551011/KorService2/areaBasedList2?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}${keywordParam}&_type=xml`;
       console.log('Tourism API URL:', tourismUrl);
       
@@ -180,7 +180,7 @@ serve(async (req) => {
         decodedApiKey = apiKey;
       }
       
-      const keywordParam = keyword ? `&keyword=${encodeURIComponent(keyword)}` : '';
+      const keywordParam = keyword && keyword.trim() ? `&keyword=${encodeURIComponent(keyword.trim())}` : '';
       const petTourismUrl = `https://apis.data.go.kr/B551011/KorPetTourService/areaBasedList?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}${keywordParam}&_type=xml`;
       console.log('Pet Tourism API URL:', petTourismUrl);
       
