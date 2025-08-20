@@ -105,42 +105,32 @@ serve(async (req) => {
     let tourismError = null;
     let petTourismError = null;
 
-    // 1. 한국관광공사 국문 관광정보 서비스 호출 (일반 관광지)
-    try {
-      // API 키 디코딩 시도 (중복 인코딩 문제 해결)
-      let decodedApiKey = apiKey;
+    // activeTab에 따라 해당하는 API만 호출
+    if (activeTab === "general") {
+      // 1. 한국관광공사 국문 관광정보 서비스 호출 (일반 관광지만)
       try {
-        decodedApiKey = decodeURIComponent(apiKey);
-      } catch (e) {
-        // 디코딩 실패 시 원본 사용
-        decodedApiKey = apiKey;
-      }
-      
-      // 키워드가 있으면 검색 API 사용, 없으면 지역별 목록 API 사용
-      let tourismUrl;
-      if (keyword && keyword.trim()) {
-        // 검색 기반 정보 서비스 API 사용
-        tourismUrl = `https://apis.data.go.kr/B551011/KorService2/searchKeyword2?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&keyword=${encodeURIComponent(keyword.trim())}&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}&_type=xml`;
-      } else {
-        // 지역 기반 목록 API 사용
-        tourismUrl = `https://apis.data.go.kr/B551011/KorService2/areaBasedList2?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}&_type=xml`;
-      }
-      console.log('Tourism API URL:', tourismUrl);
-      
-      // HTTPS 요청 시도
-      let tourismResponse = await fetch(tourismUrl, {
-        method: 'GET',
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          'Accept': 'application/xml, text/xml, */*',
-          'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
-          'Cache-Control': 'no-cache'
+        // API 키 디코딩 시도 (중복 인코딩 문제 해결)
+        let decodedApiKey = apiKey;
+        try {
+          decodedApiKey = decodeURIComponent(apiKey);
+        } catch (e) {
+          // 디코딩 실패 시 원본 사용
+          decodedApiKey = apiKey;
         }
-      }).catch(async (httpsError) => {
-        console.log('HTTPS failed, trying HTTP:', httpsError.message);
-        // HTTPS 실패 시 HTTP로 재시도
-        const httpUrl = tourismUrl.replace('https://', 'http://');
-        return await fetch(httpUrl, {
+        
+        // 키워드가 있으면 검색 API 사용, 없으면 지역별 목록 API 사용
+        let tourismUrl;
+        if (keyword && keyword.trim()) {
+          // 검색 기반 정보 서비스 API 사용
+          tourismUrl = `https://apis.data.go.kr/B551011/KorService2/searchKeyword2?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&keyword=${encodeURIComponent(keyword.trim())}&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}&_type=xml`;
+        } else {
+          // 지역 기반 목록 API 사용
+          tourismUrl = `https://apis.data.go.kr/B551011/KorService2/areaBasedList2?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}&_type=xml`;
+        }
+        console.log('Tourism API URL:', tourismUrl);
+        
+        // HTTPS 요청 시도
+        let tourismResponse = await fetch(tourismUrl, {
           method: 'GET',
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
@@ -148,70 +138,72 @@ serve(async (req) => {
             'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
             'Cache-Control': 'no-cache'
           }
+        }).catch(async (httpsError) => {
+          console.log('HTTPS failed, trying HTTP:', httpsError.message);
+          // HTTPS 실패 시 HTTP로 재시도
+          const httpUrl = tourismUrl.replace('https://', 'http://');
+          return await fetch(httpUrl, {
+            method: 'GET',
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+              'Accept': 'application/xml, text/xml, */*',
+              'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
+              'Cache-Control': 'no-cache'
+            }
+          });
         });
-      });
-      console.log('Tourism API Response Status:', tourismResponse.status);
-      
-      if (tourismResponse.ok) {
-        const responseText = await tourismResponse.text();
-        console.log('Tourism API Raw Response:', responseText.substring(0, 300));
+        console.log('Tourism API Response Status:', tourismResponse.status);
         
-        // 항상 XML로 파싱 시도 (API가 XML을 반환함)
-        tourismData = parseXmlToJson(responseText);
-        if (tourismData?.error) {
-          tourismError = `Tourism API service error: ${tourismData.message}`;
-          tourismData = null;
+        if (tourismResponse.ok) {
+          const responseText = await tourismResponse.text();
+          console.log('Tourism API Raw Response:', responseText.substring(0, 300));
+          
+          // 항상 XML로 파싱 시도 (API가 XML을 반환함)
+          tourismData = parseXmlToJson(responseText);
+          if (tourismData?.error) {
+            tourismError = `Tourism API service error: ${tourismData.message}`;
+            tourismData = null;
+          }
+          
+          if (tourismData) {
+            console.log('Tourism API Success');
+          }
+        } else {
+          const responseText = await tourismResponse.text();
+          tourismError = `Tourism API failed with status: ${tourismResponse.status}, body: ${responseText}`;
+          console.error(tourismError);
         }
-        
-        if (tourismData) {
-          console.log('Tourism API Success');
-        }
-      } else {
-        const responseText = await tourismResponse.text();
-        tourismError = `Tourism API failed with status: ${tourismResponse.status}, body: ${responseText}`;
+      } catch (error) {
+        tourismError = `Tourism API error: ${error.message}`;
         console.error(tourismError);
       }
-    } catch (error) {
-      tourismError = `Tourism API error: ${error.message}`;
-      console.error(tourismError);
     }
 
-    // 2. 한국관광공사 반려동물 동반 여행지 서비스 호출
-    try {
-      // API 키 디코딩 시도 (중복 인코딩 문제 해결)
-      let decodedApiKey = apiKey;
+    if (activeTab === "pet") {
+      // 2. 한국관광공사 반려동물 동반 여행지 서비스 호출 (반려동물만)
       try {
-        decodedApiKey = decodeURIComponent(apiKey);
-      } catch (e) {
-        // 디코딩 실패 시 원본 사용
-        decodedApiKey = apiKey;
-      }
-      
-      // 키워드가 있으면 검색 API 사용, 없으면 지역별 목록 API 사용
-      let petTourismUrl;
-      if (keyword && keyword.trim()) {
-        // 반려동물 검색 기반 정보 서비스 API 사용
-        petTourismUrl = `https://apis.data.go.kr/B551011/KorPetTourService/searchKeyword?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&keyword=${encodeURIComponent(keyword.trim())}&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}&_type=xml`;
-      } else {
-        // 반려동물 지역 기반 목록 API 사용
-        petTourismUrl = `https://apis.data.go.kr/B551011/KorPetTourService/areaBasedList?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}&_type=xml`;
-      }
-      console.log('Pet Tourism API URL:', petTourismUrl);
-      
-      // HTTPS 요청 시도
-      let petTourismResponse = await fetch(petTourismUrl, {
-        method: 'GET',
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          'Accept': 'application/xml, text/xml, */*',
-          'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
-          'Cache-Control': 'no-cache'
+        // API 키 디코딩 시도 (중복 인코딩 문제 해결)
+        let decodedApiKey = apiKey;
+        try {
+          decodedApiKey = decodeURIComponent(apiKey);
+        } catch (e) {
+          // 디코딩 실패 시 원본 사용
+          decodedApiKey = apiKey;
         }
-      }).catch(async (httpsError) => {
-        console.log('Pet Tourism HTTPS failed, trying HTTP:', httpsError.message);
-        // HTTPS 실패 시 HTTP로 재시도
-        const httpUrl = petTourismUrl.replace('https://', 'http://');
-        return await fetch(httpUrl, {
+        
+        // 키워드가 있으면 검색 API 사용, 없으면 지역별 목록 API 사용
+        let petTourismUrl;
+        if (keyword && keyword.trim()) {
+          // 반려동물 검색 기반 정보 서비스 API 사용
+          petTourismUrl = `https://apis.data.go.kr/B551011/KorPetTourService/searchKeyword?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&keyword=${encodeURIComponent(keyword.trim())}&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}&_type=xml`;
+        } else {
+          // 반려동물 지역 기반 목록 API 사용
+          petTourismUrl = `https://apis.data.go.kr/B551011/KorPetTourService/areaBasedList?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}&_type=xml`;
+        }
+        console.log('Pet Tourism API URL:', petTourismUrl);
+        
+        // HTTPS 요청 시도
+        let petTourismResponse = await fetch(petTourismUrl, {
           method: 'GET',
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
@@ -219,54 +211,72 @@ serve(async (req) => {
             'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
             'Cache-Control': 'no-cache'
           }
+        }).catch(async (httpsError) => {
+          console.log('Pet Tourism HTTPS failed, trying HTTP:', httpsError.message);
+          // HTTPS 실패 시 HTTP로 재시도
+          const httpUrl = petTourismUrl.replace('https://', 'http://');
+          return await fetch(httpUrl, {
+            method: 'GET',
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+              'Accept': 'application/xml, text/xml, */*',
+              'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
+              'Cache-Control': 'no-cache'
+            }
+          });
         });
-      });
-      console.log('Pet Tourism API Response Status:', petTourismResponse.status);
-      
-      if (petTourismResponse.ok) {
-        const responseText = await petTourismResponse.text();
-        console.log('Pet Tourism API Raw Response:', responseText.substring(0, 300));
+        console.log('Pet Tourism API Response Status:', petTourismResponse.status);
         
-        // 항상 XML로 파싱 시도 (API가 XML을 반환함)
-        petTourismData = parseXmlToJson(responseText);
-        if (petTourismData?.error) {
-          petTourismError = `Pet Tourism API service error: ${petTourismData.message}`;
-          petTourismData = null;
+        if (petTourismResponse.ok) {
+          const responseText = await petTourismResponse.text();
+          console.log('Pet Tourism API Raw Response:', responseText.substring(0, 300));
+          
+          // 항상 XML로 파싱 시도 (API가 XML을 반환함)
+          petTourismData = parseXmlToJson(responseText);
+          if (petTourismData?.error) {
+            petTourismError = `Pet Tourism API service error: ${petTourismData.message}`;
+            petTourismData = null;
+          }
+          
+          if (petTourismData) {
+            console.log('Pet Tourism API Success');
+          }
+        } else {
+          const responseText = await petTourismResponse.text();
+          petTourismError = `Pet Tourism API failed with status: ${petTourismResponse.status}, body: ${responseText}`;
+          console.error(petTourismError);
         }
-        
-        if (petTourismData) {
-          console.log('Pet Tourism API Success');
-        }
-      } else {
-        const responseText = await petTourismResponse.text();
-        petTourismError = `Pet Tourism API failed with status: ${petTourismResponse.status}, body: ${responseText}`;
+      } catch (error) {
+        petTourismError = `Pet Tourism API error: ${error.message}`;
         console.error(petTourismError);
       }
-    } catch (error) {
-      petTourismError = `Pet Tourism API error: ${error.message}`;
-      console.error(petTourismError);
     }
 
     // 결과 확인 및 응답 구성
-    if (!tourismData && !petTourismData) {
-      throw new Error(`Both APIs failed. Tourism: ${tourismError}, Pet Tourism: ${petTourismError}`);
+    if (activeTab === "general" && !tourismData) {
+      throw new Error(`General Tourism API failed: ${tourismError}`);
+    }
+    
+    if (activeTab === "pet" && !petTourismData) {
+      throw new Error(`Pet Tourism API failed: ${petTourismError}`);
     }
 
-    // 부분적으로라도 성공한 경우 데이터 반환
+    // 요청된 탭에 따라 해당 데이터만 반환
     const combinedData = {
-      tourismData: tourismData || { error: tourismError },
-      petTourismData: petTourismData || { error: petTourismError },
-      requestParams: { areaCode, numOfRows, pageNo },
+      tourismData: activeTab === "general" ? (tourismData || { error: tourismError }) : null,
+      petTourismData: activeTab === "pet" ? (petTourismData || { error: petTourismError }) : null,
+      requestParams: { areaCode, numOfRows, pageNo, activeTab },
       timestamp: new Date().toISOString(),
       status: {
-        tourism: tourismData ? 'success' : 'failed',
-        petTourism: petTourismData ? 'success' : 'failed'
+        tourism: activeTab === "general" ? (tourismData ? 'success' : 'failed') : 'not_requested',
+        petTourism: activeTab === "pet" ? (petTourismData ? 'success' : 'failed') : 'not_requested'
       }
     };
 
     console.log('Final response prepared:', {
-      tourismSuccess: !!tourismData,
-      petTourismSuccess: !!petTourismData
+      activeTab,
+      tourismSuccess: activeTab === "general" ? !!tourismData : 'not_requested',
+      petTourismSuccess: activeTab === "pet" ? !!petTourismData : 'not_requested'
     });
 
     return new Response(JSON.stringify(combinedData), {
