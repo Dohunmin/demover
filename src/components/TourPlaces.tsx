@@ -108,6 +108,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
       console.log('Combined Tour API 응답:', data);
 
       let hasData = false;
+      let activeTabHasData = false;
 
       // 일반 관광지 데이터 처리
       if (data.tourismData && !data.tourismData.error && 
@@ -133,7 +134,8 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
         
         setTotalCount(data.tourismData.response.body.totalCount || 0);
         hasData = true;
-      } else {
+        if (activeTab === "general") activeTabHasData = true;
+      } else if (data.tourismData !== null) {
         console.warn('일반 관광지 데이터 없음:', data.tourismData?.error || 'No data or API error');
         setTourPlaces([]);
         setTotalCount(0);
@@ -148,16 +150,21 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
         setPetTourPlaces(processedPetData);
         setPetTotalCount(data.petTourismData.response.body.totalCount || 0);
         hasData = true;
-      } else {
+        if (activeTab === "pet") activeTabHasData = true;
+      } else if (data.petTourismData !== null) {
         console.warn('반려동물 여행지 데이터 없음:', data.petTourismData?.error || 'No data or API error');
         setPetTourPlaces([]);
         setPetTotalCount(0);
       }
 
-      if (hasData) {
+      // 현재 활성 탭에 데이터가 있으면 성공으로 처리
+      if (activeTabHasData) {
         toast.success("여행지 정보를 성공적으로 불러왔습니다!");
+      } else if (hasData) {
+        // 다른 탭에는 데이터가 있지만 현재 탭에는 없는 경우
+        toast.warning("현재 탭에는 데이터가 없습니다.");
       } else {
-        toast.warning("일부 데이터를 불러오는데 실패했지만 계속 진행합니다.");
+        toast.warning("데이터를 불러오는데 실패했습니다.");
       }
 
     } catch (error) {
