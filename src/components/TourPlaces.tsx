@@ -48,7 +48,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
   const [petCurrentPage, setPetCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [activeTab, setActiveTab] = useState<"general" | "pet">("general");
-  const [userAreaCode, setUserAreaCode] = useState<string>('1');
+  const [userAreaCode, setUserAreaCode] = useState<string>('');
   const [selectedPlace, setSelectedPlace] = useState<TourPlace | null>(null);
 
   // 사용자 프로필에서 지역 코드 가져오기
