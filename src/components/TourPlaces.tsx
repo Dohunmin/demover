@@ -12,7 +12,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { MapPin, Phone, Search, Heart, PawPrint, Map, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { MapPin, Phone, Search, Heart, PawPrint, Map, ChevronsLeft, ChevronsRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -408,73 +408,69 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
         (activeTab === "pet" && petTourPlaces.length > 0)
       ) && (
         <div className="px-5">
-          <Pagination>
-            <PaginationContent>
-              {/* 첫 페이지로 이동 */}
-              <PaginationItem>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(1)}
-                  disabled={currentPage === 1}
-                  className="gap-1"
-                >
-                  <ChevronsLeft className="h-4 w-4" />
-                  <span className="sr-only">첫 페이지</span>
-                </Button>
-              </PaginationItem>
-              
-              {/* 이전 페이지 */}
-              <PaginationItem>
-                <PaginationPrevious 
-                  onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-                  className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                />
-              </PaginationItem>
+          <div className="flex justify-center items-center gap-1">
+            {/* 첫 페이지로 이동 */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(1)}
+              disabled={currentPage === 1}
+              className="w-8 h-8 p-0"
+            >
+              <ChevronsLeft className="h-4 w-4" />
+            </Button>
+            
+            {/* 이전 페이지 */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              className="w-8 h-8 p-0"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
 
-              {/* 페이지 번호들 */}
-              {getPageNumbers().map((pageNum) => (
-                <PaginationItem key={pageNum}>
-                  <PaginationLink
-                    onClick={() => handlePageChange(pageNum)}
-                    isActive={pageNum === currentPage}
-                    className="cursor-pointer"
-                  >
-                    {pageNum}
-                  </PaginationLink>
-                </PaginationItem>
-              ))}
+            {/* 페이지 번호들 */}
+            {getPageNumbers().map((pageNum) => (
+              <Button
+                key={pageNum}
+                variant={pageNum === currentPage ? "default" : "outline"}
+                size="sm"
+                onClick={() => handlePageChange(pageNum)}
+                className="w-8 h-8 p-0"
+              >
+                {pageNum}
+              </Button>
+            ))}
 
-              {/* 생략 표시 (마지막 페이지가 표시되지 않을 때) */}
-              {getPageNumbers()[getPageNumbers().length - 1] < totalPages && (
-                <PaginationItem>
-                  <PaginationEllipsis />
-                </PaginationItem>
-              )}
+            {/* 생략 표시 (마지막 페이지가 표시되지 않을 때) */}
+            {getPageNumbers()[getPageNumbers().length - 1] < totalPages && (
+              <span className="px-2 text-gray-400">...</span>
+            )}
 
-              {/* 다음 페이지 */}
-              <PaginationItem>
-                <PaginationNext 
-                  onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
-                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                />
-              </PaginationItem>
+            {/* 다음 페이지 */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+              disabled={currentPage === totalPages}
+              className="w-8 h-8 p-0"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
 
-              {/* 마지막 페이지로 이동 */}
-              <PaginationItem>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(totalPages)}
-                  disabled={currentPage === totalPages}
-                  className="gap-1"
-                >
-                  <ChevronsRight className="h-4 w-4" />
-                  <span className="sr-only">마지막 페이지</span>
-                </Button>
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
+            {/* 마지막 페이지로 이동 */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(totalPages)}
+              disabled={currentPage === totalPages}
+              className="w-8 h-8 p-0"
+            >
+              <ChevronsRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       )}
 
