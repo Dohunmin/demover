@@ -7,9 +7,11 @@ import { MapPin, Phone, Search, Heart, PawPrint, Map } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import TourDetailModal from "./TourDetailModal";
 
 interface TourPlace {
   contentId: string;
+  contentTypeId?: string;
   title: string;
   addr1: string;
   addr2: string;
@@ -19,6 +21,7 @@ interface TourPlace {
   mapy: string;
   areacode: string;
   sigungucode: string;
+  firstImage?: string;
 }
 
 interface TourPlacesProps {
@@ -35,6 +38,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
   const [totalCount, setTotalCount] = useState(0);
   const [activeTab, setActiveTab] = useState<"general" | "pet">("general");
   const [userAreaCode, setUserAreaCode] = useState<string>('1');
+  const [selectedPlace, setSelectedPlace] = useState<TourPlace | null>(null);
 
   // 사용자 프로필에서 지역 코드 가져오기
   useEffect(() => {
@@ -94,10 +98,12 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
         
         setTourPlaces(processedData.map((item: any) => ({
           contentId: item.contentid,
+          contentTypeId: item.contenttypeid,
           title: item.title,
           addr1: item.addr1 || '',
           addr2: item.addr2 || '',
           image: item.firstimage || item.firstimage2 || '',
+          firstImage: item.firstimage || item.firstimage2 || '',
           tel: item.tel || '',
           mapx: item.mapx || '',
           mapy: item.mapy || '',
@@ -148,51 +154,75 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
     }
   };
 
-  const renderTourPlace = (place: any, index: number) => (
-    <Card key={place.contentid || index} className="p-4 shadow-sm border-0 bg-white rounded-2xl hover:shadow-md transition-shadow">
-      <div className="flex gap-4">
-        {place.firstimage && (
-          <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-            <img 
-              src={place.firstimage} 
-              alt={place.title}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-              }}
-            />
-          </div>
-        )}
-        <div className="flex-1 min-w-0">
-          <h4 className="font-semibold text-gray-900 mb-1 line-clamp-1">
-            {place.title}
-          </h4>
-          {place.addr1 && (
-            <div className="flex items-start gap-1 mb-2">
-              <MapPin className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
-              <p className="text-xs text-gray-600 line-clamp-2">
-                {place.addr1} {place.addr2}
-              </p>
+  const renderTourPlace = (place: any, index: number) => {
+    const handlePlaceClick = () => {
+      const tourPlace: TourPlace = {
+        contentId: place.contentid || place.contentId,
+        contentTypeId: place.contenttypeid || place.contentTypeId,
+        title: place.title,
+        addr1: place.addr1 || '',
+        addr2: place.addr2 || '',
+        image: place.firstimage || place.image || '',
+        firstImage: place.firstimage || place.image || '',
+        tel: place.tel || '',
+        mapx: place.mapx || '',
+        mapy: place.mapy || '',
+        areacode: place.areacode || '',
+        sigungucode: place.sigungucode || ''
+      };
+      setSelectedPlace(tourPlace);
+    };
+
+    return (
+      <Card 
+        key={place.contentid || place.contentId || index} 
+        className="p-4 shadow-sm border-0 bg-white rounded-2xl hover:shadow-md transition-shadow cursor-pointer"
+        onClick={handlePlaceClick}
+      >
+        <div className="flex gap-4">
+          {(place.firstimage || place.image) && (
+            <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+              <img 
+                src={place.firstimage || place.image} 
+                alt={place.title}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                }}
+              />
             </div>
           )}
-          {place.tel && (
-            <div className="flex items-center gap-1 mb-2">
-              <Phone className="w-3 h-3 text-gray-400 flex-shrink-0" />
-              <p className="text-xs text-gray-600">
-                {place.tel}
-              </p>
+          <div className="flex-1 min-w-0">
+            <h4 className="font-semibold text-gray-900 mb-1 line-clamp-1">
+              {place.title}
+            </h4>
+            {place.addr1 && (
+              <div className="flex items-start gap-1 mb-2">
+                <MapPin className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-gray-600 line-clamp-2">
+                  {place.addr1} {place.addr2}
+                </p>
+              </div>
+            )}
+            {place.tel && (
+              <div className="flex items-center gap-1 mb-2">
+                <Phone className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                <p className="text-xs text-gray-600">
+                  {place.tel}
+                </p>
+              </div>
+            )}
+            <div className="flex items-center justify-between">
+              <Badge variant="secondary" className="text-xs">
+                {activeTab === "pet" ? "반려동물 동반" : "일반 관광지"}
+              </Badge>
             </div>
-          )}
-          <div className="flex items-center justify-between">
-            <Badge variant="secondary" className="text-xs">
-              {activeTab === "pet" ? "반려동물 동반" : "일반 관광지"}
-            </Badge>
           </div>
         </div>
-      </div>
-    </Card>
-  );
+      </Card>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -346,6 +376,17 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
             </Button>
           </div>
         </div>
+      )}
+
+      {/* 상세 정보 모달 */}
+      {selectedPlace && (
+        <TourDetailModal
+          contentId={selectedPlace.contentId}
+          contentTypeId={selectedPlace.contentTypeId}
+          title={selectedPlace.title}
+          isOpen={!!selectedPlace}
+          onClose={() => setSelectedPlace(null)}
+        />
       )}
     </div>
   );

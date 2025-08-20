@@ -1,0 +1,206 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+// XML to JSON parsing utility
+function parseXmlToJson(xmlText: string): any {
+  try {
+    // Remove XML declaration and any BOM
+    const cleanXml = xmlText.replace(/^[\uFEFF\uFFFE]/, '').replace(/<\?xml[^>]*\?>/, '').trim();
+    
+    // Check for error messages first
+    if (cleanXml.includes('<errMsg>') || cleanXml.includes('SERVICE ERROR')) {
+      const errorMatch = cleanXml.match(/<errMsg>(.*?)<\/errMsg>/);
+      if (errorMatch) {
+        return { 
+          error: true, 
+          message: errorMatch[1],
+          response: { header: { resultCode: "ERROR", resultMsg: errorMatch[1] } }
+        };
+      }
+    }
+
+    // Extract basic structure
+    const response: any = {
+      header: {},
+      body: { items: { item: [] }, totalCount: 0, numOfRows: 0, pageNo: 1 }
+    };
+
+    // Extract header info
+    const resultCodeMatch = cleanXml.match(/<resultCode>(.*?)<\/resultCode>/);
+    const resultMsgMatch = cleanXml.match(/<resultMsg>(.*?)<\/resultMsg>/);
+    const totalCountMatch = cleanXml.match(/<totalCount>(\d+)<\/totalCount>/);
+    const numOfRowsMatch = cleanXml.match(/<numOfRows>(\d+)<\/numOfRows>/);
+    const pageNoMatch = cleanXml.match(/<pageNo>(\d+)<\/pageNo>/);
+
+    if (resultCodeMatch) response.header.resultCode = resultCodeMatch[1];
+    if (resultMsgMatch) response.header.resultMsg = resultMsgMatch[1];
+    if (totalCountMatch) response.body.totalCount = parseInt(totalCountMatch[1]);
+    if (numOfRowsMatch) response.body.numOfRows = parseInt(numOfRowsMatch[1]);
+    if (pageNoMatch) response.body.pageNo = parseInt(pageNoMatch[1]);
+
+    // Extract items
+    const itemsMatch = cleanXml.match(/<items>(.*?)<\/items>/s);
+    if (itemsMatch) {
+      const itemsContent = itemsMatch[1];
+      const itemMatches = itemsContent.match(/<item>(.*?)<\/item>/gs);
+      
+      if (itemMatches) {
+        response.body.items.item = itemMatches.map(itemMatch => {
+          const item: any = {};
+          const itemContent = itemMatch.replace(/<\/?item>/g, '');
+          
+          // Extract all fields within the item
+          const fieldRegex = /<(\w+)>(.*?)<\/\1>/g;
+          let fieldMatch;
+          while ((fieldMatch = fieldRegex.exec(itemContent)) !== null) {
+            const [, fieldName, fieldValue] = fieldMatch;
+            item[fieldName] = fieldValue;
+          }
+          
+          return item;
+        });
+      }
+    }
+
+    return { response };
+  } catch (error) {
+    console.error('XML parsing error:', error);
+    return { 
+      error: true, 
+      message: 'Failed to parse XML response',
+      response: { header: { resultCode: "PARSE_ERROR", resultMsg: "XML parsing failed" } }
+    };
+  }
+}
+
+serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { contentId, contentTypeId } = await req.json();
+    
+    if (!contentId) {
+      throw new Error('contentId is required');
+    }
+
+    const serviceKey = Deno.env.get('KOREA_TOUR_API_KEY');
+    if (!serviceKey) {
+      throw new Error('KOREA_TOUR_API_KEY environment variable is not set');
+    }
+
+    console.log(`Fetching detail info for contentId: ${contentId}, contentTypeId: ${contentTypeId}`);
+
+    // Prepare API calls
+    const baseParams = new URLSearchParams({
+      serviceKey,
+      MobileOS: 'ETC',
+      MobileApp: 'PetTravelApp',
+      contentId,
+      _type: 'json'
+    });
+
+    if (contentTypeId) {
+      baseParams.append('contentTypeId', contentTypeId);
+    }
+
+    const detailCommonUrl = `https://apis.data.go.kr/B551011/KorService2/detailCommon2?${baseParams}`;
+    const detailIntroUrl = contentTypeId ? 
+      `https://apis.data.go.kr/B551011/KorService2/detailIntro2?${baseParams}` : null;
+    const detailImageUrl = `https://apis.data.go.kr/B551011/KorService2/detailImage2?${baseParams}&imageYN=Y&subImageYN=Y`;
+
+    console.log('Detail Common URL:', detailCommonUrl);
+    console.log('Detail Intro URL:', detailIntroUrl);
+    console.log('Detail Image URL:', detailImageUrl);
+
+    // Make parallel API calls
+    const promises = [
+      fetch(detailCommonUrl).catch(() => 
+        fetch(detailCommonUrl.replace('https://', 'http://'))
+      ),
+      detailIntroUrl ? 
+        fetch(detailIntroUrl).catch(() => 
+          fetch(detailIntroUrl.replace('https://', 'http://'))
+        ) : Promise.resolve(null),
+      fetch(detailImageUrl).catch(() => 
+        fetch(detailImageUrl.replace('https://', 'http://'))
+      )
+    ];
+
+    const [commonResponse, introResponse, imageResponse] = await Promise.all(promises);
+
+    // Process responses
+    let commonData = null;
+    let introData = null;
+    let imageData = null;
+
+    // Process common data
+    if (commonResponse && commonResponse.ok) {
+      const commonText = await commonResponse.text();
+      console.log('[Common] Raw Response (first 500 chars):\n', commonText.substring(0, 500));
+      
+      try {
+        commonData = JSON.parse(commonText);
+      } catch {
+        const parsed = parseXmlToJson(commonText);
+        commonData = parsed.error ? null : parsed;
+      }
+    }
+
+    // Process intro data
+    if (introResponse && introResponse.ok) {
+      const introText = await introResponse.text();
+      console.log('[Intro] Raw Response (first 500 chars):\n', introText.substring(0, 500));
+      
+      try {
+        introData = JSON.parse(introText);
+      } catch {
+        const parsed = parseXmlToJson(introText);
+        introData = parsed.error ? null : parsed;
+      }
+    }
+
+    // Process image data
+    if (imageResponse && imageResponse.ok) {
+      const imageText = await imageResponse.text();
+      console.log('[Image] Raw Response (first 500 chars):\n', imageText.substring(0, 500));
+      
+      try {
+        imageData = JSON.parse(imageText);
+      } catch {
+        const parsed = parseXmlToJson(imageText);
+        imageData = parsed.error ? null : parsed;
+      }
+    }
+
+    // Combine results
+    const result = {
+      common: commonData,
+      intro: introData,
+      images: imageData
+    };
+
+    console.log('Combined result prepared');
+
+    return new Response(JSON.stringify(result), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200,
+    });
+
+  } catch (error) {
+    console.error('Error in tour-detail-api:', error);
+    return new Response(JSON.stringify({ 
+      error: 'An unexpected error occurred', 
+      details: error.message 
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500,
+    });
+  }
+});
