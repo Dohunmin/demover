@@ -32,6 +32,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
   const { user } = useAuth();
   const [tourPlaces, setTourPlaces] = useState<TourPlace[]>([]);
   const [petTourPlaces, setPetTourPlaces] = useState<any[]>([]);
+  const [petTotalCount, setPetTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -75,7 +76,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
       const { data, error } = await supabase.functions.invoke('combined-tour-api', {
         body: {
           areaCode: userAreaCode,
-          numOfRows: '50',
+          numOfRows: '10',
           pageNo: currentPage.toString(),
           keyword: keyword || ''
         }
@@ -123,6 +124,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
         const petItems = data.petTourismData.response.body.items.item;
         const processedPetData = Array.isArray(petItems) ? petItems : petItems ? [petItems] : [];
         setPetTourPlaces(processedPetData);
+        setPetTotalCount(data.petTourismData.response.body.totalCount || 0);
         hasData = true;
       } else {
         console.warn('반려동물 여행지 데이터 없음:', data.petTourismData?.error || 'No data');
@@ -327,7 +329,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
               petTourPlaces.length > 0 ? (
                 <>
                   <div className="text-sm text-gray-600 mb-4">
-                    총 {petTourPlaces.length}개의 반려동물 동반 여행지
+                    총 {petTotalCount.toLocaleString()}개의 반려동물 동반 여행지
                   </div>
                   {petTourPlaces.map((place, index) => renderTourPlace(place, index))}
                 </>
@@ -350,7 +352,10 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
       </div>
 
       {/* 페이지네이션 */}
-      {!loading && tourPlaces.length > 0 && activeTab === "general" && (
+      {!loading && (
+        (activeTab === "general" && tourPlaces.length > 0) || 
+        (activeTab === "pet" && petTourPlaces.length > 0)
+      ) && (
         <div className="px-5">
           <div className="flex justify-center gap-2">
             <Button
@@ -370,7 +375,11 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
               variant="outline"
               size="sm"
               onClick={() => setCurrentPage(currentPage + 1)}
-              disabled={tourPlaces.length < 10}
+              disabled={
+                activeTab === "general" 
+                  ? tourPlaces.length < 10
+                  : petTourPlaces.length < 10
+              }
             >
               다음
             </Button>
