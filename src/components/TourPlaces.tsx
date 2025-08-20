@@ -175,7 +175,6 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
   // 페이지네이션 관련 계산
   const currentTotalCount = activeTab === "general" ? totalCount : petTotalCount;
   const currentPage = activeTab === "general" ? generalCurrentPage : petCurrentPage;
-  const setCurrentPage = activeTab === "general" ? setGeneralCurrentPage : setPetCurrentPage;
   const itemsPerPage = 10;
   const totalPages = Math.ceil(currentTotalCount / itemsPerPage);
   
@@ -197,6 +196,15 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
     }
     
     return pageNumbers;
+  };
+
+  // 페이지 변경 핸들러
+  const handlePageChange = (newPage: number) => {
+    if (activeTab === "general") {
+      setGeneralCurrentPage(newPage);
+    } else {
+      setPetCurrentPage(newPage);
+    }
   };
 
   const renderTourPlace = (place: any, index: number) => {
@@ -407,7 +415,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage(1)}
+                  onClick={() => handlePageChange(1)}
                   disabled={currentPage === 1}
                   className="gap-1"
                 >
@@ -419,7 +427,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
               {/* 이전 페이지 */}
               <PaginationItem>
                 <PaginationPrevious 
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
                   className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                 />
               </PaginationItem>
@@ -428,7 +436,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
               {getPageNumbers().map((pageNum) => (
                 <PaginationItem key={pageNum}>
                   <PaginationLink
-                    onClick={() => setCurrentPage(pageNum)}
+                    onClick={() => handlePageChange(pageNum)}
                     isActive={pageNum === currentPage}
                     className="cursor-pointer"
                   >
@@ -447,7 +455,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
               {/* 다음 페이지 */}
               <PaginationItem>
                 <PaginationNext 
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
                   className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
                 />
               </PaginationItem>
@@ -457,7 +465,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCurrentPage(totalPages)}
+                  onClick={() => handlePageChange(totalPages)}
                   disabled={currentPage === totalPages}
                   className="gap-1"
                 >
