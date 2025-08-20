@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { PawPrint, Mail, Lock, ArrowLeft } from "lucide-react";
+import { PawPrint, Mail, Lock, ArrowLeft, User, Phone, Users, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -18,6 +18,14 @@ const Auth = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  
+  // 카카오 회원가입 상태
+  const [showKakaoSignUp, setShowKakaoSignUp] = useState(false);
+  const [kakaoName, setKakaoName] = useState("");
+  const [kakaoPhone, setKakaoPhone] = useState("");
+  const [kakaoGender, setKakaoGender] = useState("");
+  const [kakaoAgeGroup, setKakaoAgeGroup] = useState("");
+  const [kakaoBirthYear, setKakaoBirthYear] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -263,12 +271,18 @@ const Auth = () => {
     setConfirmPassword("");
     setNewPassword("");
     setConfirmNewPassword("");
+    setKakaoName("");
+    setKakaoPhone("");
+    setKakaoGender("");
+    setKakaoAgeGroup("");
+    setKakaoBirthYear("");
   };
 
   const toggleMode = () => {
     setIsSignUp(!isSignUp);
     setIsPasswordReset(false);
     setIsNewPasswordMode(false);
+    setShowKakaoSignUp(false);
     resetForm();
   };
 
@@ -276,7 +290,33 @@ const Auth = () => {
     setIsPasswordReset(!isPasswordReset);
     setIsSignUp(false);
     setIsNewPasswordMode(false);
+    setShowKakaoSignUp(false);
     resetForm();
+  };
+
+  const handleKakaoSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!kakaoName.trim()) {
+      toast.error("이름을 입력해주세요.");
+      return;
+    }
+    
+    if (!kakaoPhone.trim()) {
+      toast.error("카카오 계정(전화번호)을 입력해주세요.");
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      // 여기에 카카오 회원가입 로직을 추가할 수 있습니다
+      toast.info("카카오 회원가입 기능이 준비중입니다.");
+    } catch (error: any) {
+      toast.error("회원가입 중 오류가 발생했습니다.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -422,6 +462,156 @@ const Auth = () => {
                 {loading ? "처리중..." : isNewPasswordMode ? "비밀번호 변경" : isPasswordReset ? "재설정 이메일 발송" : isSignUp ? "회원가입" : "로그인"}
               </Button>
             </form>
+
+            {/* 카카오 회원가입 섹션 */}
+            {isSignUp && !isPasswordReset && !isNewPasswordMode && (
+              <div className="mt-8 pt-6 border-t border-gray-200">
+                <div className="text-center mb-4">
+                  <h3 className="text-lg font-semibold text-gray-800">카카오로 회원가입하기</h3>
+                  <p className="text-sm text-gray-600 mt-1">간편하게 시작하세요</p>
+                </div>
+                
+                {!showKakaoSignUp ? (
+                  <Button
+                    type="button"
+                    onClick={() => setShowKakaoSignUp(true)}
+                    className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                  >
+                    카카오 회원가입
+                  </Button>
+                ) : (
+                  <form onSubmit={handleKakaoSignUp} className="space-y-4">
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-3">필수 입력 정보</h4>
+                      
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="kakaoName" className="text-sm font-medium text-gray-700">
+                            이름 *
+                          </Label>
+                          <div className="relative">
+                            <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                            <Input
+                              id="kakaoName"
+                              type="text"
+                              placeholder="실명을 입력하세요"
+                              value={kakaoName}
+                              onChange={(e) => setKakaoName(e.target.value)}
+                              className="pl-10"
+                              required
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="kakaoPhone" className="text-sm font-medium text-gray-700">
+                            카카오 계정(전화번호) *
+                          </Label>
+                          <div className="relative">
+                            <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                            <Input
+                              id="kakaoPhone"
+                              type="tel"
+                              placeholder="010-0000-0000"
+                              value={kakaoPhone}
+                              onChange={(e) => setKakaoPhone(e.target.value)}
+                              className="pl-10"
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-3">선택 입력 정보</h4>
+                      
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="kakaoGender" className="text-sm font-medium text-gray-700">
+                            성별
+                          </Label>
+                          <div className="relative">
+                            <Users className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                            <select
+                              id="kakaoGender"
+                              value={kakaoGender}
+                              onChange={(e) => setKakaoGender(e.target.value)}
+                              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                              <option value="">선택하세요</option>
+                              <option value="male">남성</option>
+                              <option value="female">여성</option>
+                              <option value="other">기타</option>
+                            </select>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="kakaoAgeGroup" className="text-sm font-medium text-gray-700">
+                            연령대
+                          </Label>
+                          <div className="relative">
+                            <Users className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                            <select
+                              id="kakaoAgeGroup"
+                              value={kakaoAgeGroup}
+                              onChange={(e) => setKakaoAgeGroup(e.target.value)}
+                              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                              <option value="">선택하세요</option>
+                              <option value="10s">10대</option>
+                              <option value="20s">20대</option>
+                              <option value="30s">30대</option>
+                              <option value="40s">40대</option>
+                              <option value="50s">50대</option>
+                              <option value="60plus">60대 이상</option>
+                            </select>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="kakaoBirthYear" className="text-sm font-medium text-gray-700">
+                            출생 연도
+                          </Label>
+                          <div className="relative">
+                            <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                            <Input
+                              id="kakaoBirthYear"
+                              type="number"
+                              placeholder="예: 1990"
+                              value={kakaoBirthYear}
+                              onChange={(e) => setKakaoBirthYear(e.target.value)}
+                              className="pl-10"
+                              min="1900"
+                              max={new Date().getFullYear()}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShowKakaoSignUp(false)}
+                        className="flex-1"
+                      >
+                        취소
+                      </Button>
+                      <Button
+                        type="submit"
+                        className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold"
+                        disabled={loading}
+                      >
+                        {loading ? "처리중..." : "카카오 회원가입"}
+                      </Button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            )}
 
             <div className="text-center space-y-2">
               {!isPasswordReset && !isNewPasswordMode && (
