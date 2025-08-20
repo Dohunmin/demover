@@ -32,30 +32,57 @@ Deno.serve(async (req) => {
     console.log("[PARAMS] pet-tour-api", debugId, { operation, pageNo, numOfRows, keyword, areaCode, sigunguCode });
     
     // API 키 가져오기
-    const SERVICE_KEY_RAW = Deno.env.get('KTO_TOUR_SERVICE_KEY');
+    const SERVICE_KEY_RAW = Deno.env.get('KOREA_TOUR_API_KEY');
     if (!SERVICE_KEY_RAW) {
-      throw new Error('KTO_TOUR_SERVICE_KEY not found in environment');
+      throw new Error('KOREA_TOUR_API_KEY not found in environment');
     }
     // 공백 문자 제거
     const SERVICE_KEY = SERVICE_KEY_RAW.trim();
     console.log("[KEY] pet-tour-api", debugId, "Service key length:", SERVICE_KEY.length);
     
-    // KorService2로 URL 구성 (serviceKey는 직접 붙이기)
-    const BASE_URL = "https://apis.data.go.kr/B551011/KorService2";
-    let finalUrl = `${BASE_URL}/detailPetTour1?serviceKey=${SERVICE_KEY}&_type=json&MobileOS=ETC&MobileApp=LovableApp&pageNo=${pageNo}&numOfRows=${numOfRows}`;
+    // 반려동물 동반 여행지 API 올바른 엔드포인트 사용
+    const BASE_URL = "https://apis.data.go.kr/B551011/KorPetTourService";
+    let finalUrl = `${BASE_URL}/areaBasedList2?serviceKey=${encodeURIComponent(SERVICE_KEY)}&_type=xml&MobileOS=ETC&MobileApp=PetTravelApp&pageNo=${pageNo}&numOfRows=${numOfRows}`;
+    
+    if (areaCode) {
+      finalUrl += `&areaCode=${areaCode}`;
+    }
+    if (sigunguCode) {
+      finalUrl += `&sigunguCode=${sigunguCode}`;
+    }
+    if (keyword) {
+      finalUrl += `&keyword=${encodeURIComponent(keyword)}`;
+    }
     
     console.log("[URL] pet-tour-api", debugId, finalUrl);
     
-    // 외부 API 호출
-    const response = await fetch(finalUrl, {
-      method: 'GET',
-      headers: {
-        "Accept": "application/json",
-        "User-Agent": "LovableRelay/1.0",
-        "Connection": "keep-alive"
-      },
-      redirect: "follow"
-    });
+    // 외부 API 호출 (HTTPS 실패 시 HTTP로 재시도)
+    let response;
+    try {
+      response = await fetch(finalUrl, {
+        method: 'GET',
+        headers: {
+          "Accept": "application/xml, text/xml, */*",
+          "User-Agent": "PetTravelApp/1.0",
+          "Connection": "keep-alive"
+        },
+        redirect: "follow"
+      });
+    } catch (httpsError) {
+      console.log("[HTTPS_FAILED] pet-tour-api", debugId, httpsError.message);
+      // HTTP로 재시도
+      const httpUrl = finalUrl.replace('https://', 'http://');
+      console.log("[HTTP_RETRY] pet-tour-api", debugId, httpUrl);
+      response = await fetch(httpUrl, {
+        method: 'GET',
+        headers: {
+          "Accept": "application/xml, text/xml, */*",
+          "User-Agent": "PetTravelApp/1.0",
+          "Connection": "keep-alive"
+        },
+        redirect: "follow"
+      });
+    }
     
     console.log("[STATUS] pet-tour-api", debugId, response.status, response.statusText);
     
@@ -63,12 +90,19 @@ Deno.serve(async (req) => {
     console.log("[RESPONSE_LENGTH] pet-tour-api", debugId, responseText.length);
     console.log("[RESPONSE_PREVIEW] pet-tour-api", debugId, responseText.substring(0, 200));
     
+    // XML 응답을 그대로 반환하거나 에러 확인
+    if (responseText.includes('SERVICE ERROR') || responseText.includes('INVALID_REQUEST_PARAMETER_ERROR')) {
+      const errorMatch = responseText.match(/<errMsg>(.*?)<\/errMsg>/);
+      const errorMsg = errorMatch ? errorMatch[1] : 'Unknown API error';
+      throw new Error(`Pet Tourism API Error: ${errorMsg}`);
+    }
+    
     // 응답 반환
     return new Response(responseText, {
       status: response.status,
       headers: {
         ...corsHeaders,
-        "Content-Type": "application/json"
+        "Content-Type": "application/xml"
       }
     });
     
