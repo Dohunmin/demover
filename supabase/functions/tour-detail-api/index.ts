@@ -200,40 +200,85 @@ serve(async (req) => {
     // Process common data
     if (commonResponse && commonResponse.ok) {
       const commonText = await commonResponse.text();
-      console.log('[Common] Raw Response (first 500 chars):\n', commonText.substring(0, 500));
+      console.log('[Common] Response Status:', commonResponse.status, commonResponse.statusText);
+      console.log('[Common] Raw Response (first 1000 chars):\n', commonText.substring(0, 1000));
+      
+      // Check for API errors in response
+      if (commonText.includes('SERVICE ERROR') || commonText.includes('errMsg')) {
+        console.error('[Common] API Error detected in response');
+        const errorMatch = commonText.match(/<errMsg>(.*?)<\/errMsg>/);
+        if (errorMatch) {
+          console.error('[Common] Error message:', errorMatch[1]);
+        }
+      }
       
       try {
         commonData = JSON.parse(commonText);
+        console.log('[Common] Successfully parsed as JSON:', Object.keys(commonData || {}));
       } catch {
+        console.log('[Common] JSON parse failed, trying XML parsing');
         const parsed = parseXmlToJson(commonText);
         commonData = parsed.error ? null : parsed;
+        console.log('[Common] XML parse result:', parsed.error ? 'Error' : 'Success', parsed.error || Object.keys(parsed || {}));
       }
+    } else {
+      console.error('[Common] Response not OK:', commonResponse?.status, commonResponse?.statusText);
     }
 
     // Process intro data
     if (introResponse && introResponse.ok) {
       const introText = await introResponse.text();
-      console.log('[Intro] Raw Response (first 500 chars):\n', introText.substring(0, 500));
+      console.log('[Intro] Response Status:', introResponse.status, introResponse.statusText);
+      console.log('[Intro] Raw Response (first 1000 chars):\n', introText.substring(0, 1000));
+      
+      // Check for API errors
+      if (introText.includes('SERVICE ERROR') || introText.includes('errMsg')) {
+        console.error('[Intro] API Error detected in response');
+        const errorMatch = introText.match(/<errMsg>(.*?)<\/errMsg>/);
+        if (errorMatch) {
+          console.error('[Intro] Error message:', errorMatch[1]);
+        }
+      }
       
       try {
         introData = JSON.parse(introText);
+        console.log('[Intro] Successfully parsed as JSON:', Object.keys(introData || {}));
       } catch {
+        console.log('[Intro] JSON parse failed, trying XML parsing');
         const parsed = parseXmlToJson(introText);
         introData = parsed.error ? null : parsed;
+        console.log('[Intro] XML parse result:', parsed.error ? 'Error' : 'Success', parsed.error || Object.keys(parsed || {}));
       }
+    } else {
+      console.error('[Intro] Response not OK:', introResponse?.status, introResponse?.statusText);
     }
 
     // Process image data
     if (imageResponse && imageResponse.ok) {
       const imageText = await imageResponse.text();
-      console.log('[Image] Raw Response (first 500 chars):\n', imageText.substring(0, 500));
+      console.log('[Image] Response Status:', imageResponse.status, imageResponse.statusText);
+      console.log('[Image] Raw Response (first 1000 chars):\n', imageText.substring(0, 1000));
+      
+      // Check for API errors
+      if (imageText.includes('SERVICE ERROR') || imageText.includes('errMsg')) {
+        console.error('[Image] API Error detected in response');
+        const errorMatch = imageText.match(/<errMsg>(.*?)<\/errMsg>/);
+        if (errorMatch) {
+          console.error('[Image] Error message:', errorMatch[1]);
+        }
+      }
       
       try {
         imageData = JSON.parse(imageText);
+        console.log('[Image] Successfully parsed as JSON:', Object.keys(imageData || {}));
       } catch {
+        console.log('[Image] JSON parse failed, trying XML parsing');
         const parsed = parseXmlToJson(imageText);
         imageData = parsed.error ? null : parsed;
+        console.log('[Image] XML parse result:', parsed.error ? 'Error' : 'Success', parsed.error || Object.keys(parsed || {}));
       }
+    } else {
+      console.error('[Image] Response not OK:', imageResponse?.status, imageResponse?.statusText);
     }
 
     // Combine results
