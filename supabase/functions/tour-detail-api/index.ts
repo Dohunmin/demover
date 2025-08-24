@@ -97,9 +97,18 @@ serve(async (req) => {
 
     console.log(`Fetching detail info for contentId: ${contentId}, contentTypeId: ${contentTypeId}`);
 
-    // Prepare API calls
+    // API 키 디코딩 시도 (중복 인코딩 문제 해결)
+    let decodedServiceKey = serviceKey;
+    try {
+      decodedServiceKey = decodeURIComponent(serviceKey);
+    } catch (e) {
+      // 디코딩 실패 시 원본 사용
+      decodedServiceKey = serviceKey;
+    }
+
+    // Prepare API calls - URL encode the service key properly
     const baseParams = new URLSearchParams({
-      serviceKey,
+      serviceKey: encodeURIComponent(decodedServiceKey),
       MobileOS: 'ETC',
       MobileApp: 'PetTravelApp',
       contentId,
@@ -121,15 +130,63 @@ serve(async (req) => {
 
     // Make parallel API calls
     const promises = [
-      fetch(detailCommonUrl).catch(() => 
-        fetch(detailCommonUrl.replace('https://', 'http://'))
+      fetch(detailCommonUrl, {
+        method: 'GET',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Accept': 'application/json, text/json, */*',
+          'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
+          'Cache-Control': 'no-cache'
+        }
+      }).catch(() => 
+        fetch(detailCommonUrl.replace('https://', 'http://'), {
+          method: 'GET',
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept': 'application/json, text/json, */*',
+            'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
+            'Cache-Control': 'no-cache'
+          }
+        })
       ),
       detailIntroUrl ? 
-        fetch(detailIntroUrl).catch(() => 
-          fetch(detailIntroUrl.replace('https://', 'http://'))
+        fetch(detailIntroUrl, {
+          method: 'GET',
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept': 'application/json, text/json, */*',
+            'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
+            'Cache-Control': 'no-cache'
+          }
+        }).catch(() => 
+          fetch(detailIntroUrl.replace('https://', 'http://'), {
+            method: 'GET',
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+              'Accept': 'application/json, text/json, */*',
+              'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
+              'Cache-Control': 'no-cache'
+            }
+          })
         ) : Promise.resolve(null),
-      fetch(detailImageUrl).catch(() => 
-        fetch(detailImageUrl.replace('https://', 'http://'))
+      fetch(detailImageUrl, {
+        method: 'GET',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Accept': 'application/json, text/json, */*',
+          'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
+          'Cache-Control': 'no-cache'
+        }
+      }).catch(() => 
+        fetch(detailImageUrl.replace('https://', 'http://'), {
+          method: 'GET',
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept': 'application/json, text/json, */*',
+            'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
+            'Cache-Control': 'no-cache'
+          }
+        })
       )
     ];
 

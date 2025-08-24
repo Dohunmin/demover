@@ -42,6 +42,8 @@ const TourDetailModal: React.FC<TourDetailModalProps> = ({
   const fetchDetailData = async () => {
     setLoading(true);
     try {
+      console.log('Fetching detail data for:', { contentId, contentTypeId });
+      
       const { data, error } = await supabase.functions.invoke('tour-detail-api', {
         body: { contentId, contentTypeId }
       });
@@ -52,7 +54,15 @@ const TourDetailModal: React.FC<TourDetailModalProps> = ({
         return;
       }
 
+      console.log('Detail data response:', data);
       setDetailData(data);
+      
+      // 데이터가 실제로 있는지 확인
+      const hasData = data?.common || data?.intro || data?.images;
+      if (!hasData) {
+        console.warn('No detail data available');
+        toast.warning('상세 정보가 제공되지 않는 관광지입니다.');
+      }
     } catch (error) {
       console.error('Error:', error);
       toast.error('상세 정보를 불러오는데 실패했습니다.');
@@ -104,95 +114,103 @@ const TourDetailModal: React.FC<TourDetailModalProps> = ({
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
                 <span className="ml-3 text-gray-600">상세 정보를 불러오는 중...</span>
               </div>
-            ) : (
+            ) : detailData ? (
               <div className="space-y-6">
-                {/* 이미지 갤러리 */}
-                {images.length > 0 && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                      <Camera className="w-5 h-5 mr-2" />
-                      사진
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {images.slice(0, 6).map((image: any, index: number) => (
-                        <div
-                          key={index}
-                          className="relative aspect-video rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
-                          onClick={() => setSelectedImageIndex(index)}
-                        >
-                          <img
-                            src={image.originimgurl || image.smallimageurl}
-                            alt={`${title} 이미지 ${index + 1}`}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.src = '/placeholder.svg';
-                            }}
-                          />
-                          {image.imgname && (
-                            <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-2 text-sm">
-                              {image.imgname}
+                {/* 데이터가 없을 경우 안내 메시지 */}
+                {!commonInfo && !introInfo && (!images || images.length === 0) ? (
+                  <div className="text-center py-8">
+                    <p className="text-gray-600">상세 정보가 제공되지 않는 관광지입니다.</p>
+                    <p className="text-sm text-gray-500 mt-2">기본 정보는 목록에서 확인해주세요.</p>
+                  </div>
+                ) : (
+                  <>
+                    {/* 이미지 갤러리 */}
+                    {images && images.length > 0 && (
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                          <Camera className="w-5 h-5 mr-2" />
+                          사진
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {images.slice(0, 6).map((image: any, index: number) => (
+                            <div
+                              key={index}
+                              className="relative aspect-video rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                              onClick={() => setSelectedImageIndex(index)}
+                            >
+                              <img
+                                src={image.originimgurl || image.smallimageurl}
+                                alt={`${title} 이미지 ${index + 1}`}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.src = '/placeholder.svg';
+                                }}
+                              />
+                              {image.imgname && (
+                                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-2 text-sm">
+                                  {image.imgname}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 기본 정보 */}
+                    {commonInfo && (
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-gray-900">기본 정보</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {commonInfo.addr1 && (
+                            <div className="flex items-start space-x-3">
+                              <MapPin className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="text-sm font-medium text-gray-700">주소</p>
+                                <p className="text-sm text-gray-600">
+                                  {commonInfo.addr1} {commonInfo.addr2}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {commonInfo.tel && (
+                            <div className="flex items-start space-x-3">
+                              <Phone className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="text-sm font-medium text-gray-700">전화번호</p>
+                                <p className="text-sm text-gray-600">
+                                  {formatPhoneNumber(commonInfo.tel)}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+
+                          {commonInfo.homepage && (
+                            <div className="flex items-start space-x-3">
+                              <Globe className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="text-sm font-medium text-gray-700">홈페이지</p>
+                                <div 
+                                  className="text-sm text-blue-600 hover:underline cursor-pointer"
+                                  dangerouslySetInnerHTML={{ __html: commonInfo.homepage }}
+                                />
+                              </div>
                             </div>
                           )}
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
 
-                {/* 기본 정보 */}
-                {commonInfo && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900">기본 정보</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {commonInfo.addr1 && (
-                        <div className="flex items-start space-x-3">
-                          <MapPin className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
-                          <div>
-                            <p className="text-sm font-medium text-gray-700">주소</p>
-                            <p className="text-sm text-gray-600">
-                              {commonInfo.addr1} {commonInfo.addr2}
+                        {commonInfo.overview && (
+                          <div className="mt-4">
+                            <p className="text-sm font-medium text-gray-700 mb-2">소개</p>
+                            <p className="text-sm text-gray-600 leading-relaxed">
+                              {commonInfo.overview}
                             </p>
                           </div>
-                        </div>
-                      )}
-                      
-                      {commonInfo.tel && (
-                        <div className="flex items-start space-x-3">
-                          <Phone className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
-                          <div>
-                            <p className="text-sm font-medium text-gray-700">전화번호</p>
-                            <p className="text-sm text-gray-600">
-                              {formatPhoneNumber(commonInfo.tel)}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-
-                      {commonInfo.homepage && (
-                        <div className="flex items-start space-x-3">
-                          <Globe className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" />
-                          <div>
-                            <p className="text-sm font-medium text-gray-700">홈페이지</p>
-                            <div 
-                              className="text-sm text-blue-600 hover:underline cursor-pointer"
-                              dangerouslySetInnerHTML={{ __html: commonInfo.homepage }}
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {commonInfo.overview && (
-                      <div className="mt-4">
-                        <p className="text-sm font-medium text-gray-700 mb-2">소개</p>
-                        <p className="text-sm text-gray-600 leading-relaxed">
-                          {commonInfo.overview}
-                        </p>
+                        )}
                       </div>
                     )}
-                  </div>
-                )}
 
                 {/* 상세 정보 */}
                 {introInfo && (
@@ -274,6 +292,12 @@ const TourDetailModal: React.FC<TourDetailModalProps> = ({
                     </div>
                   </div>
                 )}
+                  </>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-600">데이터를 불러올 수 없습니다.</p>
               </div>
             )}
           </div>
