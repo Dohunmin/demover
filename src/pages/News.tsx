@@ -92,7 +92,7 @@ const News = () => {
     <div className="min-h-screen bg-gray-50 max-w-md mx-auto pb-20">
       {/* Header */}
       <header className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 text-white p-6 rounded-b-3xl shadow-xl relative overflow-hidden">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Button
               variant="ghost"

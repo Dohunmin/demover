@@ -316,7 +316,7 @@ const MbtiTest = () => {
       <div className="min-h-screen bg-gray-50 max-w-md mx-auto pb-20">
         {/* Header */}
         <header className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 text-white p-6 rounded-b-3xl shadow-xl relative overflow-hidden">
-          <div className="flex items-center space-x-3 mb-4">
+          <div className="flex items-center space-x-3">
             <Button
               variant="ghost"
               size="sm"
@@ -326,10 +326,7 @@ const MbtiTest = () => {
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-xl font-bold flex items-center">
-                <PawPrint className="w-6 h-6 mr-2" />
-                멍BTI
-              </h1>
+              <h1 className="text-xl font-bold">멍BTI</h1>
               <p className="text-blue-100 text-sm">반려견 여행 성향 테스트</p>
             </div>
           </div>

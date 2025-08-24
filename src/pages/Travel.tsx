@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
-import { PawPrint, MapPin, Search, Heart, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { PawPrint, MapPin, Search, Heart, Sparkles, ArrowLeft } from "lucide-react";
 import TourPlaces from "@/components/TourPlaces";
 import KakaoMap from "@/components/KakaoMap";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,17 +21,19 @@ const Travel = () => {
       <div className="min-h-screen bg-gray-50 max-w-md mx-auto pb-20">
         {/* Header */}
         <header className="bg-gradient-to-br from-green-600 via-green-700 to-emerald-700 text-white p-6 rounded-b-3xl shadow-xl relative overflow-hidden">
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-4 right-4 w-20 h-20 rounded-full bg-white/20"></div>
-            <div className="absolute bottom-4 left-4 w-16 h-16 rounded-full bg-white/10"></div>
-          </div>
-          
-          <div className="relative z-10">
-            <div className="flex items-center space-x-2 mb-2">
-              <MapPin className="w-6 h-6" />
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/")}
+              className="text-white hover:bg-white/10 p-2"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div>
               <h1 className="text-xl font-bold">여행지 정보</h1>
+              <p className="text-green-100 text-sm">반려견과 함께하는 완벽한 여행지를 찾아보세요</p>
             </div>
-            <p className="text-green-100 text-sm font-medium">반려견과 함께하는 완벽한 여행지를 찾아보세요</p>
           </div>
         </header>
 
@@ -70,17 +73,19 @@ const Travel = () => {
     <div className="min-h-screen bg-gray-50 max-w-md mx-auto pb-20">
       {/* Header */}
       <header className="bg-gradient-to-br from-green-600 via-green-700 to-emerald-700 text-white p-6 rounded-b-3xl shadow-xl relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-4 right-4 w-20 h-20 rounded-full bg-white/20"></div>
-          <div className="absolute bottom-4 left-4 w-16 h-16 rounded-full bg-white/10"></div>
-        </div>
-        
-        <div className="relative z-10">
-          <div className="flex items-center space-x-2 mb-2">
-            <MapPin className="w-6 h-6" />
+        <div className="flex items-center space-x-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/")}
+            className="text-white hover:bg-white/10 p-2"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div>
             <h1 className="text-xl font-bold">여행지 정보</h1>
+            <p className="text-green-100 text-sm">반려견과 함께하는 완벽한 여행지를 찾아보세요</p>
           </div>
-          <p className="text-green-100 text-sm font-medium">반려견과 함께하는 완벽한 여행지를 찾아보세요</p>
         </div>
       </header>
 
