@@ -281,12 +281,36 @@ serve(async (req) => {
       console.error('[Image] Response not OK:', imageResponse?.status, imageResponse?.statusText);
     }
 
-    // Combine results
+    // Combine results with detailed logging
     const result = {
       common: commonData,
       intro: introData,
       images: imageData
     };
+
+    console.log('=== FINAL RESULT ANALYSIS ===');
+    console.log('Common data keys:', commonData ? Object.keys(commonData) : 'null');
+    console.log('Intro data keys:', introData ? Object.keys(introData) : 'null');
+    console.log('Images data keys:', imageData ? Object.keys(imageData) : 'null');
+    
+    // Check if we have actual data content
+    const hasCommonItems = commonData?.response?.body?.items?.item;
+    const hasIntroItems = introData?.response?.body?.items?.item;
+    const hasImageItems = imageData?.response?.body?.items?.item;
+    
+    console.log('Common items available:', !!hasCommonItems);
+    console.log('Intro items available:', !!hasIntroItems);
+    console.log('Image items available:', !!hasImageItems);
+    
+    if (hasCommonItems) {
+      console.log('Common item sample:', hasCommonItems[0] || hasCommonItems);
+    }
+    if (hasIntroItems) {
+      console.log('Intro item sample:', hasIntroItems[0] || hasIntroItems);
+    }
+    if (hasImageItems) {
+      console.log('Image item sample:', hasImageItems[0] || hasImageItems);
+    }
 
     console.log('Combined result prepared');
 
