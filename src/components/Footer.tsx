@@ -5,7 +5,7 @@ const Footer = () => {
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
 
   return (
-    <footer className="bg-muted/50 border-t px-6 py-4 text-xs text-muted-foreground mt-auto mb-16 md:mb-0">
+    <footer className="bg-muted/50 border-t px-6 py-4 text-xs text-muted-foreground mt-auto mb-20 md:mb-0">
       <div className="max-w-4xl mx-auto space-y-3">
         {/* Footer Links */}
         <div className="flex justify-center gap-4 border-b border-border/50 pb-2">
