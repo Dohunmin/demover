@@ -69,7 +69,7 @@ const AppWithNavigation = () => {
   return (
     <div className="flex flex-col min-h-screen">
       {/* 메인 콘텐츠 영역 */}
-      <main className="flex-1 pb-20 md:pb-4">
+      <main className="flex-1 pb-16 md:pb-0">
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
