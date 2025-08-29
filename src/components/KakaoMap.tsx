@@ -24,6 +24,7 @@ interface Place {
   x: string;
   y: string;
   distance: string;
+  source?: 'kakao' | 'tourism' | 'pet_tourism'; // 데이터 소스 구분
 }
 
 interface KakaoMapProps {
@@ -123,7 +124,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
 
     try {
       const options = {
-        center: new window.kakao.maps.LatLng(37.5665, 126.9780), // 서울시청
+        center: new window.kakao.maps.LatLng(35.1796, 129.0756), // 부산시청
         level: 5,
       };
 
@@ -151,6 +152,71 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
     }
   }, []);
 
+  // 여행지 데이터를 Place 형식으로 변환
+  const convertTourismDataToPlace = useCallback((item: any, source: 'tourism' | 'pet_tourism'): Place => {
+    return {
+      id: `${source}_${item.contentid || Math.random()}`,
+      place_name: item.title || '',
+      category_name: source === 'tourism' ? '관광지' : '반려동물 동반 여행지',
+      address_name: item.addr1 || '',
+      road_address_name: item.addr2 || '',
+      phone: item.tel || '',
+      place_url: `https://korean.visitkorea.or.kr/detail/detail.do?cotid=${item.contentid}`,
+      x: item.mapx || '0',
+      y: item.mapy || '0',
+      distance: '',
+      source: source
+    };
+  }, []);
+
+  // 여행지 데이터 검색
+  const searchTourismPlaces = useCallback(async (keyword: string): Promise<Place[]> => {
+    try {
+      const results: Place[] = [];
+
+      // 일반 여행지 검색
+      const generalResponse = await supabase.functions.invoke('combined-tour-api', {
+        body: {
+          areaCode: '6', // 부산
+          numOfRows: '10',
+          pageNo: '1',
+          keyword: keyword,
+          activeTab: 'general'
+        }
+      });
+
+      if (generalResponse.data?.tourismData?.response?.body?.items?.item) {
+        const generalPlaces = generalResponse.data.tourismData.response.body.items.item.map(
+          (item: any) => convertTourismDataToPlace(item, 'tourism')
+        );
+        results.push(...generalPlaces);
+      }
+
+      // 반려동물 여행지 검색
+      const petResponse = await supabase.functions.invoke('combined-tour-api', {
+        body: {
+          areaCode: '6', // 부산
+          numOfRows: '10',
+          pageNo: '1',
+          keyword: keyword,
+          activeTab: 'pet'
+        }
+      });
+
+      if (petResponse.data?.petTourismData?.response?.body?.items?.item) {
+        const petPlaces = petResponse.data.petTourismData.response.body.items.item.map(
+          (item: any) => convertTourismDataToPlace(item, 'pet_tourism')
+        );
+        results.push(...petPlaces);
+      }
+
+      return results;
+    } catch (error) {
+      console.error('여행지 데이터 검색 오류:', error);
+      return [];
+    }
+  }, [convertTourismDataToPlace]);
+
   // 장소 검색
   const searchPlaces = useCallback(async () => {
     if (!searchQuery.trim()) {
@@ -171,34 +237,46 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
 
       console.log('장소 검색 시작:', { query: searchQuery, lat, lng, radius });
 
-      const response = await fetch(
-        `https://fffcagbbbikhfcydncjb.supabase.co/functions/v1/kakao-proxy?op=/v2/local/search/keyword.json&query=${encodeURIComponent(searchQuery)}&x=${lng}&y=${lat}&radius=${radius}&size=15`,
-        {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZmNhZ2JiYmlraGZjeWRuY2piIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwNzA2MzMsImV4cCI6MjA3MDY0NjYzM30.2ROotnYyQsgReZwOeBun76dOGPOFyOlwwEnDV3JMn28`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      // 병렬로 카카오 검색과 여행지 검색 실행
+      const [kakaoResult, tourismPlaces] = await Promise.all([
+        // 카카오 키워드 검색
+        fetch(
+          `https://fffcagbbbikhfcydncjb.supabase.co/functions/v1/kakao-proxy?op=/v2/local/search/keyword.json&query=${encodeURIComponent(searchQuery)}&x=${lng}&y=${lat}&radius=${radius}&size=15`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZmNhZ2JiYmlraGZjeWRuY2piIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwNzA2MzMsImV4cCI6MjA3MDY0NjYzM30.2ROotnYyQsgReZwOeBun76dOGPOFyOlwwEnDV3JMn28`,
+              'Content-Type': 'application/json',
+            },
+          }
+        ).then(async res => {
+          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+          const data = await res.json();
+          return data.documents?.map((place: any) => ({ ...place, source: 'kakao' })) || [];
+        }).catch(error => {
+          console.error('카카오 검색 실패:', error);
+          return [];
+        }),
+        
+        // 여행지 데이터 검색
+        searchTourismPlaces(searchQuery)
+      ]);
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      // 결과 합치기
+      const allPlaces = [...kakaoResult, ...tourismPlaces];
 
-      const data = await response.json();
-      console.log('검색 응답:', data);
+      console.log('통합 검색 결과:', allPlaces);
 
-      if (data.documents && data.documents.length > 0) {
-        setPlaces(data.documents);
-        displayMarkers(data.documents);
+      if (allPlaces.length > 0) {
+        setPlaces(allPlaces);
+        displayMarkers(allPlaces);
         
         // 첫 번째 결과로 지도 이동
-        const firstPlace = data.documents[0];
+        const firstPlace = allPlaces[0];
         const moveLatLng = new window.kakao.maps.LatLng(firstPlace.y, firstPlace.x);
         mapInstance.current.panTo(moveLatLng);
         
-        toast.success(`${data.documents.length}개의 장소를 찾았습니다.`);
+        toast.success(`${allPlaces.length}개의 장소를 찾았습니다.`);
       } else {
         setPlaces([]);
         clearMarkers();
@@ -210,7 +288,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, radius]);
+  }, [searchQuery, radius, searchTourismPlaces]);
 
   // 마커 표시
   const displayMarkers = useCallback((places: Place[]) => {
