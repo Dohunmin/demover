@@ -5,17 +5,17 @@ const Footer = () => {
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
 
   return (
-    <footer className="bg-muted/50 border-t px-6 py-4 text-xs text-muted-foreground mt-auto mb-16 md:mb-4">
-      <div className="max-w-4xl mx-auto space-y-3">
+    <footer className="bg-background px-4 py-6 text-xs text-muted-foreground mt-auto mb-20 md:mb-6">
+      <div className="max-w-4xl mx-auto space-y-4">
         {/* Footer Links */}
-        <div className="flex justify-center gap-4 border-b border-border/50 pb-2">
-          <button className="hover:text-primary transition-colors">
+        <div className="flex justify-center gap-3 pb-4">
+          <button className="hover:text-foreground transition-colors text-xs">
             이용약관
           </button>
-          <span>|</span>
+          <span className="text-border">•</span>
           <Dialog open={isPrivacyOpen} onOpenChange={setIsPrivacyOpen}>
             <DialogTrigger asChild>
-              <button className="hover:text-primary transition-colors">
+              <button className="hover:text-foreground transition-colors text-xs">
                 개인정보 처리방침
               </button>
             </DialogTrigger>
@@ -73,23 +73,29 @@ const Footer = () => {
               </div>
             </DialogContent>
           </Dialog>
-          <span>|</span>
-          <a href="mailto:sdi0@g.skku.edu" className="hover:text-primary transition-colors">
+          <span className="text-border">•</span>
+          <a href="mailto:sdi0@g.skku.edu" className="hover:text-foreground transition-colors text-xs">
             고객센터
           </a>
         </div>
 
-        {/* Company Info */}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-          <span>사업자등록번호: 205-48-09670</span>
-          <span>상호: 챗메이드랩스</span>
-          <span>대표: 도훈민</span>
+        {/* Company Info - Clean minimal style like Knewnew */}
+        <div className="space-y-2">
+          <div className="text-xs text-muted-foreground">
+            <span>챗메이드랩스</span>
+            <span className="mx-2">•</span>
+            <span>대표: 도훈민</span>
+          </div>
+          <div className="text-xs text-muted-foreground">
+            사업자등록번호: 205-48-09670
+          </div>
+          <div className="text-xs text-muted-foreground">
+            사업장 소재지: 경기도 수원시 장안구 율전로8번길 22
+          </div>
         </div>
-        <div>
-          사업장 소재지: 경기도 수원시 장안구 율전로8번길 22
-        </div>
-        <div className="text-center pt-2">
-          Copyright 2024 챗메이드랩스 All rights reserved.
+        
+        <div className="text-xs text-muted-foreground pt-2">
+          ©2024 챗메이드랩스 ALL RIGHTS RESERVED.
         </div>
       </div>
     </footer>
