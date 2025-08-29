@@ -17,37 +17,39 @@ const BottomNavigation = ({ activeTab, onTabChange, onMbtiClick }: BottomNavigat
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#EAEAEA] z-50 h-16">
-      <div className="flex items-center justify-around h-full px-2">
-        {tabs.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            onClick={() => {
-              if (id === "mbti" && onMbtiClick) {
-                onMbtiClick();
-              } else {
-                onTabChange(id);
-              }
-            }}
-            className={cn(
-              "flex flex-col items-center justify-center h-full px-2 transition-colors duration-200 ease-in-out",
-              "min-w-0 flex-1",
-              activeTab === id
-                ? "text-[#4E6EF2]"
-                : "text-[#B0B0B0]"
-            )}
-          >
-            <Icon className="h-6 w-6 mb-1" strokeWidth={1.5} />
-            <span className={cn(
-              "text-[12px] leading-tight text-center",
-              activeTab === id ? "font-bold" : "font-medium"
-            )}>
-              {label}
-            </span>
-          </button>
-        ))}
-      </div>
-    </nav>
+    <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 z-50 max-w-md w-full px-4">
+      <nav className="bg-white border-t border-[#EAEAEA] h-16 rounded-t-xl shadow-sm">
+        <div className="flex items-center justify-around h-full px-4">
+          {tabs.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => {
+                if (id === "mbti" && onMbtiClick) {
+                  onMbtiClick();
+                } else {
+                  onTabChange(id);
+                }
+              }}
+              className={cn(
+                "flex flex-col items-center justify-center h-full px-2 transition-colors duration-200 ease-in-out",
+                "min-w-0 flex-1",
+                activeTab === id
+                  ? "text-[#4E6EF2]"
+                  : "text-[#B0B0B0]"
+              )}
+            >
+              <Icon className="h-6 w-6 mb-1" strokeWidth={1.5} />
+              <span className={cn(
+                "text-[12px] leading-tight text-center",
+                activeTab === id ? "font-bold" : "font-medium"
+              )}>
+                {label}
+              </span>
+            </button>
+          ))}
+        </div>
+      </nav>
+    </div>
   );
 };
 
