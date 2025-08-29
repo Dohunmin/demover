@@ -26,6 +26,13 @@ const Auth = () => {
   const [kakaoGender, setKakaoGender] = useState("");
   const [kakaoAgeGroup, setKakaoAgeGroup] = useState("");
   const [kakaoBirthYear, setKakaoBirthYear] = useState("");
+  
+  // 일반 회원가입 추가 정보
+  const [userName, setUserName] = useState("");
+  const [userAccount, setUserAccount] = useState("");
+  const [userGender, setUserGender] = useState("");
+  const [userAgeGroup, setUserAgeGroup] = useState("");
+  const [userBirthYear, setUserBirthYear] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -111,6 +118,16 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!userName.trim()) {
+      toast.error("이름을 입력해주세요.");
+      return;
+    }
+    
+    if (!userAccount.trim()) {
+      toast.error("카카오 계정을 입력해주세요.");
+      return;
+    }
     
     if (password !== confirmPassword) {
       toast.error("비밀번호가 일치하지 않습니다.");
@@ -271,6 +288,11 @@ const Auth = () => {
     setConfirmPassword("");
     setNewPassword("");
     setConfirmNewPassword("");
+    setUserName("");
+    setUserAccount("");
+    setUserGender("");
+    setUserAgeGroup("");
+    setUserBirthYear("");
     setKakaoName("");
     setKakaoPhone("");
     setKakaoGender("");
@@ -435,23 +457,137 @@ const Auth = () => {
               )}
 
               {isSignUp && !isNewPasswordMode && (
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
-                    비밀번호 확인
-                  </Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      placeholder="비밀번호를 다시 입력하세요"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="pl-10"
-                      required
-                    />
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
+                      비밀번호 확인
+                    </Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        placeholder="비밀번호를 다시 입력하세요"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="pl-10"
+                        required
+                      />
+                    </div>
                   </div>
-                </div>
+
+                  {/* 필수 입력 정보 */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3">필수 입력 정보</h4>
+                    
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="userName" className="text-sm font-medium text-gray-700">
+                          이름 *
+                        </Label>
+                        <div className="relative">
+                          <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Input
+                            id="userName"
+                            type="text"
+                            placeholder="실명을 입력하세요"
+                            value={userName}
+                            onChange={(e) => setUserName(e.target.value)}
+                            className="pl-10"
+                            required
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="userAccount" className="text-sm font-medium text-gray-700">
+                          카카오 계정 *
+                        </Label>
+                        <div className="relative">
+                          <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Input
+                            id="userAccount"
+                            type="text"
+                            placeholder="카카오 계정을 입력하세요"
+                            value={userAccount}
+                            onChange={(e) => setUserAccount(e.target.value)}
+                            className="pl-10"
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 선택 입력 정보 */}
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3">선택 입력 정보</h4>
+                    
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="userGender" className="text-sm font-medium text-gray-700">
+                          성별
+                        </Label>
+                        <div className="relative">
+                          <Users className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <select
+                            id="userGender"
+                            value={userGender}
+                            onChange={(e) => setUserGender(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          >
+                            <option value="">선택하세요</option>
+                            <option value="male">남성</option>
+                            <option value="female">여성</option>
+                            <option value="other">기타</option>
+                          </select>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="userAgeGroup" className="text-sm font-medium text-gray-700">
+                          연령대
+                        </Label>
+                        <div className="relative">
+                          <Users className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <select
+                            id="userAgeGroup"
+                            value={userAgeGroup}
+                            onChange={(e) => setUserAgeGroup(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          >
+                            <option value="">선택하세요</option>
+                            <option value="10s">10대</option>
+                            <option value="20s">20대</option>
+                            <option value="30s">30대</option>
+                            <option value="40s">40대</option>
+                            <option value="50s">50대</option>
+                            <option value="60plus">60대 이상</option>
+                          </select>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="userBirthYear" className="text-sm font-medium text-gray-700">
+                          출생 연도
+                        </Label>
+                        <div className="relative">
+                          <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Input
+                            id="userBirthYear"
+                            type="number"
+                            placeholder="예: 1990"
+                            value={userBirthYear}
+                            onChange={(e) => setUserBirthYear(e.target.value)}
+                            className="pl-10"
+                            min="1900"
+                            max={new Date().getFullYear()}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
               )}
 
               <Button
