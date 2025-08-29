@@ -45,6 +45,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
   const [loading, setLoading] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [showMobileList, setShowMobileList] = useState(false);
+  const [petTourismMarkers, setPetTourismMarkers] = useState<any[]>([]); // 반려동물 여행지 전용 마커들
 
   // 카카오 지도 SDK 로드
   useEffect(() => {
@@ -152,7 +153,123 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
     }
   }, []);
 
-  // 여행지 데이터를 Place 형식으로 변환
+  // 지도 초기화 후 반려동물 여행지 마커 로드
+  useEffect(() => {
+    if (isMapLoaded) {
+      loadPetTourismMarkers();
+    }
+  }, [isMapLoaded]);
+
+  // 반려동물 여행지 마커들 로드
+  const loadPetTourismMarkers = useCallback(async () => {
+    try {
+      console.log('반려동물 여행지 마커 로드 시작...');
+      
+      const response = await supabase.functions.invoke('combined-tour-api', {
+        body: {
+          areaCode: '6', // 부산
+          numOfRows: '50', // 43개 모두 가져오기 위해 여유있게
+          pageNo: '1',
+          keyword: '', // 키워드 없이 전체 목록
+          activeTab: 'pet'
+        }
+      });
+
+      if (response.data?.petTourismData?.response?.body?.items?.item) {
+        const petPlaces = response.data.petTourismData.response.body.items.item;
+        console.log(`${petPlaces.length}개의 반려동물 여행지 데이터를 가져왔습니다.`);
+        
+        createPetTourismMarkers(petPlaces);
+        toast.success(`${petPlaces.length}개의 반려동물 동반 여행지를 지도에 표시했습니다.`);
+      } else {
+        console.log('반려동물 여행지 데이터가 없습니다.');
+      }
+    } catch (error) {
+      console.error('반려동물 여행지 로드 오류:', error);
+      toast.error('반려동물 여행지 로드에 실패했습니다.');
+    }
+  }, []);
+
+  // 반려동물 여행지 마커 생성
+  const createPetTourismMarkers = useCallback((petPlaces: any[]) => {
+    if (!mapInstance.current || !window.kakao) return;
+
+    // 기존 반려동물 마커들 제거
+    petTourismMarkers.forEach(marker => {
+      marker.setMap(null);
+    });
+
+    const newPetMarkers: any[] = [];
+
+    petPlaces.forEach((place) => {
+      if (!place.mapx || !place.mapy || place.mapx === '0' || place.mapy === '0') {
+        return; // 좌표가 없는 경우 스킵
+      }
+
+      const position = new window.kakao.maps.LatLng(place.mapy, place.mapx);
+      
+      // 반려동물 전용 마커 이미지 생성 (강아지 아이콘)
+      const imageSize = new window.kakao.maps.Size(30, 30);
+      const imageOption = { offset: new window.kakao.maps.Point(15, 30) };
+      
+      // 강아지 아이콘 이미지 (SVG를 base64로 인코딩)
+      const dogIconSvg = `data:image/svg+xml;base64,${btoa(`
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FF6B6B" width="30" height="30">
+          <circle cx="12" cy="12" r="10" fill="#FFE5E5" stroke="#FF6B6B" stroke-width="2"/>
+          <path d="M8 10c0-1.1.9-2 2-2s2 .9 2 2-2 3-2 3-2-1.9-2-3zm6 0c0-1.1.9-2 2-2s2 .9 2 2-2 3-2 3-2-1.9-2-3z" fill="#FF6B6B"/>
+          <circle cx="10" cy="10" r="1.5" fill="#333"/>
+          <circle cx="14" cy="10" r="1.5" fill="#333"/>
+          <path d="M12 13c-1 0-2 .5-2 1s1 1 2 1 2-.5 2-1-.5-1-2-1z" fill="#333"/>
+        </svg>
+      `)}`;
+      
+      const markerImage = new window.kakao.maps.MarkerImage(
+        dogIconSvg,
+        imageSize,
+        imageOption
+      );
+
+      const marker = new window.kakao.maps.Marker({
+        position: position,
+        image: markerImage,
+        clickable: true
+      });
+
+      marker.setMap(mapInstance.current);
+
+      // 마커 클릭 이벤트 - 반려동물 여행지 상세 정보 표시
+      window.kakao.maps.event.addListener(marker, 'click', () => {
+        showPetTourismDetail(marker, place);
+      });
+
+      newPetMarkers.push(marker);
+    });
+
+    setPetTourismMarkers(newPetMarkers);
+    console.log(`${newPetMarkers.length}개의 반려동물 여행지 마커를 생성했습니다.`);
+  }, [petTourismMarkers]);
+
+  // 반려동물 여행지 상세 정보 표시
+  const showPetTourismDetail = useCallback((marker: any, place: any) => {
+    const content = `
+      <div style="padding: 15px; min-width: 250px; max-width: 300px; font-family: 'Malgun Gothic', sans-serif;">
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+          <span style="font-size: 20px; margin-right: 8px;">🐕</span>
+          <div style="font-weight: bold; font-size: 14px; color: #FF6B6B;">${place.title}</div>
+        </div>
+        <div style="font-size: 12px; color: #666; margin-bottom: 3px; background: #FFE5E5; padding: 2px 6px; border-radius: 10px; display: inline-block;">반려동물 동반 여행지</div>
+        <div style="font-size: 11px; color: #888; margin-bottom: 3px; line-height: 1.4;">${place.addr1 || ''}</div>
+        ${place.tel ? `<div style="font-size: 11px; color: #888; margin-bottom: 8px;"><span style="color: #FF6B6B;">📞</span> ${place.tel}</div>` : ''}
+        ${place.firstimage ? `<div style="margin-bottom: 8px;"><img src="${place.firstimage}" alt="${place.title}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 6px;"/></div>` : ''}
+        <div style="text-align: center; margin-top: 8px;">
+          <a href="https://korean.visitkorea.or.kr/detail/detail.do?cotid=${place.contentid}" target="_blank" style="color: #FF6B6B; font-size: 11px; text-decoration: none; font-weight: bold;">🔗 상세보기</a>
+        </div>
+      </div>
+    `;
+    
+    infoWindow.current.setContent(content);
+    infoWindow.current.open(mapInstance.current, marker);
+  }, []);
   const convertTourismDataToPlace = useCallback((item: any, source: 'tourism' | 'pet_tourism'): Place => {
     return {
       id: `${source}_${item.contentid || Math.random()}`,
