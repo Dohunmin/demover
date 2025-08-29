@@ -10,6 +10,7 @@ import UserProfile from "@/components/UserProfile";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import HeroCarousel from "@/components/HeroCarousel";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
@@ -211,7 +212,7 @@ const Index = () => {
                 우리 강아지는 어떤 여행 스타일?
               </h2>
               <p className="text-gray-600 text-sm mb-5 leading-relaxed">
-                반려견의 성격에 맞는 완벽한 여행지를<br />AI가 추천해드려요
+                반려견의 성격에 맞는 완벽한 여행지를 추천해드려요
               </p>
               <Button 
                 onClick={() => navigate("/mbti")}
@@ -223,6 +224,9 @@ const Index = () => {
             </div>
           </Card>
         </div>
+
+        {/* Hero Carousel */}
+        <HeroCarousel />
 
         {/* Category Section */}
         <CategoryGrid />
