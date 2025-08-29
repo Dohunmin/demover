@@ -76,27 +76,22 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-gray-50 max-w-md mx-auto relative overflow-x-hidden">
         {/* Header */}
-        <header className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 text-white p-6 rounded-b-3xl shadow-xl relative overflow-hidden">
-          {/* Background Pattern */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-4 right-4 w-20 h-20 rounded-full bg-white/20"></div>
-            <div className="absolute bottom-4 left-4 w-16 h-16 rounded-full bg-white/10"></div>
-          </div>
+        <header className="bg-[#DAF4EF] text-foreground p-6 rounded-b-3xl relative overflow-hidden">
           
           <div className="relative z-10">
             <div className="flex justify-between items-start mb-6">
               <div>
                 <div className="flex items-center space-x-2 mb-2">
-                  <PawPrint className="w-6 h-6" />
-                  <h1 className="text-xl font-bold">멍멍! 일단 출발해!</h1>
+                  <PawPrint className="w-6 h-6 text-[#222222]" />
+                  <h1 className="text-xl font-bold text-[#222222]">멍멍! 일단 출발해!</h1>
                 </div>
-                <p className="text-blue-100 text-sm font-medium">반려견과 함께하는 스마트한 여행</p>
+                <p className="text-[#555555] text-sm font-medium">반려견과 함께하는 스마트한 여행</p>
               </div>
               <Button 
                 variant="outline" 
                 size="sm" 
                 onClick={() => navigate("/auth")}
-                className="bg-white/10 border-white/30 text-white hover:bg-white hover:text-blue-700 backdrop-blur-sm font-medium"
+                className="bg-[#5EE8E8] border-[#5EE8E8] text-white hover:bg-[#5EE8E8]/90 rounded-xl font-medium"
               >
                 로그인
               </Button>
@@ -147,21 +142,16 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gray-50 max-w-md mx-auto relative overflow-x-hidden">
       {/* Header */}
-      <header className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 text-white p-6 rounded-b-3xl shadow-xl relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-4 right-4 w-20 h-20 rounded-full bg-white/20"></div>
-          <div className="absolute bottom-4 left-4 w-16 h-16 rounded-full bg-white/10"></div>
-        </div>
+      <header className="bg-[#DAF4EF] text-foreground p-6 rounded-b-3xl relative overflow-hidden">
         
         <div className="relative z-10">
           <div className="flex justify-between items-start mb-4">
             <div className="flex-1">
               <div className="flex items-center space-x-2 mb-2">
-                <PawPrint className="w-6 h-6" />
-                <h1 className="text-xl font-bold">멍멍! 일단 출발해!</h1>
+                <PawPrint className="w-6 h-6 text-[#222222]" />
+                <h1 className="text-xl font-bold text-[#222222]">멍멍! 일단 출발해!</h1>
               </div>
-              <p className="text-blue-100 text-sm font-medium">반려견과 함께하는 스마트한 여행</p>
+              <p className="text-[#555555] text-sm font-medium">반려견과 함께하는 스마트한 여행</p>
             </div>
             
             {/* Admin Button - Top Right */}
@@ -170,7 +160,7 @@ const Index = () => {
                 variant="outline" 
                 size="sm" 
                 onClick={() => navigate("/admin")}
-                className="bg-white/10 border-white/30 text-white hover:bg-white hover:text-purple-700 backdrop-blur-sm font-medium mb-2"
+                className="bg-[#5EE8E8] border-[#5EE8E8] text-white hover:bg-[#5EE8E8]/90 rounded-xl font-medium mb-2"
               >
                 <Settings className="w-4 h-4 mr-1" />
                 관리자
@@ -187,7 +177,7 @@ const Index = () => {
               variant="outline" 
               size="sm" 
               onClick={handleSignOut}
-              className="bg-white/10 border-white/30 text-white hover:bg-white hover:text-blue-700 backdrop-blur-sm font-medium flex-shrink-0"
+              className="bg-[#5EE8E8] border-[#5EE8E8] text-white hover:bg-[#5EE8E8]/90 rounded-xl font-medium flex-shrink-0"
             >
               <LogOut className="w-4 h-4 mr-1" />
               로그아웃
