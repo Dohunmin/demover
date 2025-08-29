@@ -76,18 +76,18 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-background max-w-md mx-auto relative overflow-x-hidden">
         {/* Header */}
-        <header className="bg-background p-6 relative">
+        <header className="bg-background p-6 border-b border-secondary">
           <div className="flex justify-between items-start mb-6">
             <div>
               <div className="flex items-center space-x-2 mb-2">
                 <PawPrint className="w-6 h-6 text-foreground" />
                 <h1 className="text-xl font-bold text-foreground">멍멍! 일단 출발해!</h1>
               </div>
-              <p className="text-muted-foreground text-sm font-medium">반려견과 함께하는 스마트한 여행</p>
+              <p className="text-secondary-foreground text-sm font-medium">반려견과 함께하는 스마트한 여행</p>
             </div>
             <Button 
               onClick={() => navigate("/auth")}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-medium shadow-minimal"
+              className="bg-primary hover:bg-[#4bd3d3] text-primary-foreground rounded-xl font-semibold"
             >
               로그인
             </Button>
@@ -98,19 +98,19 @@ const Index = () => {
         <main className="pb-20 -mt-4">
           {/* Welcome Section */}
           <div className="px-5 py-6">
-            <Card className="p-6 text-center bg-card border border-border shadow-card rounded-xl">
-              <div className="w-16 h-16 bg-primary rounded-xl mx-auto mb-4 flex items-center justify-center">
-                <Sparkles className="w-8 h-8 text-primary-foreground" />
+            <Card className="p-6 text-center bg-card rounded-2xl shadow-[0_4px_8px_rgba(0,0,0,0.05)]">
+              <div className="w-16 h-16 bg-card text-primary p-2 rounded-xl mx-auto mb-4 flex items-center justify-center shadow-[0_2px_6px_rgba(0,0,0,0.05)]">
+                <Sparkles className="w-8 h-8" />
               </div>
               <h2 className="text-lg font-bold text-card-foreground mb-2">
                 반려견과 함께하는 특별한 여행
               </h2>
-              <p className="text-muted-foreground text-sm mb-5 leading-relaxed">
+              <p className="text-secondary-foreground text-sm mb-5 leading-relaxed">
                 로그인하고 우리 강아지에게 맞는<br />완벽한 여행지를 찾아보세요
               </p>
               <Button 
                 onClick={() => navigate("/auth")}
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 rounded-lg shadow-minimal hover:shadow-hover transition-all duration-200"
+                className="w-full bg-primary hover:bg-[#4bd3d3] text-primary-foreground font-semibold py-3 rounded-xl transition-colors duration-200"
               >
                 <PawPrint className="w-4 h-4 mr-2" />
                 로그인 / 회원가입
@@ -130,14 +130,14 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background max-w-md mx-auto relative overflow-x-hidden">
       {/* Header */}
-      <header className="bg-background p-6 relative">
+      <header className="bg-background p-6 border-b border-secondary">
         <div className="flex justify-between items-start mb-4">
           <div className="flex-1">
             <div className="flex items-center space-x-2 mb-2">
               <PawPrint className="w-6 h-6 text-foreground" />
               <h1 className="text-xl font-bold text-foreground">멍멍! 일단 출발해!</h1>
             </div>
-            <p className="text-muted-foreground text-sm font-medium">반려견과 함께하는 스마트한 여행</p>
+            <p className="text-secondary-foreground text-sm font-medium">반려견과 함께하는 스마트한 여행</p>
           </div>
           
           {/* Admin Button - Top Right */}
@@ -145,7 +145,7 @@ const Index = () => {
             <Button 
               size="sm" 
               onClick={() => navigate("/admin")}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-medium mb-2 shadow-minimal"
+              className="bg-primary hover:bg-[#4bd3d3] text-primary-foreground rounded-xl font-semibold mb-2"
             >
               <Settings className="w-4 h-4 mr-1" />
               관리자
@@ -161,7 +161,7 @@ const Index = () => {
           <Button 
             size="sm" 
             onClick={handleSignOut}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-medium flex-shrink-0 shadow-minimal"
+            className="bg-primary hover:bg-[#4bd3d3] text-primary-foreground rounded-xl font-semibold flex-shrink-0"
           >
             <LogOut className="w-4 h-4 mr-1" />
             로그아웃
@@ -173,19 +173,19 @@ const Index = () => {
       <main className="pb-20 -mt-4">
         {/* MBTI Test Section */}
         <div className="px-5 py-6">
-          <Card className="p-6 text-center bg-card border border-border shadow-card rounded-xl">
-            <div className="w-16 h-16 bg-primary rounded-xl mx-auto mb-4 flex items-center justify-center">
-              <Sparkles className="w-8 h-8 text-primary-foreground" />
+          <Card className="p-6 text-center bg-card rounded-2xl shadow-[0_4px_8px_rgba(0,0,0,0.05)]">
+            <div className="w-16 h-16 bg-card text-primary p-2 rounded-xl mx-auto mb-4 flex items-center justify-center shadow-[0_2px_6px_rgba(0,0,0,0.05)]">
+              <Sparkles className="w-8 h-8" />
             </div>
             <h2 className="text-lg font-bold text-card-foreground mb-2">
               우리 강아지는 어떤 여행 스타일?
             </h2>
-            <p className="text-muted-foreground text-sm mb-5 leading-relaxed">
+            <p className="text-secondary-foreground text-sm mb-5 leading-relaxed">
               반려견의 성격에 맞는 완벽한 여행지를 추천해드려요
             </p>
             <Button 
               onClick={() => navigate("/mbti")}
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 rounded-lg shadow-minimal hover:shadow-hover transition-all duration-200"
+              className="w-full bg-primary hover:bg-[#4bd3d3] text-primary-foreground font-semibold py-3 rounded-xl transition-colors duration-200"
             >
               <PawPrint className="w-4 h-4 mr-2" />
               멍BTI 테스트 시작하기
