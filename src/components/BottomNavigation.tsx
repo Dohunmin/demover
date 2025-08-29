@@ -18,7 +18,7 @@ const BottomNavigation = ({ activeTab, onTabChange, onMbtiClick }: BottomNavigat
 
   return (
     <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-lg px-2">
-      <nav className="bg-card border-t border-border h-16 rounded-xl shadow-card mx-auto">
+      <nav className="bg-card border-t border-border h-16 shadow-minimal mx-auto">
         <div className="flex items-center justify-around h-full px-6">
           {tabs.map(({ id, label, icon: Icon }) => (
             <button
@@ -35,7 +35,7 @@ const BottomNavigation = ({ activeTab, onTabChange, onMbtiClick }: BottomNavigat
                 "min-w-0 flex-1",
                 activeTab === id
                   ? "text-primary"
-                  : "text-muted-foreground"
+                  : "text-[#A3A3A3]"
               )}
             >
               <Icon className="h-6 w-6 mb-1" strokeWidth={1.5} />

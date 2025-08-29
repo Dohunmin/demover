@@ -76,26 +76,21 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-background max-w-md mx-auto relative overflow-x-hidden">
         {/* Header */}
-        <header className="bg-[#EFE4CB] text-foreground p-6 rounded-b-3xl relative overflow-hidden">
-          
-          <div className="relative z-10">
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <div className="flex items-center space-x-2 mb-2">
-                  <PawPrint className="w-6 h-6 text-[#222222]" />
-                  <h1 className="text-xl font-bold text-[#222222]">멍멍! 일단 출발해!</h1>
-                </div>
-                <p className="text-[#555555] text-sm font-medium">반려견과 함께하는 스마트한 여행</p>
+        <header className="bg-background p-6 relative">
+          <div className="flex justify-between items-start mb-6">
+            <div>
+              <div className="flex items-center space-x-2 mb-2">
+                <PawPrint className="w-6 h-6 text-foreground" />
+                <h1 className="text-xl font-bold text-foreground">멍멍! 일단 출발해!</h1>
               </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => navigate("/auth")}
-                className="bg-[#5EE8E8] border-[#5EE8E8] text-white hover:bg-[#5EE8E8]/90 rounded-xl font-medium"
-              >
-                로그인
-              </Button>
+              <p className="text-muted-foreground text-sm font-medium">반려견과 함께하는 스마트한 여행</p>
             </div>
+            <Button 
+              onClick={() => navigate("/auth")}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-medium shadow-minimal"
+            >
+              로그인
+            </Button>
           </div>
         </header>
 
@@ -103,30 +98,23 @@ const Index = () => {
         <main className="pb-20 -mt-4">
           {/* Welcome Section */}
           <div className="px-5 py-6">
-            <Card className="p-6 text-center bg-white border-0 shadow-lg rounded-2xl relative overflow-hidden">
-              {/* Gradient background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 opacity-60"></div>
-              
-              <div className="relative z-10">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg">
-                  <Sparkles className="w-8 h-8 text-white" />
-                </div>
-                <h2 className="text-lg font-bold text-gray-900 mb-2">
-                  반려견과 함께하는 특별한 여행
-                </h2>
-                <p className="text-gray-600 text-sm mb-5 leading-relaxed">
-                  로그인하고 우리 강아지에게 맞는<br />완벽한 여행지를 찾아보세요
-                </p>
-                <div className="space-y-3">
-                  <Button 
-                    onClick={() => navigate("/auth")}
-                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-                  >
-                    <PawPrint className="w-4 h-4 mr-2" />
-                    로그인 / 회원가입
-                  </Button>
-                </div>
+            <Card className="p-6 text-center bg-card border border-border shadow-card rounded-xl">
+              <div className="w-16 h-16 bg-primary rounded-xl mx-auto mb-4 flex items-center justify-center">
+                <Sparkles className="w-8 h-8 text-primary-foreground" />
               </div>
+              <h2 className="text-lg font-bold text-card-foreground mb-2">
+                반려견과 함께하는 특별한 여행
+              </h2>
+              <p className="text-muted-foreground text-sm mb-5 leading-relaxed">
+                로그인하고 우리 강아지에게 맞는<br />완벽한 여행지를 찾아보세요
+              </p>
+              <Button 
+                onClick={() => navigate("/auth")}
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 rounded-lg shadow-minimal hover:shadow-hover transition-all duration-200"
+              >
+                <PawPrint className="w-4 h-4 mr-2" />
+                로그인 / 회원가입
+              </Button>
             </Card>
           </div>
 
@@ -142,47 +130,42 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background max-w-md mx-auto relative overflow-x-hidden">
       {/* Header */}
-      <header className="bg-[#EFE4CB] text-foreground p-6 rounded-b-3xl relative overflow-hidden">
-        
-        <div className="relative z-10">
-          <div className="flex justify-between items-start mb-4">
-            <div className="flex-1">
-              <div className="flex items-center space-x-2 mb-2">
-                <PawPrint className="w-6 h-6 text-[#222222]" />
-                <h1 className="text-xl font-bold text-[#222222]">멍멍! 일단 출발해!</h1>
-              </div>
-              <p className="text-[#555555] text-sm font-medium">반려견과 함께하는 스마트한 여행</p>
+      <header className="bg-background p-6 relative">
+        <div className="flex justify-between items-start mb-4">
+          <div className="flex-1">
+            <div className="flex items-center space-x-2 mb-2">
+              <PawPrint className="w-6 h-6 text-foreground" />
+              <h1 className="text-xl font-bold text-foreground">멍멍! 일단 출발해!</h1>
             </div>
-            
-            {/* Admin Button - Top Right */}
-            {isAdmin && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => navigate("/admin")}
-                className="bg-[#5EE8E8] border-[#5EE8E8] text-white hover:bg-[#5EE8E8]/90 rounded-xl font-medium mb-2"
-              >
-                <Settings className="w-4 h-4 mr-1" />
-                관리자
-              </Button>
-            )}
+            <p className="text-muted-foreground text-sm font-medium">반려견과 함께하는 스마트한 여행</p>
           </div>
-
-          {/* Enhanced Profile Section */}
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="flex-1 min-w-0">
-              <UserProfile />
-            </div>
+          
+          {/* Admin Button - Top Right */}
+          {isAdmin && (
             <Button 
-              variant="outline" 
               size="sm" 
-              onClick={handleSignOut}
-              className="bg-[#5EE8E8] border-[#5EE8E8] text-white hover:bg-[#5EE8E8]/90 rounded-xl font-medium flex-shrink-0"
+              onClick={() => navigate("/admin")}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-medium mb-2 shadow-minimal"
             >
-              <LogOut className="w-4 h-4 mr-1" />
-              로그아웃
+              <Settings className="w-4 h-4 mr-1" />
+              관리자
             </Button>
+          )}
+        </div>
+
+        {/* Enhanced Profile Section */}
+        <div className="flex items-center space-x-3 mb-4">
+          <div className="flex-1 min-w-0">
+            <UserProfile />
           </div>
+          <Button 
+            size="sm" 
+            onClick={handleSignOut}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-medium flex-shrink-0 shadow-minimal"
+          >
+            <LogOut className="w-4 h-4 mr-1" />
+            로그아웃
+          </Button>
         </div>
       </header>
 
@@ -190,28 +173,23 @@ const Index = () => {
       <main className="pb-20 -mt-4">
         {/* MBTI Test Section */}
         <div className="px-5 py-6">
-          <Card className="p-6 text-center bg-white border-0 shadow-lg rounded-2xl relative overflow-hidden">
-            {/* Gradient background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 opacity-60"></div>
-            
-            <div className="relative z-10">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg">
-                <Sparkles className="w-8 h-8 text-white" />
-              </div>
-              <h2 className="text-lg font-bold text-gray-900 mb-2">
-                우리 강아지는 어떤 여행 스타일?
-              </h2>
-              <p className="text-gray-600 text-sm mb-5 leading-relaxed">
-                반려견의 성격에 맞는 완벽한 여행지를 추천해드려요
-              </p>
-              <Button 
-                onClick={() => navigate("/mbti")}
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-              >
-                <PawPrint className="w-4 h-4 mr-2" />
-                멍BTI 테스트 시작하기
-              </Button>
+          <Card className="p-6 text-center bg-card border border-border shadow-card rounded-xl">
+            <div className="w-16 h-16 bg-primary rounded-xl mx-auto mb-4 flex items-center justify-center">
+              <Sparkles className="w-8 h-8 text-primary-foreground" />
             </div>
+            <h2 className="text-lg font-bold text-card-foreground mb-2">
+              우리 강아지는 어떤 여행 스타일?
+            </h2>
+            <p className="text-muted-foreground text-sm mb-5 leading-relaxed">
+              반려견의 성격에 맞는 완벽한 여행지를 추천해드려요
+            </p>
+            <Button 
+              onClick={() => navigate("/mbti")}
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3 rounded-lg shadow-minimal hover:shadow-hover transition-all duration-200"
+            >
+              <PawPrint className="w-4 h-4 mr-2" />
+              멍BTI 테스트 시작하기
+            </Button>
           </Card>
         </div>
 
