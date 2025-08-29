@@ -49,8 +49,8 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
   useEffect(() => {
     const loadKakaoMap = async () => {
       try {
-        // 실제 카카오 JavaScript 키 (사용자가 직접 입력한 키 사용)
-        const KAKAO_JS_KEY = 'f47e28e5e28b18fa82d5d85d0d4b6ee5';
+        // 실제 카카오 JavaScript 키
+        const KAKAO_JS_KEY = 'e1bab1adac4710bd4df596c913ccfd0f';
         
         console.log('카카오 지도 로드 시작...');
         
