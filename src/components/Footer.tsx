@@ -80,7 +80,7 @@ const Footer = () => {
         </div>
 
         {/* Company Info - Clean minimal style like Knewnew */}
-        <div className="space-y-2">
+        <div className="space-y-2 text-center">
           <div className="text-xs text-muted-foreground">
             <span>챗메이드랩스</span>
             <span className="mx-2">•</span>
@@ -94,7 +94,7 @@ const Footer = () => {
           </div>
         </div>
         
-        <div className="text-xs text-muted-foreground pt-2">
+        <div className="text-xs text-muted-foreground pt-2 text-center">
           ©2024 챗메이드랩스 ALL RIGHTS RESERVED.
         </div>
       </div>
