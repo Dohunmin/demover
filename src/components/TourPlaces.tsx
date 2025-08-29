@@ -340,13 +340,13 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
                 value={activeTab === "general" ? generalSearchKeyword : petSearchKeyword}
                 onChange={(e) => activeTab === "general" ? setGeneralSearchKeyword(e.target.value) : setPetSearchKeyword(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="pl-10 border-gray-200 focus:border-green-500"
+                className="pl-10 border-gray-200 focus:border-primary"
               />
             </div>
             <Button 
               onClick={handleSearch}
               disabled={loading}
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 px-6"
+              className="button-primary px-6"
             >
               {loading ? (
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -375,25 +375,25 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
             onClick={() => handleTabChange("general")}
             className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all ${
               activeTab === "general"
-                ? "bg-white text-green-600 shadow-sm"
-                : "text-gray-600 hover:text-gray-800"
+                ? "tab-item active"
+                : "tab-item"
             }`}
           >
             <MapPin className="w-4 h-4 mr-2 inline" />
             일반 관광지
-            {generalSearchKeyword && <span className="ml-1 text-xs text-green-500">●</span>}
+            {generalSearchKeyword && <span className="ml-1 text-xs" style={{ color: 'var(--primary-color)' }}>●</span>}
           </button>
           <button
             onClick={() => handleTabChange("pet")}
             className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all ${
               activeTab === "pet"
-                ? "bg-white text-green-600 shadow-sm"
-                : "text-gray-600 hover:text-gray-800"
+                ? "tab-item active"
+                : "tab-item"
             }`}
           >
             <PawPrint className="w-4 h-4 mr-2 inline" />
             반려동물 동반
-            {petSearchKeyword && <span className="ml-1 text-xs text-green-500">●</span>}
+            {petSearchKeyword && <span className="ml-1 text-xs" style={{ color: 'var(--primary-color)' }}>●</span>}
           </button>
         </div>
       </div>
@@ -402,7 +402,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
       <div className="px-5">
         {loading ? (
           <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground mx-auto"></div>
             <p className="text-gray-600 mt-2">로딩 중...</p>
           </div>
         ) : (
