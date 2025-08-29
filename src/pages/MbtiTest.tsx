@@ -370,14 +370,13 @@ const MbtiTest = () => {
                 </div>
                 <div>
                   <h4 className="card-title text-base">1. 에너지 레벨 (E / C)</h4>
-                  <p className="card-subtitle text-xs">활동적 vs 차분한 성향</p>
+                  <p className="card-subtitle text-xs">활동적 vs 차분한</p>
                 </div>
               </div>
-              <p className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                강아지마다 에너지 수준은 다릅니다.<br />
-                새로운 장소와 체험을 좋아하는 <strong>활동적인 타입(E)</strong>이라면 다양한 액티비티가 있는 여행지가 어울려요.<br />
-                반면, 안정적인 환경을 선호하는 <strong>차분한 타입(C)</strong>은 한적한 산책로와 편안한 숙소에서 힐링하는 여행이 더 적합해요.
-              </p>
+              <div className="space-y-2 text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                <p><strong>E형:</strong> 새로운 장소와 액티비티를 즐기는 에너자이저. 다양한 체험을 할 수 있는 여행지가 잘 맞아요.</p>
+                <p><strong>C형:</strong> 안정적이고 편안한 환경을 선호하는 힐링러. 한적한 산책로나 프라이빗 숙소가 더 어울려요.</p>
+              </div>
             </div>
 
             {/* 관계 추구 */}
@@ -388,14 +387,13 @@ const MbtiTest = () => {
                 </div>
                 <div>
                   <h4 className="card-title text-base">2. 관계 추구 (S / O)</h4>
-                  <p className="card-subtitle text-xs">사교적 vs 주인바라기 성향</p>
+                  <p className="card-subtitle text-xs">사교적 vs 주인바라기</p>
                 </div>
               </div>
-              <p className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                강아지가 사람들과 얼마나 교류하길 좋아하는지를 보여주는 차원이에요.<br />
-                <strong>사교적인 강아지(S)</strong>는 낯선 사람, 강아지들과 쉽게 어울리기 때문에 펫 카페나 체험 프로그램이 많은 여행지가 좋아요.<br />
-                반대로 <strong>주인바라기 타입(O)</strong>은 오롯이 보호자와 함께하는 시간이 중요한 아이예요. 프라이빗한 공간이나 한적한 코스로의 여행이 더 편안합니다.
-              </p>
+              <div className="space-y-2 text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                <p><strong>S형:</strong> 다른 강아지·사람과 쉽게 친해지는 소셜러. 펫 카페, 체험 프로그램이 많은 여행지가 좋아요.</p>
+                <p><strong>O형:</strong> 보호자와 단둘이 있는 시간을 중요하게 생각하는 타입. 프라이빗한 공간, 조용한 코스의 여행이 편안해요.</p>
+              </div>
             </div>
 
             {/* 발달 감각 */}
@@ -409,11 +407,10 @@ const MbtiTest = () => {
                   <p className="card-subtitle text-xs">시각 중심 vs 후각 중심</p>
                 </div>
               </div>
-              <p className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                세상을 바라보는 강아지의 감각 포인트도 제각각이에요.<br />
-                <strong>시각 중심 타입(V)</strong>은 멋진 풍경과 새로운 장면에 더 민감해 포토존이나 전망대에서 즐거워하죠.<br />
-                반대로 <strong>후각 중심 타입(N)</strong>은 냄새를 통해 세상을 이해하는 편이라, 다양한 향을 맡을 수 있는 야외 여행지나 시장, 피크닉 장소가 잘 맞아요.
-              </p>
+              <div className="space-y-2 text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                <p><strong>V형:</strong> 풍경과 장면을 눈으로 즐기는 시각형. 포토존, 전망대, 경치 명소에서 행복해해요.</p>
+                <p><strong>N형:</strong> 냄새로 세상을 탐험하는 후각형. 시장, 피크닉 장소, 향이 풍부한 공간에서 즐거워해요.</p>
+              </div>
             </div>
 
             {/* 여행 바이브 */}
@@ -427,11 +424,10 @@ const MbtiTest = () => {
                   <p className="card-subtitle text-xs">꾸미기 vs 자연스러움</p>
                 </div>
               </div>
-              <p className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                여행의 분위기를 즐기는 방식도 다릅니다.<br />
-                <strong>꾸미기 타입(F)</strong>은 예쁜 소품, 화려한 배경, 인스타그램 감성의 여행지를 좋아해요.<br />
-                반면, <strong>자연스러운 타입(B)</strong>은 장식 없이 편안하고 한적한 공간을 선호해, 자연 속에서 여유를 즐길 수 있는 여행지가 어울립니다.
-              </p>
+              <div className="space-y-2 text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                <p><strong>F형:</strong> 귀엽게 꾸미고 특별한 경험을 추구하는 스타일. 포토존, 인스타 감성 숙소, 예쁜 소품이 많은 여행지가 좋아요.</p>
+                <p><strong>B형:</strong> 편안함을 중시하는 자연주의자. 자유롭게 뛰어놀 수 있는 잔디밭, 한적한 산책로 같은 여행지가 어울려요.</p>
+              </div>
             </div>
           </div>
 
