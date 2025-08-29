@@ -8,47 +8,48 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 206 100% 97%;
+    --background: 40 27% 92%;
     --foreground: 215 25% 20%;
 
-    --card: 0 0% 100%;
+    --card: 42 60% 87%;
     --card-foreground: 215 25% 20%;
 
-    --popover: 0 0% 100%;
+    --popover: 42 60% 87%;
     --popover-foreground: 215 25% 20%;
 
-    --primary: 210 100% 56%;
+    --primary: 185 46% 75%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 206 100% 90%;
+    --secondary: 186 40% 83%;
     --secondary-foreground: 215 25% 20%;
 
-    --muted: 206 60% 94%;
+    --muted: 180 22% 90%;
     --muted-foreground: 215 16% 46%;
 
-    --accent: 200 100% 88%;
+    --accent: 168 54% 91%;
     --accent-foreground: 215 25% 20%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 206 30% 88%;
-    --input: 206 30% 88%;
-    --ring: 210 100% 56%;
+    --border: 180 22% 88%;
+    --input: 180 22% 88%;
+    --ring: 185 46% 75%;
 
-    /* Pet Travel Guide specific colors */
-    --pet-blue: 210 100% 56%;
-    --pet-light-blue: 206 100% 90%;
-    --pet-accent: 200 100% 70%;
-    --pet-ocean: 195 100% 50%;
+    /* Pet Travel Guide specific colors - Updated with new palette */
+    --pet-blue: 185 46% 75%;
+    --pet-light-blue: 186 40% 83%;
+    --pet-accent: 168 54% 91%;
+    --pet-ocean: 185 46% 65%;
     
-    /* Gradients */
-    --gradient-ocean: linear-gradient(135deg, hsl(210 100% 56%), hsl(195 100% 50%));
-    --gradient-sky: linear-gradient(180deg, hsl(206 100% 90%), hsl(206 100% 97%));
+    /* Gradients - Updated with new colors */
+    --gradient-ocean: linear-gradient(135deg, hsl(185 46% 75%), hsl(186 40% 83%));
+    --gradient-sky: linear-gradient(180deg, hsl(168 54% 91%), hsl(40 27% 92%));
+    --gradient-nature: linear-gradient(135deg, hsl(168 54% 91%), hsl(180 22% 90%));
     
-    /* Shadows */
-    --shadow-pet: 0 4px 20px -4px hsl(210 100% 56% / 0.3);
-    --shadow-card: 0 2px 10px -2px hsl(210 50% 80% / 0.2);
+    /* Shadows - Updated with new colors */
+    --shadow-pet: 0 4px 20px -4px hsl(185 46% 75% / 0.3);
+    --shadow-card: 0 2px 10px -2px hsl(180 22% 80% / 0.2);
 
     --radius: 0.5rem;
 

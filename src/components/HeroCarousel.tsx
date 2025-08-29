@@ -113,8 +113,8 @@ const HeroCarousel = () => {
               className={cn(
                 "w-2 h-2 rounded-full transition-all duration-200 hover:scale-110",
                 current === index + 1 
-                  ? "bg-[#4E6EF2] w-6" 
-                  : "bg-[#D3D3D3] hover:bg-[#4E6EF2]/50"
+                  ? "bg-primary w-6" 
+                  : "bg-muted-foreground hover:bg-primary/50"
               )}
               aria-label={`Go to slide ${index + 1}`}
             />
