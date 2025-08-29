@@ -60,7 +60,7 @@ const Index = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 max-w-md mx-auto flex items-center justify-center">
+      <div className="min-h-screen bg-background max-w-md mx-auto flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg animate-pulse">
             <PawPrint className="w-6 h-6 text-white" />
@@ -74,9 +74,9 @@ const Index = () => {
   // 로그인하지 않은 사용자를 위한 페이지
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 max-w-md mx-auto relative overflow-x-hidden">
+      <div className="min-h-screen bg-background max-w-md mx-auto relative overflow-x-hidden">
         {/* Header */}
-        <header className="bg-[#DAF4EF] text-foreground p-6 rounded-b-3xl relative overflow-hidden">
+        <header className="bg-[#EFE4CB] text-foreground p-6 rounded-b-3xl relative overflow-hidden">
           
           <div className="relative z-10">
             <div className="flex justify-between items-start mb-6">
@@ -140,9 +140,9 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 max-w-md mx-auto relative overflow-x-hidden">
+    <div className="min-h-screen bg-background max-w-md mx-auto relative overflow-x-hidden">
       {/* Header */}
-      <header className="bg-[#DAF4EF] text-foreground p-6 rounded-b-3xl relative overflow-hidden">
+      <header className="bg-[#EFE4CB] text-foreground p-6 rounded-b-3xl relative overflow-hidden">
         
         <div className="relative z-10">
           <div className="flex justify-between items-start mb-4">

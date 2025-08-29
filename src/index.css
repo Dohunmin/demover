@@ -9,7 +9,7 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* Soft Pastel Design System */
-    --background: 168 54% 91%; /* #DAF4EF - Background Light */
+    --background: 0 0% 100%; /* #FFFFFF - White Background */
     --foreground: 0 0% 13%; /* #222222 - Text Primary */
 
     --card: 0 0% 100%; /* #FFFFFF - Background Card */
