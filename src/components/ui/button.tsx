@@ -9,16 +9,17 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-[#4bd3d3] font-semibold rounded-xl px-5 py-3 border-none transition-colors duration-200 ease-in-out",
+        default: "button-primary",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
-          "border border-border bg-card hover:bg-muted hover:text-muted-foreground rounded-xl",
+          "button-disabled rounded-xl",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-xl",
+          "button-black",
         ghost: "hover:bg-muted hover:text-muted-foreground rounded-xl",
         link: "text-primary underline-offset-4 hover:underline",
-        icon: "bg-card text-primary p-2 rounded-xl shadow-[0_2px_6px_rgba(0,0,0,0.05)]",
+        black: "button-black",
+        disabled: "button-disabled",
       },
       size: {
         default: "h-10 px-4 py-2",

@@ -8,51 +8,40 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Minimal White Design System - Based on provided CSS */
-    --background: 0 0% 100%; /* #ffffff - Pure White */
-    --foreground: 0 0% 13%; /* #222222 - Dark Text */
+    /* Design System Variables - Exact CSS Implementation */
+    --primary-color: #5EE8E8;       /* 포인트 컬러 */
+    --primary-hover: #4BD3D3;
+    --background-color: #FFFFFF;    /* 전체 배경 */
+    --card-background: #FFFFFF;     /* 카드형 컨텐츠 배경 */
+    --border-color: #F0F0F0;        /* 경계선 컬러 */
+    --text-primary: #222222;        /* 제목 및 메인 텍스트 */
+    --text-secondary: #555555;      /* 부제목 및 설명 */
+    --text-disabled: #A3A3A3;       /* 비활성 텍스트 */
 
-    --card: 0 0% 100%; /* #ffffff - White Cards */
-    --card-foreground: 0 0% 13%; /* #222222 - Dark Text */
-
-    --popover: 0 0% 100%; /* #ffffff - White Popover */
-    --popover-foreground: 0 0% 13%; /* #222222 - Dark Text */
-
-    --primary: 180 79% 64%; /* #5EE8E8 - Single Accent Color */
-    --primary-foreground: 0 0% 100%; /* #ffffff - White Text */
-    --primary-hover: 180 69% 58%; /* #4bd3d3 - Hover State */
-
-    --secondary: 0 0% 94%; /* #f0f0f0 - Light Gray for borders */
-    --secondary-foreground: 0 0% 33%; /* #555555 - Secondary Text */
-
-    --muted: 0 0% 94%; /* #f0f0f0 - Light Gray */
-    --muted-foreground: 0 0% 33%; /* #555555 - Secondary Text */
-
-    --accent: 180 79% 64%; /* #5EE8E8 - Same as primary */
-    --accent-foreground: 0 0% 100%; /* #ffffff - White Text */
-
+    /* Tailwind CSS Variables */
+    --background: 0 0% 100%; /* #FFFFFF */
+    --foreground: 0 0% 13%; /* #222222 */
+    --card: 0 0% 100%; /* #FFFFFF */
+    --card-foreground: 0 0% 13%; /* #222222 */
+    --popover: 0 0% 100%; /* #FFFFFF */
+    --popover-foreground: 0 0% 13%; /* #222222 */
+    --primary: 180 79% 64%; /* #5EE8E8 */
+    --primary-foreground: 0 0% 100%; /* #FFFFFF */
+    --secondary: 0 0% 94%; /* #F0F0F0 */
+    --secondary-foreground: 0 0% 33%; /* #555555 */
+    --muted: 0 0% 94%; /* #F0F0F0 */
+    --muted-foreground: 0 0% 33%; /* #555555 */
+    --accent: 180 79% 64%; /* #5EE8E8 */
+    --accent-foreground: 0 0% 100%; /* #FFFFFF */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
-
-    --border: 0 0% 94%; /* #f0f0f0 - Light Gray Border */
-    --input: 0 0% 100%; /* #ffffff - White Input */
-    --ring: 180 79% 64%; /* #5EE8E8 - Focus Ring */
-
-    /* Text Colors from CSS */
-    --text-primary: 0 0% 13%; /* #222222 */
-    --text-secondary: 0 0% 33%; /* #555555 */
-    --text-disabled: 0 0% 64%; /* #a3a3a3 */
-    
-    /* Minimal Shadows from CSS */
-    --shadow-card: 0 4px 8px rgba(0, 0, 0, 0.05);
-    --shadow-icon: 0 2px 6px rgba(0, 0, 0, 0.05);
-    --shadow-minimal: 0 1px 3px rgba(0, 0, 0, 0.05);
-
-    --radius: 0.75rem; /* 12px for buttons, 16px for cards */
+    --border: 0 0% 94%; /* #F0F0F0 */
+    --input: 0 0% 100%; /* #FFFFFF */
+    --ring: 180 79% 64%; /* #5EE8E8 */
+    --radius: 0.75rem; /* 12px */
   }
 
   .dark {
-    /* Keep minimal dark mode */
     --background: 0 0% 13%;
     --foreground: 0 0% 95%;
     --card: 0 0% 9%;
@@ -75,6 +64,101 @@ All colors MUST be HSL.
   }
 }
 
+/* Custom Component Classes */
+@layer components {
+  .header {
+    background-color: var(--background-color);
+    color: var(--text-primary);
+    box-shadow: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .header-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .header-subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  .button-primary {
+    background-color: var(--primary-color);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 16px;
+    font-weight: 600;
+    transition: background-color 0.2s ease-in-out;
+  }
+  .button-primary:hover {
+    background-color: var(--primary-hover);
+  }
+
+  .button-black {
+    background-color: var(--text-primary);
+    color: #FFFFFF;
+    border-radius: 12px;
+    padding: 10px 16px;
+    font-weight: 600;
+  }
+  .button-black:hover {
+    background-color: #000000;
+  }
+
+  .button-disabled {
+    background-color: var(--background-color);
+    color: var(--text-disabled);
+    border: 1px solid var(--border-color);
+  }
+
+  .card {
+    background-color: var(--card-background);
+    border-radius: 16px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+  }
+
+  .card-title {
+    color: var(--text-primary);
+    font-weight: 700;
+  }
+
+  .card-subtitle {
+    color: var(--text-secondary);
+  }
+
+  .tab-item {
+    background-color: var(--card-background);
+    color: var(--text-disabled);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 8px 14px;
+    font-weight: 500;
+  }
+
+  .tab-item.active {
+    background-color: var(--primary-color);
+    color: #FFFFFF;
+    border: none;
+  }
+
+  .bottom-nav {
+    background-color: var(--background-color);
+    border-top: 1px solid var(--border-color);
+  }
+
+  .bottom-nav .nav-item {
+    color: var(--text-disabled);
+  }
+
+  .bottom-nav .nav-item.active {
+    color: var(--primary-color);
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -85,7 +169,7 @@ All colors MUST be HSL.
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: #ffffff;
-    color: #222222;
+    background-color: var(--background-color);
+    color: var(--text-primary);
   }
 }
