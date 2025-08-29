@@ -307,23 +307,23 @@ const UserProfile = () => {
     <>
       <Dialog>
         <DialogTrigger asChild>
-          <div className="bg-white/10 border border-white/30 rounded-xl p-3 hover:bg-white/20 transition-all duration-200 cursor-pointer backdrop-blur-sm">
+          <div className="card rounded-xl p-3 hover:shadow-lg transition-all duration-200 cursor-pointer border border-gray-100">
             <div className="flex items-center space-x-3">
-              <Avatar className="w-10 h-10 border-2 border-white/30 flex-shrink-0">
+              <Avatar className="w-10 h-10 border-2 border-gray-200 flex-shrink-0">
                 <AvatarImage 
                   src={profile?.pet_image_url} 
                   alt="반려견 프로필" 
                   className="object-cover"
                 />
-                <AvatarFallback className="bg-gradient-to-br from-white/20 to-white/10 text-white">
+                <AvatarFallback className="bg-gray-100" style={{ color: 'var(--text-primary)' }}>
                   <User className="w-5 h-5" />
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 text-left min-w-0 overflow-hidden">
-                <div className="text-white font-semibold text-sm truncate">
+                <div className="card-title text-sm truncate">
                   {profile?.pet_name || '프로필 설정'}
                 </div>
-                <div className="text-blue-100 text-xs truncate">
+                <div className="card-subtitle text-xs truncate">
                   {user?.email ? (
                     user.email.length > 20 ? 
                       `${user.email.substring(0, 18)}...` : 
@@ -331,7 +331,7 @@ const UserProfile = () => {
                   ) : '이메일 정보 없음'}
                 </div>
               </div>
-              <div className="text-white/70 flex-shrink-0">
+              <div style={{ color: 'var(--text-disabled)' }} className="flex-shrink-0">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
