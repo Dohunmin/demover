@@ -75,7 +75,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
     if (userAreaCode) {
       fetchTourPlaces();
     }
-  }, [generalCurrentPage, petCurrentPage, userAreaCode]);
+  }, [generalCurrentPage, petCurrentPage, userAreaCode, activeTab]); // activeTab 의존성 추가
 
   const fetchTourPlaces = async (generalKeyword?: string, petKeyword?: string) => {
     setLoading(true);
@@ -192,34 +192,10 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
     }
   };
 
-  // 탭 전환 시 현재 검색어를 동기화하거나 기본 목록 표시
+  // 탭 전환 시 탭만 변경 (useEffect가 자동으로 데이터 로딩)
   const handleTabChange = (tab: "general" | "pet") => {
     setActiveTab(tab);
-    
-    // 현재 활성 탭의 검색어가 있으면 새 탭에도 동일한 검색어 적용
-    const currentKeyword = activeTab === "general" ? generalSearchKeyword : petSearchKeyword;
-    
-    if (currentKeyword) {
-      // 검색어를 새 탭에도 동기화
-      if (tab === "general") {
-        setGeneralSearchKeyword(currentKeyword);
-        setGeneralCurrentPage(1);
-        fetchTourPlaces(currentKeyword, "");
-      } else {
-        setPetSearchKeyword(currentKeyword);
-        setPetCurrentPage(1);
-        fetchTourPlaces("", currentKeyword);
-      }
-    } else {
-      // 검색어가 없으면 해당 탭의 기본 목록 로드
-      if (tab === "general") {
-        setGeneralCurrentPage(1);
-        fetchTourPlaces("", "");
-      } else {
-        setPetCurrentPage(1);
-        fetchTourPlaces("", "");
-      }
-    }
+    // useEffect가 activeTab 변경을 감지해서 자동으로 fetchTourPlaces 호출
   };
 
   // 페이지네이션 관련 계산
