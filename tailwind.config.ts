@@ -56,10 +56,14 @@ export default {
 					foreground: 'hsl(var(--card-foreground))'
 				},
 				pet: {
-					blue: 'hsl(var(--pet-blue))',
-					'light-blue': 'hsl(var(--pet-light-blue))',
-					accent: 'hsl(var(--pet-accent))',
-					ocean: 'hsl(var(--pet-ocean))'
+					primary: 'hsl(var(--pet-primary))',
+					secondary: 'hsl(var(--pet-secondary))',
+					highlight: 'hsl(var(--pet-highlight))',
+					neutral: 'hsl(var(--pet-neutral))'
+				},
+				disabled: {
+					DEFAULT: 'hsl(var(--disabled))',
+					foreground: 'hsl(var(--disabled-foreground))'
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
@@ -76,6 +80,11 @@ export default {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
+			},
+			boxShadow: {
+				card: 'var(--shadow-card)',
+				hover: 'var(--shadow-hover)',
+				active: 'var(--shadow-active)'
 			},
 			keyframes: {
 				'accordion-down': {

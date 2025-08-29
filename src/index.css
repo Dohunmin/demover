@@ -8,48 +8,54 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 40 27% 92%;
-    --foreground: 215 25% 20%;
+    /* Soft Pastel Design System */
+    --background: 168 54% 91%; /* #DAF4EF - Background Light */
+    --foreground: 0 0% 13%; /* #222222 - Text Primary */
 
-    --card: 42 60% 87%;
-    --card-foreground: 215 25% 20%;
+    --card: 0 0% 100%; /* #FFFFFF - Background Card */
+    --card-foreground: 0 0% 13%; /* #222222 - Text Primary */
 
-    --popover: 42 60% 87%;
-    --popover-foreground: 215 25% 20%;
+    --popover: 0 0% 100%; /* #FFFFFF - Background Card */
+    --popover-foreground: 0 0% 13%; /* #222222 - Text Primary */
 
-    --primary: 185 46% 75%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 180 79% 64%; /* #5EE8E8 - Primary Accent */
+    --primary-foreground: 0 0% 100%; /* White text on primary */
 
-    --secondary: 186 40% 83%;
-    --secondary-foreground: 215 25% 20%;
+    --secondary: 186 40% 75%; /* #9EDCE1 - Secondary Accent */
+    --secondary-foreground: 0 0% 13%; /* #222222 - Text Primary */
 
-    --muted: 180 22% 90%;
-    --muted-foreground: 215 16% 46%;
+    --muted: 180 22% 88%; /* #DEEBEB - Neutral Medium */
+    --muted-foreground: 0 0% 33%; /* #555555 - Text Secondary */
 
-    --accent: 168 54% 91%;
-    --accent-foreground: 215 25% 20%;
+    --accent: 42 60% 87%; /* #EFE4CB - Highlight */
+    --accent-foreground: 0 0% 13%; /* #222222 - Text Primary */
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 180 22% 88%;
-    --input: 180 22% 88%;
-    --ring: 185 46% 75%;
+    --border: 180 22% 88%; /* #DEEBEB - Neutral Medium */
+    --input: 0 0% 100%; /* #FFFFFF - Background Card */
+    --ring: 180 79% 64%; /* #5EE8E8 - Primary Accent */
 
-    /* Pet Travel Guide specific colors - Updated with new palette */
-    --pet-blue: 185 46% 75%;
-    --pet-light-blue: 186 40% 83%;
-    --pet-accent: 168 54% 91%;
-    --pet-ocean: 185 46% 65%;
+    /* Disabled state */
+    --disabled: 180 22% 88%; /* #DEEBEB - Neutral Medium */
+    --disabled-foreground: 0 0% 64%; /* #A3A3A3 - Text Disabled */
+
+    /* Pet Travel Guide specific colors - Pastel Theme */
+    --pet-primary: 180 79% 64%; /* #5EE8E8 - Primary Accent */
+    --pet-secondary: 186 40% 75%; /* #9EDCE1 - Secondary Accent */
+    --pet-highlight: 42 60% 87%; /* #EFE4CB - Highlight */
+    --pet-neutral: 42 33% 91%; /* #EFECE6 - Neutral Light */
     
-    /* Gradients - Updated with new colors */
-    --gradient-ocean: linear-gradient(135deg, hsl(185 46% 75%), hsl(186 40% 83%));
-    --gradient-sky: linear-gradient(180deg, hsl(168 54% 91%), hsl(40 27% 92%));
-    --gradient-nature: linear-gradient(135deg, hsl(168 54% 91%), hsl(180 22% 90%));
+    /* Gradients - Pastel Theme */
+    --gradient-primary: linear-gradient(135deg, hsl(180 79% 64%), hsl(186 40% 75%));
+    --gradient-soft: linear-gradient(180deg, hsl(168 54% 91%), hsl(0 0% 100%));
+    --gradient-highlight: linear-gradient(135deg, hsl(42 60% 87%), hsl(42 33% 91%));
     
-    /* Shadows - Updated with new colors */
-    --shadow-pet: 0 4px 20px -4px hsl(185 46% 75% / 0.3);
-    --shadow-card: 0 2px 10px -2px hsl(180 22% 80% / 0.2);
+    /* Shadows - Soft and Subtle */
+    --shadow-card: 0 2px 8px -2px hsl(180 79% 64% / 0.1);
+    --shadow-hover: 0 4px 12px -4px hsl(180 79% 64% / 0.15);
+    --shadow-active: 0 1px 4px -1px hsl(180 79% 64% / 0.2);
 
     --radius: 0.5rem;
 
@@ -71,33 +77,34 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Dark mode - Pastel friendly */
+    --background: 0 0% 13%; /* Dark version */
+    --foreground: 0 0% 95%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 9%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 180 79% 64%; /* Keep primary accent in dark mode */
+    --primary-foreground: 0 0% 13%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 186 40% 25%; /* Darker version of secondary */
+    --secondary-foreground: 0 0% 95%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 64%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 42 60% 25%; /* Darker version of highlight */
+    --accent-foreground: 0 0% 95%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 95%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 180 79% 64%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;

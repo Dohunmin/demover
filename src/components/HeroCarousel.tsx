@@ -80,14 +80,14 @@ const HeroCarousel = () => {
           <CarouselContent>
             {carouselImages.map((image, index) => (
               <CarouselItem key={index}>
-                <div className="relative aspect-[16/9] rounded-2xl overflow-hidden shadow-[0_2px_6px_rgba(0,0,0,0.1)]">
+                <div className="relative aspect-[16/9] rounded-2xl overflow-hidden bg-transparent shadow-card">
                   <img
                     src={image.src}
                     alt={image.alt}
                     className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                   />
                   {/* Gradient overlay for better text readability */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
                   {/* Optional title overlay */}
                   <div className="absolute bottom-4 left-4 text-white">
                     <h3 className="text-lg font-semibold drop-shadow-lg">
@@ -99,9 +99,9 @@ const HeroCarousel = () => {
             ))}
           </CarouselContent>
 
-          {/* Custom navigation arrows */}
-          <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-sm border-white/50 hover:bg-white/90 transition-all duration-200 hidden md:flex" />
-          <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-sm border-white/50 hover:bg-white/90 transition-all duration-200 hidden md:flex" />
+          {/* Custom navigation arrows with pastel styling */}
+          <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 bg-card/80 backdrop-blur-sm border-border hover:bg-card/90 transition-all duration-200 hidden md:flex" />
+          <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 bg-card/80 backdrop-blur-sm border-border hover:bg-card/90 transition-all duration-200 hidden md:flex" />
         </Carousel>
 
         {/* Dot indicators */}
@@ -114,7 +114,7 @@ const HeroCarousel = () => {
                 "w-2 h-2 rounded-full transition-all duration-200 hover:scale-110",
                 current === index + 1 
                   ? "bg-primary w-6" 
-                  : "bg-muted-foreground hover:bg-primary/50"
+                  : "bg-muted hover:bg-primary/50"
               )}
               aria-label={`Go to slide ${index + 1}`}
             />
