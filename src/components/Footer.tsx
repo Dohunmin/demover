@@ -5,8 +5,8 @@ const Footer = () => {
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
 
   return (
-    <footer className="bg-background px-4 py-6 text-xs text-muted-foreground mt-auto mb-20 md:mb-6">
-      <div className="max-w-4xl mx-auto space-y-4 md:px-0">
+    <footer className="bg-background px-4 py-6 text-xs text-muted-foreground mt-auto mb-20">
+      <div className="space-y-4">
         {/* Footer Links */}
         <div className="flex justify-center gap-3 pb-4">
           <button className="hover:text-foreground transition-colors text-xs">
