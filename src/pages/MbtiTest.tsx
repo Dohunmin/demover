@@ -313,81 +313,153 @@ const MbtiTest = () => {
   // 메인 소개 화면
   if (!isTestStarted && !result) {
     return (
-      <div className="min-h-screen bg-gray-50 max-w-md mx-auto pb-20">
+      <div className="min-h-screen bg-background max-w-md mx-auto pb-20">
         {/* Header */}
-        <header className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 text-white p-6 rounded-b-3xl shadow-xl relative overflow-hidden">
+        <header className="header p-6">
           <div className="flex items-center space-x-3">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate("/")}
-              className="text-white hover:bg-white/10 p-2"
+              className="text-foreground hover:bg-muted p-2"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-xl font-bold">멍BTI</h1>
-              <p className="text-blue-100 text-sm">반려견 여행 성향 테스트</p>
+              <h1 className="header-title">멍BTI</h1>
+              <p className="header-subtitle">반려견 여행 성향 테스트</p>
             </div>
           </div>
         </header>
 
         {/* Main Content */}
         <main className="p-5 space-y-6">
-          {/* 테스트 시작 버튼 - 상단으로 이동 */}
-          <div className="pt-2">
+          {/* 멍BTI 메인 소개 */}
+          <div className="card text-center p-6">
+            <div className="w-20 h-20 bg-primary rounded-2xl mx-auto mb-4 flex items-center justify-center">
+              <PawPrint className="w-10 h-10 text-primary-foreground" />
+            </div>
+            <h2 className="text-2xl font-bold mb-4" style={{ color: "var(--text-primary)" }}>
+              🐾 멍BTI, 우리 강아지의 여행 취향을 알아보세요!
+            </h2>
+            <p className="text-sm leading-relaxed mb-6" style={{ color: "var(--text-secondary)" }}>
+              반려견도 사람처럼 여행 스타일이 다 다르다는 사실, 알고 계셨나요?<br />
+              멍BTI는 강아지의 성격과 행동 패턴을 네 가지 차원으로 분석해 16가지 여행 성향으로 나눈 테스트예요.<br />
+              우리 아이의 성향에 맞는 완벽한 여행지를 추천해드릴게요.
+            </p>
+            
+            {/* 테스트 시작 버튼 */}
             <Button 
               onClick={handleStartTest}
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+              className="button-primary w-full mb-6"
             >
               <PawPrint className="w-5 h-5 mr-2" />
               테스트 시작하기
             </Button>
           </div>
 
-          {/* 멍BTI 소개 */}
-          <Card className="p-6 bg-white rounded-2xl shadow-lg">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl mx-auto mb-4 flex items-center justify-center">
-                <Heart className="w-8 h-8 text-white" />
+          {/* 4가지 차원 소개 */}
+          <div className="space-y-4">
+            <h3 className="card-title text-lg text-center mb-4">🎯 4가지 평가 차원</h3>
+            
+            {/* 에너지 레벨 */}
+            <div className="card p-4">
+              <div className="flex items-center mb-3">
+                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center mr-3">
+                  <span className="text-lg">⚡</span>
+                </div>
+                <div>
+                  <h4 className="card-title text-base">1. 에너지 레벨 (E / C)</h4>
+                  <p className="card-subtitle text-xs">활동적 vs 차분한 성향</p>
+                </div>
               </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">🐾 멍BTI 여행 유형 테스트 🐾</h2>
-              <p className="text-gray-600 text-sm leading-relaxed">
-                우리 강아지의 진짜 여행 스타일을 발견해 보세요!<br />
-                각 질문에 더 가깝다고 생각하는 답변을 선택해 주세요.
+              <p className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                강아지마다 에너지 수준은 다릅니다.<br />
+                새로운 장소와 체험을 좋아하는 <strong>활동적인 타입(E)</strong>이라면 다양한 액티비티가 있는 여행지가 어울려요.<br />
+                반면, 안정적인 환경을 선호하는 <strong>차분한 타입(C)</strong>은 한적한 산책로와 편안한 숙소에서 힐링하는 여행이 더 적합해요.
               </p>
             </div>
-          </Card>
 
-          {/* 여행 성향 기준 설명 */}
-          <Card className="p-6 bg-white rounded-2xl shadow-lg">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">
-              🎯 평가 기준
-            </h3>
-            <div className="space-y-3">
-              <div className="p-3 bg-red-50 rounded-xl">
-                <div className="font-medium text-red-700">E / C (에너지 레벨)</div>
-                <div className="text-xs text-red-600 mt-1">활동적 vs 차분한 성향</div>
+            {/* 관계 추구 */}
+            <div className="card p-4">
+              <div className="flex items-center mb-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                  <span className="text-lg">🤝</span>
+                </div>
+                <div>
+                  <h4 className="card-title text-base">2. 관계 추구 (S / O)</h4>
+                  <p className="card-subtitle text-xs">사교적 vs 주인바라기 성향</p>
+                </div>
               </div>
-              <div className="p-3 bg-blue-50 rounded-xl">
-                <div className="font-medium text-blue-700">S / O (관계 추구)</div>
-                <div className="text-xs text-blue-600 mt-1">사교적 vs 주인바라기 성향</div>
-              </div>
-              <div className="p-3 bg-green-50 rounded-xl">
-                <div className="font-medium text-green-700">V / N (발달 감각)</div>
-                <div className="text-xs text-green-600 mt-1">시각 중심 vs 후각 중심</div>
-              </div>
-              <div className="p-3 bg-orange-50 rounded-xl">
-                <div className="font-medium text-orange-700">F / B (여행 바이브)</div>
-                <div className="text-xs text-orange-600 mt-1">꾸미기 vs 자연스러움</div>
-              </div>
+              <p className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                강아지가 사람들과 얼마나 교류하길 좋아하는지를 보여주는 차원이에요.<br />
+                <strong>사교적인 강아지(S)</strong>는 낯선 사람, 강아지들과 쉽게 어울리기 때문에 펫 카페나 체험 프로그램이 많은 여행지가 좋아요.<br />
+                반대로 <strong>주인바라기 타입(O)</strong>은 오롯이 보호자와 함께하는 시간이 중요한 아이예요. 프라이빗한 공간이나 한적한 코스로의 여행이 더 편안합니다.
+              </p>
             </div>
-          </Card>
+
+            {/* 발달 감각 */}
+            <div className="card p-4">
+              <div className="flex items-center mb-3">
+                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                  <span className="text-lg">👁️</span>
+                </div>
+                <div>
+                  <h4 className="card-title text-base">3. 발달 감각 (V / N)</h4>
+                  <p className="card-subtitle text-xs">시각 중심 vs 후각 중심</p>
+                </div>
+              </div>
+              <p className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                세상을 바라보는 강아지의 감각 포인트도 제각각이에요.<br />
+                <strong>시각 중심 타입(V)</strong>은 멋진 풍경과 새로운 장면에 더 민감해 포토존이나 전망대에서 즐거워하죠.<br />
+                반대로 <strong>후각 중심 타입(N)</strong>은 냄새를 통해 세상을 이해하는 편이라, 다양한 향을 맡을 수 있는 야외 여행지나 시장, 피크닉 장소가 잘 맞아요.
+              </p>
+            </div>
+
+            {/* 여행 바이브 */}
+            <div className="card p-4">
+              <div className="flex items-center mb-3">
+                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                  <span className="text-lg">✨</span>
+                </div>
+                <div>
+                  <h4 className="card-title text-base">4. 여행 바이브 (F / B)</h4>
+                  <p className="card-subtitle text-xs">꾸미기 vs 자연스러움</p>
+                </div>
+              </div>
+              <p className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                여행의 분위기를 즐기는 방식도 다릅니다.<br />
+                <strong>꾸미기 타입(F)</strong>은 예쁜 소품, 화려한 배경, 인스타그램 감성의 여행지를 좋아해요.<br />
+                반면, <strong>자연스러운 타입(B)</strong>은 장식 없이 편안하고 한적한 공간을 선호해, 자연 속에서 여유를 즐길 수 있는 여행지가 어울립니다.
+              </p>
+            </div>
+          </div>
+
+          {/* 마무리 안내 */}
+          <div className="card text-center p-6">
+            <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl mx-auto mb-4 flex items-center justify-center">
+              <Compass className="w-8 h-8 text-white" />
+            </div>
+            <h3 className="card-title text-lg mb-3">
+              🐶 우리 강아지만의 여행 스타일을 찾아보세요
+            </h3>
+            <p className="card-subtitle text-sm mb-4 leading-relaxed">
+              멍BTI는 강아지의 행동 패턴을 분석해<br />
+              16가지 여행 성향으로 분류하고,<br />
+              각 성향에 꼭 맞는 맞춤 여행지를 추천해드려요.
+            </p>
+            <p className="text-lg font-medium mb-4" style={{ color: "var(--text-primary)" }}>
+              "우리 강아지는 어떤 여행 스타일일까?"
+            </p>
+            <p className="card-subtitle text-sm">
+              테스트를 시작하고, 아이에게 딱 맞는 여행을 계획해보세요!
+            </p>
+          </div>
 
           {/* 16가지 여행 성향 설명 */}
-          <Card className="p-6 bg-white rounded-2xl shadow-lg">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-              <MapPin className="w-5 h-5 mr-2 text-indigo-600" />
+          <div className="card p-6">
+            <h3 className="card-title text-lg mb-4 flex items-center">
+              <MapPin className="w-5 h-5 mr-2" style={{ color: "var(--primary-color)" }} />
               16가지 여행 성향 설명
             </h3>
             <div className="grid grid-cols-4 gap-2">
@@ -395,31 +467,31 @@ const MbtiTest = () => {
                 <button 
                   key={type.code} 
                   onClick={() => handleTypeClick(type.code)}
-                  className="p-3 bg-gray-50 hover:bg-blue-50 hover:border-blue-200 border border-transparent rounded-lg text-center transition-all duration-200 cursor-pointer"
+                  className="tab-item p-3 text-center transition-all duration-200 cursor-pointer hover:shadow-md"
                 >
-                  <div className="text-xs font-bold text-gray-700 hover:text-blue-700">{type.code}</div>
+                  <div className="text-xs font-bold">{type.code}</div>
                 </button>
               ))}
             </div>
-            <p className="text-xs text-gray-500 mt-4 text-center">
+            <p className="card-subtitle text-xs mt-4 text-center">
               각 성향별 맞춤 여행지를 추천해드립니다
             </p>
-          </Card>
+          </div>
         </main>
 
         {/* 여행 성향 설명 다이얼로그 */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="max-w-sm mx-auto">
             <DialogHeader>
-              <DialogTitle className="text-center text-lg font-bold text-gray-900">
+              <DialogTitle className="text-center text-lg font-bold" style={{ color: "var(--text-primary)" }}>
                 {selectedTypeData?.title}
               </DialogTitle>
-              <p className="text-center text-sm text-gray-500 mt-1">
+              <p className="text-center text-sm" style={{ color: "var(--text-secondary)" }}>
                 {selectedType}
               </p>
             </DialogHeader>
             <div className="py-4">
-              <p className="text-gray-600 text-sm leading-relaxed">
+              <p style={{ color: "var(--text-secondary)" }} className="text-sm leading-relaxed">
                 {selectedTypeData?.description}
               </p>
             </div>
