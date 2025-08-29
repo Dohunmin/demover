@@ -10,12 +10,10 @@ import {
 } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
 
-// Import existing dog images
-import angelDog from "@/assets/calm-companion-dog.jpg";
-import campingDog from "@/assets/energetic-explorer-dog.jpg"; 
-import cameraDog from "@/assets/visual-led-dog.jpg";
-import beachDogs from "@/assets/beach-dogs.jpg";
-import socialDog from "@/assets/social-star-dog.jpg";
+// Use uploaded MBTI character images
+import angelHealing from "/lovable-uploads/03b729d9-f143-4a40-9a42-4f54e04a9361.png";
+import campingExplorer from "/lovable-uploads/b41f2fd5-8313-479d-8839-742408395a67.png";
+import photoModel from "/lovable-uploads/9f1e3228-48c8-46f5-b2e9-f92a07d246a5.png";
 
 const HeroCarousel = () => {
   const [api, setApi] = useState<CarouselApi>();
@@ -24,30 +22,20 @@ const HeroCarousel = () => {
 
   const carouselImages = [
     {
-      src: beachDogs,
-      alt: "해변에서 놀고 있는 강아지들",
-      title: "해변 여행",
+      src: "/lovable-uploads/03b729d9-f143-4a40-9a42-4f54e04a9361.png",
+      alt: "힐링 파트너 - 천사 날개를 가진 평온한 강아지",
+      title: "힐링 파트너"
     },
     {
-      src: campingDog,
-      alt: "캠핑을 즐기는 활발한 강아지",
-      title: "캠핑 모험",
+      src: "/lovable-uploads/b41f2fd5-8313-479d-8839-742408395a67.png",
+      alt: "캠핑장 사장님 - 캠핑을 즐기는 활발한 강아지",
+      title: "캠핑장 사장님"
     },
     {
-      src: cameraDog,
-      alt: "사진 찍기를 좋아하는 강아지",
-      title: "포토 투어",
-    },
-    {
-      src: angelDog,
-      alt: "평온한 여행을 즐기는 강아지",
-      title: "힐링 여행",
-    },
-    {
-      src: socialDog,
-      alt: "사교적인 강아지",
-      title: "소셜 여행",
-    },
+      src: "/lovable-uploads/9f1e3228-48c8-46f5-b2e9-f92a07d246a5.png",
+      alt: "전속 모델 - 사진 찍기를 좋아하는 강아지",
+      title: "전속 모델"
+    }
   ];
 
   useEffect(() => {
