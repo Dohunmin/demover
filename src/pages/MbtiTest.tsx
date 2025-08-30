@@ -6,6 +6,164 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ArrowLeft, PawPrint, Heart, MapPin, Compass, Mountain } from "lucide-react";
 
+// 4가지 평가차원 데이터
+const dimensions = [
+  {
+    id: "energy",
+    title: "에너지레벨",
+    subtitle: "활동적 vs 차분한",
+    icon: "⚡",
+    bgColor: "bg-red-100",
+    options: [
+      {
+        type: "E",
+        title: "에너지 넘치는 탐험가",
+        description: "새로운 장소와 액티비티를 즐기는 에너자이저. 다양한 체험을 할 수 있는 여행지가 잘 맞아요."
+      },
+      {
+        type: "C",
+        title: "차분한 힐링러",
+        description: "안정적이고 편안한 환경을 선호하는 힐링러. 한적한 산책로나 프라이빗 숙소가 더 어울려요."
+      }
+    ]
+  },
+  {
+    id: "social",
+    title: "관계추구",
+    subtitle: "사교적 vs 주인바라기",
+    icon: "🤝",
+    bgColor: "bg-blue-100",
+    options: [
+      {
+        type: "S",
+        title: "사교적인 소셜러",
+        description: "다른 강아지·사람과 쉽게 친해지는 소셜러. 펫 카페, 체험 프로그램이 많은 여행지가 좋아요."
+      },
+      {
+        type: "O",
+        title: "주인바라기 전용러버",
+        description: "보호자와 단둘이 있는 시간을 중요하게 생각하는 타입. 프라이빗한 공간, 조용한 코스의 여행이 편안해요."
+      }
+    ]
+  },
+  {
+    id: "sense",
+    title: "발달감각",
+    subtitle: "시각 중심 vs 후각 중심",
+    icon: "👁️",
+    bgColor: "bg-green-100",
+    options: [
+      {
+        type: "V",
+        title: "시각적 풍경러버",
+        description: "풍경과 장면을 눈으로 즐기는 시각형. 포토존, 전망대, 경치 명소에서 행복해해요."
+      },
+      {
+        type: "N",
+        title: "후각적 탐험가",
+        description: "냄새로 세상을 탐험하는 후각형. 시장, 피크닉 장소, 향이 풍부한 공간에서 즐거워해요."
+      }
+    ]
+  },
+  {
+    id: "vibe",
+    title: "여행 바이브",
+    subtitle: "꾸미기 vs 자연스러움",
+    icon: "✨",
+    bgColor: "bg-purple-100",
+    options: [
+      {
+        type: "F",
+        title: "패션 스타일리스트",
+        description: "귀엽게 꾸미고 특별한 경험을 추구하는 스타일. 포토존, 인스타 감성 숙소, 예쁜 소품이 많은 여행지가 좋아요."
+      },
+      {
+        type: "B",
+        title: "자연스러운 프리덤러",
+        description: "편안함을 중시하는 자연주의자. 자유롭게 뛰어놀 수 있는 잔디밭, 한적한 산책로 같은 여행지가 어울려요."
+      }
+    ]
+  }
+];
+
+// 뒤집히는 카드 컴포넌트
+const FlipCard = ({ dimension }: { dimension: typeof dimensions[0] }) => {
+  const [flipped, setFlipped] = useState<{ [key: string]: boolean }>({});
+
+  const handleCardClick = (optionType: string) => {
+    setFlipped(prev => ({
+      ...prev,
+      [`${dimension.id}-${optionType}`]: !prev[`${dimension.id}-${optionType}`]
+    }));
+  };
+
+  return (
+    <div className="card p-4">
+      <div className="flex items-center mb-4">
+        <div className={`w-10 h-10 ${dimension.bgColor} rounded-lg flex items-center justify-center mr-3`}>
+          <span className="text-lg">{dimension.icon}</span>
+        </div>
+        <div>
+          <h4 className="card-title text-base">{dimension.title}</h4>
+          <p className="card-subtitle text-xs">{dimension.subtitle}</p>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-2 gap-3">
+        {dimension.options.map((option) => {
+          const cardKey = `${dimension.id}-${option.type}`;
+          const isFlipped = flipped[cardKey];
+          
+          return (
+            <div
+              key={option.type}
+              className="relative h-32 cursor-pointer"
+              onClick={() => handleCardClick(option.type)}
+            >
+              <div
+                className={`absolute inset-0 w-full h-full transition-transform duration-700 transform-style-preserve-3d ${
+                  isFlipped ? 'rotate-y-180' : ''
+                }`}
+              >
+                {/* 앞면 */}
+                <div className="absolute inset-0 w-full h-full backface-hidden rounded-lg border-2 border-gray-200 bg-gradient-to-br from-white to-gray-50 flex flex-col items-center justify-center p-3 hover:shadow-md transition-shadow">
+                  <div className="text-2xl font-bold text-primary mb-2">
+                    {option.type}
+                  </div>
+                  <div className="text-xs text-center font-medium text-gray-600">
+                    클릭해보세요!
+                  </div>
+                </div>
+                
+                {/* 뒷면 */}
+                <div className="absolute inset-0 w-full h-full backface-hidden rounded-lg border-2 border-primary bg-primary/5 p-3 flex flex-col justify-center rotate-y-180">
+                  <div className="text-xs font-semibold text-primary mb-2 text-center">
+                    {option.title}
+                  </div>
+                  <div className="text-[10px] text-gray-600 leading-tight text-center">
+                    {option.description}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// 4가지 차원 카드들을 렌더링하는 컴포넌트
+const DimensionCards = () => {
+  return (
+    <div className="space-y-4">
+      {dimensions.map((dimension) => (
+        <FlipCard key={dimension.id} dimension={dimension} />
+      ))}
+    </div>
+  );
+};
+
 // 테스트 질문 데이터
 const questions = [
   {
@@ -362,73 +520,7 @@ const MbtiTest = () => {
           <div className="space-y-4">
             <h3 className="card-title text-lg text-center mb-4">🎯 4가지 평가 차원</h3>
             
-            {/* 에너지 레벨 */}
-            <div className="card p-4">
-              <div className="flex items-center mb-3">
-                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center mr-3">
-                  <span className="text-lg">⚡</span>
-                </div>
-                <div>
-                  <h4 className="card-title text-base">1. 에너지 레벨 (E / C)</h4>
-                  <p className="card-subtitle text-xs">활동적 vs 차분한</p>
-                </div>
-              </div>
-              <div className="space-y-2 text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                <p><strong>E형:</strong> 새로운 장소와 액티비티를 즐기는 에너자이저. 다양한 체험을 할 수 있는 여행지가 잘 맞아요.</p>
-                <p><strong>C형:</strong> 안정적이고 편안한 환경을 선호하는 힐링러. 한적한 산책로나 프라이빗 숙소가 더 어울려요.</p>
-              </div>
-            </div>
-
-            {/* 관계 추구 */}
-            <div className="card p-4">
-              <div className="flex items-center mb-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                  <span className="text-lg">🤝</span>
-                </div>
-                <div>
-                  <h4 className="card-title text-base">2. 관계 추구 (S / O)</h4>
-                  <p className="card-subtitle text-xs">사교적 vs 주인바라기</p>
-                </div>
-              </div>
-              <div className="space-y-2 text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                <p><strong>S형:</strong> 다른 강아지·사람과 쉽게 친해지는 소셜러. 펫 카페, 체험 프로그램이 많은 여행지가 좋아요.</p>
-                <p><strong>O형:</strong> 보호자와 단둘이 있는 시간을 중요하게 생각하는 타입. 프라이빗한 공간, 조용한 코스의 여행이 편안해요.</p>
-              </div>
-            </div>
-
-            {/* 발달 감각 */}
-            <div className="card p-4">
-              <div className="flex items-center mb-3">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
-                  <span className="text-lg">👁️</span>
-                </div>
-                <div>
-                  <h4 className="card-title text-base">3. 발달 감각 (V / N)</h4>
-                  <p className="card-subtitle text-xs">시각 중심 vs 후각 중심</p>
-                </div>
-              </div>
-              <div className="space-y-2 text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                <p><strong>V형:</strong> 풍경과 장면을 눈으로 즐기는 시각형. 포토존, 전망대, 경치 명소에서 행복해해요.</p>
-                <p><strong>N형:</strong> 냄새로 세상을 탐험하는 후각형. 시장, 피크닉 장소, 향이 풍부한 공간에서 즐거워해요.</p>
-              </div>
-            </div>
-
-            {/* 여행 바이브 */}
-            <div className="card p-4">
-              <div className="flex items-center mb-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
-                  <span className="text-lg">✨</span>
-                </div>
-                <div>
-                  <h4 className="card-title text-base">4. 여행 바이브 (F / B)</h4>
-                  <p className="card-subtitle text-xs">꾸미기 vs 자연스러움</p>
-                </div>
-              </div>
-              <div className="space-y-2 text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                <p><strong>F형:</strong> 귀엽게 꾸미고 특별한 경험을 추구하는 스타일. 포토존, 인스타 감성 숙소, 예쁜 소품이 많은 여행지가 좋아요.</p>
-                <p><strong>B형:</strong> 편안함을 중시하는 자연주의자. 자유롭게 뛰어놀 수 있는 잔디밭, 한적한 산책로 같은 여행지가 어울려요.</p>
-              </div>
-            </div>
+            <DimensionCards />
           </div>
 
           {/* 마무리 안내 */}

@@ -173,3 +173,18 @@ All colors MUST be HSL.
     color: var(--text-primary);
   }
 }
+
+/* 3D 카드 뒤집기 효과 */
+@layer utilities {
+  .transform-style-preserve-3d {
+    transform-style: preserve-3d;
+  }
+  
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+  
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+}
