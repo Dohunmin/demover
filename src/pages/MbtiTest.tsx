@@ -131,7 +131,14 @@ const FlipCard = ({ dimension }: { dimension: typeof dimensions[0] }) => {
                     {option.type}
                   </div>
                   <div className="text-xs text-center font-medium text-gray-600">
-                    클릭해보세요!
+                    {option.type === 'E' && '활동적'}
+                    {option.type === 'C' && '차분한'}
+                    {option.type === 'S' && '사교적'}
+                    {option.type === 'O' && '독립적'}
+                    {option.type === 'V' && '시각적'}
+                    {option.type === 'N' && '후각적'}
+                    {option.type === 'F' && '패션'}
+                    {option.type === 'B' && '기본'}
                   </div>
                 </div>
                 
