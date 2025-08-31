@@ -292,7 +292,35 @@ const mbtiImages: { [key: string]: string } = {
   "EOVF": "/lovable-uploads/a59b7728-dcb9-4fd5-b34c-ba874cff8499.png",
   "EOVB": "/lovable-uploads/8e94178e-a6d0-495e-a51e-2db8f9649ad0.png",
   "EONF": "/lovable-uploads/d7bbc895-f98c-41aa-8eaa-c4d442b73b40.png",
-  "EONB": "/lovable-uploads/c05b8912-d2cc-4343-9b8f-4c5846316710.png"
+  "EONB": "/lovable-uploads/c05b8912-d2cc-4343-9b8f-4c5846316710.png",
+  "CSVF": "/lovable-uploads/6f0a82a5-520c-4690-ad10-b7a956fe794c.png",
+  "CSVB": "/lovable-uploads/28b87428-54bd-4a64-bd4e-6a42b7a1799b.png",
+  "CSNF": "/lovable-uploads/652b14b3-76db-4dc4-a058-74a645b2936b.png",
+  "CSNB": "/lovable-uploads/653be78a-fc51-4b6c-8528-9c7b9625be0d.png",
+  "COVF": "/lovable-uploads/596aef9c-00b0-4916-87bd-acce0e9cb626.png",
+  "COVB": "/lovable-uploads/06ff5d07-2090-44bb-a8ac-51a242eafbb3.png",
+  "CONF": "/lovable-uploads/32bcdc3a-cc67-4912-a010-9fafabb7f736.png",
+  "CONB": "/lovable-uploads/a0dc78cb-f620-44cb-8f2f-55a8e53550b9.png"
+};
+
+// 각 성향별 배경색 매핑
+const mbtiBackgrounds: { [key: string]: string } = {
+  "ESVF": "from-cyan-300 to-cyan-400", // 밝은 청록색
+  "ESVB": "from-gray-300 to-gray-400", // 회색
+  "ESNF": "from-green-200 to-green-300", // 연한 초록
+  "ESNB": "from-purple-200 to-purple-300", // 연한 보라
+  "EOVF": "from-pink-200 to-pink-300", // 연한 분홍
+  "EOVB": "from-purple-200 to-purple-300", // 연한 보라
+  "EONF": "from-pink-200 to-pink-300", // 연한 분홍
+  "EONB": "from-pink-200 to-pink-300", // 연한 분홍
+  "CSVF": "from-purple-300 to-purple-400", // 보라
+  "CSVB": "from-green-200 to-green-300", // 연한 초록
+  "CSNF": "from-green-200 to-green-300", // 연한 초록
+  "CSNB": "from-amber-200 to-amber-300", // 베이지/노란색
+  "COVF": "from-pink-200 to-pink-300", // 연한 분홍
+  "COVB": "from-sky-200 to-sky-300", // 연한 파랑
+  "CONF": "from-gray-300 to-gray-400", // 회색
+  "CONB": "from-yellow-200 to-yellow-300" // 노란색
 };
 
 const travelTypes = [
@@ -597,6 +625,17 @@ const MbtiTest = () => {
               </p>
             </DialogHeader>
             <div className="py-4">
+              {/* 캐릭터 이미지 */}
+              {mbtiImages[selectedType || ""] && (
+                <div className="flex justify-center mb-4">
+                  <img 
+                    src={mbtiImages[selectedType || ""]} 
+                    alt={`${selectedType} 캐릭터`}
+                    className="w-24 h-24 object-contain"
+                  />
+                </div>
+              )}
+              
               <p style={{ color: "var(--text-secondary)" }} className="text-sm leading-relaxed">
                 {selectedTypeData?.description}
               </p>
@@ -705,7 +744,7 @@ const MbtiTest = () => {
 
         {/* Result Card */}
         <div className="p-5">
-          <Card className="p-6 bg-gradient-to-br from-orange-400 to-orange-500 rounded-2xl shadow-lg text-white mb-6">
+          <Card className={`p-6 bg-gradient-to-br ${mbtiBackgrounds[result] || "from-orange-400 to-orange-500"} rounded-2xl shadow-lg text-gray-800 mb-6`}>
             {/* 캐릭터 이미지 */}
             {mbtiImages[result] && (
               <div className="flex justify-center mb-6">
