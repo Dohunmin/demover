@@ -283,7 +283,18 @@ const questions = [
   }
 ];
 
-// 16가지 성향 데이터
+// 16가지 성향 데이터와 이미지 매핑
+const mbtiImages: { [key: string]: string } = {
+  "ESVF": "/lovable-uploads/053c625b-da0b-490a-86c2-5c4ae4c71fe1.png",
+  "ESVB": "/lovable-uploads/13aa0338-6e00-4fe2-a46c-8f0bcf6c50dc.png", 
+  "ESNF": "/lovable-uploads/d8ca4f20-1e83-4629-8b07-84f381d631f2.png",
+  "ESNB": "/lovable-uploads/ce1fcfb5-0d9d-4376-a99f-eaf28ec9709d.png",
+  "EOVF": "/lovable-uploads/a59b7728-dcb9-4fd5-b34c-ba874cff8499.png",
+  "EOVB": "/lovable-uploads/8e94178e-a6d0-495e-a51e-2db8f9649ad0.png",
+  "EONF": "/lovable-uploads/d7bbc895-f98c-41aa-8eaa-c4d442b73b40.png",
+  "EONB": "/lovable-uploads/c05b8912-d2cc-4343-9b8f-4c5846316710.png"
+};
+
 const travelTypes = [
   { 
     code: "ESVF", 
@@ -695,6 +706,17 @@ const MbtiTest = () => {
         {/* Result Card */}
         <div className="p-5">
           <Card className="p-6 bg-gradient-to-br from-orange-400 to-orange-500 rounded-2xl shadow-lg text-white mb-6">
+            {/* 캐릭터 이미지 */}
+            {mbtiImages[result] && (
+              <div className="flex justify-center mb-6">
+                <img 
+                  src={mbtiImages[result]} 
+                  alt={`${result} 캐릭터`}
+                  className="w-32 h-32 object-contain"
+                />
+              </div>
+            )}
+            
             <p className="text-sm leading-relaxed">
               {resultData.description}
             </p>
