@@ -368,6 +368,58 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
             console.log(`${index + 1}. ${place.title}`);
           });
           
+          // 디버깅: 어떤 키워드들이 매칭되지 않았는지 확인
+          console.log('\n=== 키워드 존재 여부 분석 ===');
+          const existingTitles = allGeneralItems.map(place => place.title);
+          
+          let foundCount = 0;
+          let notFoundKeywords: string[] = [];
+          
+          keywordsToMatch.forEach((keyword, index) => {
+            const found = allGeneralItems.some(place => {
+              if (!place.title) return false;
+              
+              const normalizedTitle = place.title.trim();
+              const normalizedKeyword = keyword.trim();
+              
+              return normalizedTitle === normalizedKeyword || 
+                     normalizedTitle.includes(normalizedKeyword) || 
+                     normalizedKeyword.includes(normalizedTitle) ||
+                     normalizedTitle.replace(/\s/g, '').includes(normalizedKeyword.replace(/\s/g, '')) ||
+                     normalizedKeyword.replace(/\s/g, '').includes(normalizedTitle.replace(/\s/g, ''));
+            });
+            
+            if (found) {
+              foundCount++;
+              console.log(`✓ [${index + 1}/${keywordsToMatch.length}] "${keyword}" - 존재함`);
+            } else {
+              notFoundKeywords.push(keyword);
+              console.log(`✗ [${index + 1}/${keywordsToMatch.length}] "${keyword}" - 찾을 수 없음`);
+            }
+          });
+          
+          console.log(`\n=== 결과 요약 ===`);
+          console.log(`전체 키워드: ${keywordsToMatch.length}개`);
+          console.log(`찾은 키워드: ${foundCount}개`);
+          console.log(`못 찾은 키워드: ${notFoundKeywords.length}개`);
+          
+          if (notFoundKeywords.length > 0 && notFoundKeywords.length <= 20) {
+            console.log('\n못 찾은 키워드 목록:');
+            notFoundKeywords.forEach((keyword, index) => {
+              console.log(`${index + 1}. ${keyword}`);
+              
+              // 비슷한 이름 찾기
+              const similar = existingTitles.filter(title => {
+                const keywordWords = keyword.split(/[\s\-\(\)]/g).filter(word => word.length > 1);
+                return keywordWords.some(word => title.includes(word));
+              }).slice(0, 2);
+              
+              if (similar.length > 0) {
+                console.log(`   유사한 것: ${similar.join(', ')}`);
+              }
+            });
+          }
+          
           // 중복 제거 (contentid 기준)
           const existingContentIds = new Set(combinedPetPlaces.map(place => place.contentid));
           const uniqueMatchedPlaces = matchedGeneralPlaces.filter(place => 
