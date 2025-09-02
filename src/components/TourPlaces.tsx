@@ -276,159 +276,83 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
         }
 
         // 2. 일반 관광지에서 키워드 매칭된 것들 추가
-        if (generalResponse.data?.tourismData && !generalResponse.data.tourismData.error && 
-            generalResponse.data.tourismData.response?.header?.resultCode === "0000" &&
-            generalResponse.data.tourismData.response?.body?.items?.item) {
+        console.log('=== 키워드별 개별 검색 시작 ===');
+        
+        // 키워드별로 개별 API 검색 수행
+        const keywordsToMatch = petKeyword ? [petKeyword] : petFriendlyKeywords;
+        console.log(`${keywordsToMatch.length}개 키워드로 개별 검색 시작`);
+        
+        let allMatchedPlaces: any[] = [];
+        
+        // 키워드를 배치로 나누어 병렬 처리 (한번에 10개씩)
+        const batchSize = 10;
+        for (let i = 0; i < keywordsToMatch.length; i += batchSize) {
+          const batch = keywordsToMatch.slice(i, i + batchSize);
+          console.log(`배치 ${Math.floor(i/batchSize) + 1}: ${batch.length}개 키워드 검색 중...`);
           
-          // 여러 페이지에서 데이터 가져오기
-          let allGeneralItems: any[] = [];
-          const firstPageItems = generalResponse.data.tourismData.response.body.items.item;
-          allGeneralItems = Array.isArray(firstPageItems) ? firstPageItems : firstPageItems ? [firstPageItems] : [];
-          
-          // 추가 페이지들도 가져오기 (최대 5페이지까지)
-          const totalCount = generalResponse.data.tourismData.response.body.totalCount || 0;
-          const maxPages = Math.min(5, Math.ceil(totalCount / 200));
-          
-          console.log(`총 ${totalCount}개의 일반 관광지 중 최대 ${maxPages}페이지 로딩`);
-          
-          if (maxPages > 1) {
-            const additionalRequests = [];
-            for (let page = 2; page <= maxPages; page++) {
-              additionalRequests.push(
-                supabase.functions.invoke('combined-tour-api', {
-                  body: {
-                    areaCode: userAreaCode,
-                    numOfRows: '200',
-                    pageNo: page.toString(),
-                    keyword: petKeyword || '',
-                    activeTab: 'general'
-                  }
-                })
-              );
-            }
-            
-            const additionalResponses = await Promise.all(additionalRequests);
-            
-            additionalResponses.forEach((response, index) => {
+          const batchPromises = batch.map(async (keyword) => {
+            try {
+              const response = await supabase.functions.invoke('combined-tour-api', {
+                body: {
+                  areaCode: userAreaCode,
+                  numOfRows: '20', // 키워드당 최대 20개
+                  pageNo: '1',
+                  keyword: keyword, // 개별 키워드로 검색
+                  activeTab: 'general'
+                }
+              });
+              
               if (response.data?.tourismData?.response?.body?.items?.item) {
-                const pageItems = response.data.tourismData.response.body.items.item;
-                const processedPageItems = Array.isArray(pageItems) ? pageItems : pageItems ? [pageItems] : [];
-                allGeneralItems = [...allGeneralItems, ...processedPageItems];
-                console.log(`페이지 ${index + 2}: ${processedPageItems.length}개 추가로드`);
+                const items = response.data.tourismData.response.body.items.item;
+                const processedItems = Array.isArray(items) ? items : items ? [items] : [];
+                console.log(`✓ "${keyword}": ${processedItems.length}개 발견`);
+                return processedItems;
+              } else {
+                console.log(`✗ "${keyword}": 검색 결과 없음`);
+                return [];
               }
-            });
-          }
-          
-          console.log(`전체 일반 관광지 ${allGeneralItems.length}개 로드 완료`);
-          
-          // 키워드 매칭 (검색어가 있으면 검색어 우선, 없으면 미리 정의된 키워드 사용)
-          const keywordsToMatch = petKeyword ? [petKeyword] : petFriendlyKeywords;
-          console.log(`매칭할 키워드 ${keywordsToMatch.length}개:`, keywordsToMatch.slice(0, 10));
-          
-          const matchedGeneralPlaces = allGeneralItems.filter((place: any) => {
-            if (!place.title) return false;
-            
-            return keywordsToMatch.some(keyword => {
-              // 더 유연한 매칭 방식
-              const normalizedTitle = place.title.trim();
-              const normalizedKeyword = keyword.trim();
-              
-              // 1. 정확히 일치
-              if (normalizedTitle === normalizedKeyword) {
-                console.log(`정확 매칭: "${normalizedTitle}" = "${normalizedKeyword}"`);
-                return true;
-              }
-              
-              // 2. 제목이 키워드를 포함
-              if (normalizedTitle.includes(normalizedKeyword)) {
-                console.log(`제목 포함 매칭: "${normalizedTitle}" 포함 "${normalizedKeyword}"`);
-                return true;
-              }
-              
-              // 3. 키워드가 제목을 포함
-              if (normalizedKeyword.includes(normalizedTitle)) {
-                console.log(`키워드 포함 매칭: "${normalizedKeyword}" 포함 "${normalizedTitle}"`);
-                return true;
-              }
-              
-              // 4. 공백 제거 후 비교
-              const titleNoSpace = normalizedTitle.replace(/\s/g, '');
-              const keywordNoSpace = normalizedKeyword.replace(/\s/g, '');
-              if (titleNoSpace.includes(keywordNoSpace) || keywordNoSpace.includes(titleNoSpace)) {
-                console.log(`공백 제거 매칭: "${titleNoSpace}" <-> "${keywordNoSpace}"`);
-                return true;
-              }
-              
-              return false;
-            });
-          });
-
-          console.log(`키워드 매칭된 일반 관광지 ${matchedGeneralPlaces.length}개:`);
-          matchedGeneralPlaces.forEach((place: any, index: number) => {
-            console.log(`${index + 1}. ${place.title}`);
-          });
-          
-          // 디버깅: 어떤 키워드들이 매칭되지 않았는지 확인
-          console.log('\n=== 키워드 존재 여부 분석 ===');
-          const existingTitles = allGeneralItems.map(place => place.title);
-          
-          let foundCount = 0;
-          let notFoundKeywords: string[] = [];
-          
-          keywordsToMatch.forEach((keyword, index) => {
-            const found = allGeneralItems.some(place => {
-              if (!place.title) return false;
-              
-              const normalizedTitle = place.title.trim();
-              const normalizedKeyword = keyword.trim();
-              
-              return normalizedTitle === normalizedKeyword || 
-                     normalizedTitle.includes(normalizedKeyword) || 
-                     normalizedKeyword.includes(normalizedTitle) ||
-                     normalizedTitle.replace(/\s/g, '').includes(normalizedKeyword.replace(/\s/g, '')) ||
-                     normalizedKeyword.replace(/\s/g, '').includes(normalizedTitle.replace(/\s/g, ''));
-            });
-            
-            if (found) {
-              foundCount++;
-              console.log(`✓ [${index + 1}/${keywordsToMatch.length}] "${keyword}" - 존재함`);
-            } else {
-              notFoundKeywords.push(keyword);
-              console.log(`✗ [${index + 1}/${keywordsToMatch.length}] "${keyword}" - 찾을 수 없음`);
+            } catch (error) {
+              console.error(`키워드 "${keyword}" 검색 실패:`, error);
+              return [];
             }
           });
           
-          console.log(`\n=== 결과 요약 ===`);
-          console.log(`전체 키워드: ${keywordsToMatch.length}개`);
-          console.log(`찾은 키워드: ${foundCount}개`);
-          console.log(`못 찾은 키워드: ${notFoundKeywords.length}개`);
+          const batchResults = await Promise.all(batchPromises);
+          const batchMatched = batchResults.flat();
+          allMatchedPlaces = [...allMatchedPlaces, ...batchMatched];
           
-          if (notFoundKeywords.length > 0 && notFoundKeywords.length <= 20) {
-            console.log('\n못 찾은 키워드 목록:');
-            notFoundKeywords.forEach((keyword, index) => {
-              console.log(`${index + 1}. ${keyword}`);
-              
-              // 비슷한 이름 찾기
-              const similar = existingTitles.filter(title => {
-                const keywordWords = keyword.split(/[\s\-\(\)]/g).filter(word => word.length > 1);
-                return keywordWords.some(word => title.includes(word));
-              }).slice(0, 2);
-              
-              if (similar.length > 0) {
-                console.log(`   유사한 것: ${similar.join(', ')}`);
-              }
-            });
+          // 배치 간 짧은 지연 (API 호출 제한 방지)
+          if (i + batchSize < keywordsToMatch.length) {
+            await new Promise(resolve => setTimeout(resolve, 100));
           }
-          
-          // 중복 제거 (contentid 기준)
-          const existingContentIds = new Set(combinedPetPlaces.map(place => place.contentid));
-          const uniqueMatchedPlaces = matchedGeneralPlaces.filter(place => 
-            !existingContentIds.has(place.contentid)
-          );
-          
-          console.log(`중복 제거 후 ${uniqueMatchedPlaces.length}개 최종 추가`);
-          combinedPetPlaces = [...combinedPetPlaces, ...uniqueMatchedPlaces];
         }
+        
+        console.log(`키워드별 검색 완료: 총 ${allMatchedPlaces.length}개 관광지 발견`);
+        
+        // 중복 제거 (contentid 기준)
+        const existingContentIds = new Set(combinedPetPlaces.map(place => place.contentid));
+        const seenContentIds = new Set();
+        
+        const uniqueMatchedPlaces = allMatchedPlaces.filter(place => {
+          const contentId = place.contentid;
+          if (!contentId || existingContentIds.has(contentId) || seenContentIds.has(contentId)) {
+            return false;
+          }
+          seenContentIds.add(contentId);
+          return true;
+        });
+        
+        console.log(`중복 제거 후 ${uniqueMatchedPlaces.length}개 최종 추가`);
+        
+        // 추가된 관광지 목록 출력
+        if (uniqueMatchedPlaces.length > 0) {
+          console.log('추가된 관광지들:');
+          uniqueMatchedPlaces.forEach((place: any, index: number) => {
+            console.log(`${index + 1}. ${place.title} (${place.addr1})`);
+          });
+        }
+        
+        combinedPetPlaces = [...combinedPetPlaces, ...uniqueMatchedPlaces];
 
         // 페이지네이션 적용 (클라이언트 사이드)
         const itemsPerPage = 10;
