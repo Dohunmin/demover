@@ -174,7 +174,7 @@ const Index = () => {
         {/* MBTI Test Section */}
         <div className="px-5 py-6">
           <div className="card text-center">
-            <div className="w-48 h-16 bg-white border border-gray-100 rounded-xl mx-auto mb-4 flex items-center justify-center shadow-[0_2px_6px_rgba(0,0,0,0.05)] overflow-hidden">
+            <div className="w-64 h-24 bg-white border border-gray-100 rounded-xl mx-auto mb-4 flex items-center justify-center shadow-[0_2px_6px_rgba(0,0,0,0.05)] overflow-hidden">
               <img 
                 src="/lovable-uploads/8e8852b6-3098-4496-bbe1-93b235fc4e6a.png" 
                 alt="멍BTI 캐릭터들"
