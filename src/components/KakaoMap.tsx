@@ -331,37 +331,62 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
   // 일반 관광지 중 반려동물 동반 가능한 곳들 로드
   const loadGeneralTourismAsPet = useCallback(async () => {
     try {
-      console.log('일반 관광지를 반려동물 동반으로 표시 시작...');
+      console.log('=== 일반 관광지를 반려동물 동반으로 표시 시작 ===');
+      console.log('petFriendlyKeywords 개수:', petFriendlyKeywords.length);
       
       const response = await supabase.functions.invoke('combined-tour-api', {
         body: {
           areaCode: '6', // 부산
-          numOfRows: '100', // 키워드 매칭을 위해 더 많은 데이터 가져오기
+          numOfRows: '200', // 더 많은 데이터 가져오기
           pageNo: '1',
           keyword: '', // 키워드 없이 전체 목록
           activeTab: 'general'
         }
       });
 
+      console.log('API 응답:', response);
+
       if (response.data?.tourismData?.response?.body?.items?.item) {
         const generalPlaces = response.data.tourismData.response.body.items.item;
         console.log(`${generalPlaces.length}개의 일반 관광지 데이터를 가져왔습니다.`);
         
-        // 키워드 매칭
-        const matchedPlaces = generalPlaces.filter((place: any) => 
-          petFriendlyKeywords.some(keyword => 
-            place.title && place.title.includes(keyword)
-          )
-        );
+        // 처음 10개의 관광지 제목을 콘솔에 출력
+        console.log('가져온 관광지들 (처음 10개):');
+        generalPlaces.slice(0, 10).forEach((place: any, index: number) => {
+          console.log(`${index + 1}. ${place.title}`);
+        });
+        
+        // 키워드 매칭 - 더 유연한 매칭 방식
+        const matchedPlaces = generalPlaces.filter((place: any) => {
+          if (!place.title) return false;
+          
+          return petFriendlyKeywords.some(keyword => {
+            // 정확히 일치하거나, 키워드가 제목에 포함되거나, 제목이 키워드에 포함되는 경우
+            const titleMatch = place.title.includes(keyword) || keyword.includes(place.title);
+            if (titleMatch) {
+              console.log(`매칭됨: "${place.title}" <-> "${keyword}"`);
+            }
+            return titleMatch;
+          });
+        });
         
         console.log(`${matchedPlaces.length}개의 일반 관광지가 반려동물 동반 키워드와 매칭되었습니다.`);
         
         if (matchedPlaces.length > 0) {
+          console.log('매칭된 관광지들:');
+          matchedPlaces.forEach((place: any, index: number) => {
+            console.log(`${index + 1}. ${place.title} (${place.addr1})`);
+          });
+          
           createGeneralTourismAsPetMarkers(matchedPlaces);
           toast.success(`${matchedPlaces.length}개의 일반 관광지를 반려동물 동반 여행지로 추가 표시했습니다.`);
+        } else {
+          console.log('매칭되는 관광지가 없습니다.');
+          toast.warning('키워드와 매칭되는 관광지를 찾을 수 없습니다.');
         }
       } else {
         console.log('일반 관광지 데이터가 없습니다.');
+        console.log('Response structure:', JSON.stringify(response.data, null, 2));
       }
     } catch (error) {
       console.error('일반 관광지를 반려동물 동반으로 표시 오류:', error);
