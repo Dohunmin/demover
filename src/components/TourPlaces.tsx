@@ -282,8 +282,8 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
           combinedPetPlaces = [...processedPetData];
         }
 
-        // 2. 최적화된 반려동물 동반 관광지 검색
-        console.log('=== 최적화된 반려동물 동반 여행지 검색 시작 ===');
+        // 2. 95개 전체 키워드로 반려동물 동반 관광지 검색
+        console.log('=== 95개 전체 키워드로 반려동물 동반 여행지 검색 시작 ===');
         console.log('전체 petFriendlyKeywords 배열 크기:', petFriendlyKeywords.length);
         
         let allMatchedPlaces: any[] = [];
@@ -312,30 +312,28 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
             console.error(`"${petKeyword}" 검색 실패:`, error);
           }
         } else {
-          // 전체 키워드 검색인 경우 - 우선순위가 높은 키워드만 먼저 로드
-          const priorityKeywords = [
-            '부산시민공원', '온천천시민공원', '대저생태공원', '삼락생태공원', '맥도생태공원',
-            '광안리해수욕장', '해운대해수욕장', '송정해수욕장', '다대포해수욕장',
-            '태종대', '해동용궁사', '부산 감천문화마을', '부산 송도해상케이블카',
-            '국립부산과학관', '부산어린이대공원', '을숙도 공원'
-          ];
+          // 95개 전체 키워드 검색 - 속도 최적화
+          console.log(`95개 전체 키워드로 검색 시작 (총 ${petFriendlyKeywords.length}개)`);
           
-          console.log('우선순위 키워드 16개로 빠른 로딩 시작...');
-          
-          // 우선순위 키워드를 한 번에 4개씩 병렬 처리
-          const batchSize = 4;
           let successCount = 0;
           let failCount = 0;
           
-          for (let i = 0; i < priorityKeywords.length; i += batchSize) {
-            const batch = priorityKeywords.slice(i, i + batchSize);
+          // 더 큰 배치로 병렬 처리 (한번에 8개씩)
+          const batchSize = 8;
+          
+          for (let i = 0; i < petFriendlyKeywords.length; i += batchSize) {
+            const batch = petFriendlyKeywords.slice(i, i + batchSize);
+            const batchNumber = Math.floor(i/batchSize) + 1;
+            const totalBatches = Math.ceil(petFriendlyKeywords.length/batchSize);
             
-            const batchPromises = batch.map(async (keyword) => {
+            console.log(`배치 ${batchNumber}/${totalBatches}: ${batch.length}개 키워드 검색 중...`);
+            
+            const batchPromises = batch.map(async (keyword, index) => {
               try {
                 const response = await supabase.functions.invoke('combined-tour-api', {
                   body: {
                     areaCode: userAreaCode,
-                    numOfRows: '5',
+                    numOfRows: '5', // 키워드당 5개로 제한 (속도 향상)
                     pageNo: '1',
                     keyword: keyword,
                     activeTab: 'general'
@@ -348,17 +346,17 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
                   const processedItems = Array.isArray(items) ? items : items ? [items] : [];
                   
                   if (processedItems.length > 0) {
-                    console.log(`✓ "${keyword}": ${processedItems.length}개 발견`);
+                    console.log(`  ✓ "${keyword}": ${processedItems.length}개 발견`);
                     successCount++;
                     return processedItems;
                   }
                 }
                 
-                console.log(`✗ "${keyword}": 검색 결과 없음`);
+                console.log(`  ✗ "${keyword}": 검색 결과 없음`);
                 failCount++;
                 return [];
               } catch (error) {
-                console.error(`✗ "${keyword}" 검색 실패:`, error);
+                console.error(`  ✗ "${keyword}" 검색 실패:`, error);
                 failCount++;
                 return [];
               }
@@ -368,16 +366,18 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
             const batchMatched = batchResults.flat();
             allMatchedPlaces = [...allMatchedPlaces, ...batchMatched];
             
-            // 진행상황 표시
-            console.log(`배치 ${Math.floor(i/batchSize) + 1}/${Math.ceil(priorityKeywords.length/batchSize)} 완료 - 현재 ${allMatchedPlaces.length}개 장소 로드`);
+            // 진행상황 실시간 업데이트
+            console.log(`  → 배치 ${batchNumber} 완료: 현재 총 ${allMatchedPlaces.length}개 장소 발견`);
             
-            // 배치 간 짧은 지연
-            if (i + batchSize < priorityKeywords.length) {
-              await new Promise(resolve => setTimeout(resolve, 100));
+            // 배치 간 짧은 지연 (API 제한 방지)
+            if (i + batchSize < petFriendlyKeywords.length) {
+              await new Promise(resolve => setTimeout(resolve, 50)); // 지연 시간 단축
             }
           }
           
-          console.log(`우선순위 검색 완료 - 성공: ${successCount}개, 실패: ${failCount}개`);
+          console.log(`\n전체 키워드 검색 완료!`);
+          console.log(`- 성공한 키워드: ${successCount}개`);
+          console.log(`- 실패한 키워드: ${failCount}개`);
         }
         
         console.log('\n=== 키워드별 검색 결과 요약 ===');
