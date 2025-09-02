@@ -47,83 +47,142 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
   const [showMobileList, setShowMobileList] = useState(false);
   const [petTourismMarkers, setPetTourismMarkers] = useState<any[]>([]); // 반려동물 여행지 전용 마커들
 
-  // 카카오 지도 SDK 로드
+  // 카카오 지도 SDK 로드 (재시도 로직 포함)
   useEffect(() => {
+    let retryCount = 0;
+    const maxRetries = 3;
+    let retryTimeout: NodeJS.Timeout;
+
     const loadKakaoMap = async () => {
       try {
-        // 실제 카카오 JavaScript 키
-        const KAKAO_JS_KEY = 'e1bab1adac4710bd4df596c913ccfd0f';
+        // Supabase에서 카카오 JavaScript 키 가져오기
+        const { data, error } = await supabase.functions.invoke('test-api-key');
         
-        console.log('카카오 지도 로드 시작...');
+        if (error || !data?.kakaoJsKey) {
+          console.error('카카오 JS API 키를 가져올 수 없습니다:', error);
+          toast.error('카카오 지도 API 키를 가져올 수 없습니다.');
+          return;
+        }
+
+        const KAKAO_JS_KEY = data.kakaoJsKey;
+        console.log('카카오 지도 로드 시작... (시도:', retryCount + 1, '/', maxRetries, ')');
         
         // 이미 로드된 경우 바로 초기화
-        if (window.kakao && window.kakao.maps) {
+        if (window.kakao && window.kakao.maps && window.kakao.maps.LatLng) {
           console.log('카카오 지도 이미 로드됨');
           initializeMap();
           setIsMapLoaded(true);
           return;
         }
 
-        // 기존 스크립트 제거
-        const existingScript = document.querySelector('script[src*="dapi.kakao.com"]');
-        if (existingScript) {
-          existingScript.remove();
-          console.log('기존 스크립트 제거됨');
+        // 기존 스크립트들 완전 제거
+        const existingScripts = document.querySelectorAll('script[src*="dapi.kakao.com"]');
+        existingScripts.forEach(script => {
+          script.remove();
+          console.log('기존 스크립트 제거됨:', (script as HTMLScriptElement).src);
+        });
+
+        // window.kakao 객체 정리
+        if (window.kakao) {
+          delete window.kakao;
+          console.log('기존 window.kakao 객체 제거됨');
         }
+
+        // 잠시 대기 후 스크립트 로드
+        await new Promise(resolve => setTimeout(resolve, 100));
 
         const script = document.createElement('script');
         script.type = 'text/javascript';
+        script.async = true;
+        script.defer = true;
         script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JS_KEY}&autoload=false&libraries=services,clusterer`;
         
         script.onload = () => {
           console.log('카카오 지도 스크립트 로드 성공');
           
-          if (window.kakao && window.kakao.maps) {
-            window.kakao.maps.load(() => {
-              console.log('카카오 지도 API 초기화 완료');
-              initializeMap();
-              setIsMapLoaded(true);
-            });
-          } else {
-            console.error('window.kakao.maps 객체가 없습니다');
-            toast.error('카카오 지도 API를 찾을 수 없습니다.');
-          }
+          // 스크립트 로드 후 잠시 대기
+          setTimeout(() => {
+            if (window.kakao && window.kakao.maps) {
+              window.kakao.maps.load(() => {
+                console.log('카카오 지도 API 초기화 완료');
+                initializeMap();
+                setIsMapLoaded(true);
+                retryCount = 0; // 성공시 재시도 카운터 리셋
+              });
+            } else {
+              console.error('window.kakao.maps 객체가 없습니다');
+              handleLoadError();
+            }
+          }, 200);
         };
         
         script.onerror = (error) => {
           console.error('카카오 지도 스크립트 로드 실패:', error);
-          toast.error('카카오 지도 스크립트 로드에 실패했습니다. API 키와 도메인 설정을 확인해주세요.');
+          handleLoadError();
         };
+
+        // 타임아웃 설정 (10초)
+        const timeout = setTimeout(() => {
+          console.error('카카오 지도 스크립트 로드 타임아웃');
+          script.remove();
+          handleLoadError();
+        }, 10000);
+
+        script.addEventListener('load', () => clearTimeout(timeout));
+        script.addEventListener('error', () => clearTimeout(timeout));
         
         document.head.appendChild(script);
-        console.log('카카오 지도 스크립트 태그 추가됨');
+        console.log('카카오 지도 스크립트 태그 추가됨:', script.src);
         
       } catch (error) {
         console.error('카카오 지도 로드 중 예외 발생:', error);
-        toast.error(`지도 로드 오류: ${error.message}`);
+        handleLoadError();
+      }
+    };
+
+    const handleLoadError = () => {
+      retryCount++;
+      if (retryCount < maxRetries) {
+        console.log(`재시도 예정 (${retryCount}/${maxRetries})`);
+        retryTimeout = setTimeout(() => {
+          loadKakaoMap();
+        }, 2000 * retryCount); // 재시도 시마다 지연 시간 증가
+      } else {
+        console.error('카카오 지도 로드 최대 재시도 횟수 초과');
+        toast.error('카카오 지도 로드에 실패했습니다. 페이지를 새로고침해주세요.');
       }
     };
 
     loadKakaoMap();
 
     return () => {
-      // 컴포넌트 언마운트 시 정리
-      const script = document.querySelector('script[src*="dapi.kakao.com"]');
-      if (script) {
-        console.log('컴포넌트 언마운트 - 스크립트 제거');
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
       }
     };
+
   }, []);
 
   // 지도 초기화
   const initializeMap = useCallback(() => {
-    if (!mapRef.current || !window.kakao || !window.kakao.maps) {
-      console.error('지도 초기화 실패: 필요한 요소가 없습니다.');
+    if (!mapRef.current) {
+      console.error('지도 초기화 실패: mapRef가 없습니다.');
+      return;
+    }
+
+    if (!window.kakao || !window.kakao.maps) {
+      console.error('지도 초기화 실패: Kakao Maps API가 로드되지 않았습니다.');
       toast.error('지도 초기화에 실패했습니다.');
       return;
     }
 
     try {
+      // 기존 지도 인스턴스가 있으면 정리
+      if (mapInstance.current) {
+        console.log('기존 지도 인스턴스 정리');
+        mapInstance.current = null;
+      }
+
       const options = {
         center: new window.kakao.maps.LatLng(35.1796, 129.0756), // 부산시청
         level: 5,
@@ -133,6 +192,10 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
       console.log('지도 인스턴스 생성 완료');
       
       // 클러스터러 초기화
+      if (clusterer.current) {
+        clusterer.current.clear();
+      }
+      
       clusterer.current = new window.kakao.maps.MarkerClusterer({
         map: mapInstance.current,
         averageCenter: true,
@@ -141,6 +204,10 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
       console.log('마커 클러스터러 생성 완료');
 
       // 인포윈도우 초기화
+      if (infoWindow.current) {
+        infoWindow.current.close();
+      }
+
       infoWindow.current = new window.kakao.maps.InfoWindow({
         removable: true,
       });
