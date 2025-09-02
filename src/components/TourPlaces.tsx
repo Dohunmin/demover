@@ -282,81 +282,105 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
           combinedPetPlaces = [...processedPetData];
         }
 
-        // 2. 일반 관광지에서 키워드 매칭된 것들 추가
-        console.log('=== 정확한 키워드 95개로 개별 검색 시작 ===');
+        // 2. 최적화된 반려동물 동반 관광지 검색
+        console.log('=== 최적화된 반려동물 동반 여행지 검색 시작 ===');
         console.log('전체 petFriendlyKeywords 배열 크기:', petFriendlyKeywords.length);
-        console.log('첫 번째 키워드:', petFriendlyKeywords[0]);
-        console.log('마지막 키워드:', petFriendlyKeywords[petFriendlyKeywords.length - 1]);
-        
-        const keywordsToMatch = petKeyword ? [petKeyword] : petFriendlyKeywords;
-        console.log(`실제 검색할 키워드 개수: ${keywordsToMatch.length}개`);
-        console.log('petKeyword:', petKeyword ? `"${petKeyword}"` : '없음');
         
         let allMatchedPlaces: any[] = [];
-        let successCount = 0;
-        let failCount = 0;
         
-        // 키워드를 배치로 나누어 병렬 처리 (한번에 5개씩 - API 부하 줄이기)
-        const batchSize = 5;
-        for (let i = 0; i < keywordsToMatch.length; i += batchSize) {
-          const batch = keywordsToMatch.slice(i, i + batchSize);
-          console.log(`배치 ${Math.floor(i/batchSize) + 1}/${Math.ceil(keywordsToMatch.length/batchSize)}: ${batch.length}개 키워드 검색 중...`);
+        if (petKeyword) {
+          // 특정 키워드 검색인 경우
+          console.log(`특정 키워드 "${petKeyword}" 검색`);
+          try {
+            const response = await supabase.functions.invoke('combined-tour-api', {
+              body: {
+                areaCode: userAreaCode,
+                numOfRows: '20',
+                pageNo: '1',
+                keyword: petKeyword,
+                activeTab: 'general'
+              }
+            });
+            
+            if (response.data?.tourismData?.response?.header?.resultCode === "0000" &&
+                response.data?.tourismData?.response?.body?.items?.item) {
+              const items = response.data.tourismData.response.body.items.item;
+              allMatchedPlaces = Array.isArray(items) ? items : items ? [items] : [];
+              console.log(`"${petKeyword}" 검색 결과: ${allMatchedPlaces.length}개`);
+            }
+          } catch (error) {
+            console.error(`"${petKeyword}" 검색 실패:`, error);
+          }
+        } else {
+          // 전체 키워드 검색인 경우 - 우선순위가 높은 키워드만 먼저 로드
+          const priorityKeywords = [
+            '부산시민공원', '온천천시민공원', '대저생태공원', '삼락생태공원', '맥도생태공원',
+            '광안리해수욕장', '해운대해수욕장', '송정해수욕장', '다대포해수욕장',
+            '태종대', '해동용궁사', '부산 감천문화마을', '부산 송도해상케이블카',
+            '국립부산과학관', '부산어린이대공원', '을숙도 공원'
+          ];
           
-          const batchPromises = batch.map(async (keyword) => {
-            try {
-              console.log(`  "${keyword}" 검색 중...`);
-              const response = await supabase.functions.invoke('combined-tour-api', {
-                body: {
-                  areaCode: userAreaCode,
-                  numOfRows: '10', // 키워드당 최대 10개
-                  pageNo: '1',
-                  keyword: keyword, // 정확한 키워드로 검색
-                  activeTab: 'general'
-                }
-              });
-              
-              if (response.data?.tourismData?.response?.header?.resultCode === "0000" &&
-                  response.data?.tourismData?.response?.body?.items?.item) {
-                const items = response.data.tourismData.response.body.items.item;
-                const processedItems = Array.isArray(items) ? items : items ? [items] : [];
+          console.log('우선순위 키워드 16개로 빠른 로딩 시작...');
+          
+          // 우선순위 키워드를 한 번에 4개씩 병렬 처리
+          const batchSize = 4;
+          let successCount = 0;
+          let failCount = 0;
+          
+          for (let i = 0; i < priorityKeywords.length; i += batchSize) {
+            const batch = priorityKeywords.slice(i, i + batchSize);
+            
+            const batchPromises = batch.map(async (keyword) => {
+              try {
+                const response = await supabase.functions.invoke('combined-tour-api', {
+                  body: {
+                    areaCode: userAreaCode,
+                    numOfRows: '5',
+                    pageNo: '1',
+                    keyword: keyword,
+                    activeTab: 'general'
+                  }
+                });
                 
-                if (processedItems.length > 0) {
-                  console.log(`  ✓ "${keyword}": ${processedItems.length}개 발견`);
-                  processedItems.forEach((item: any, idx: number) => {
-                    console.log(`    ${idx + 1}. ${item.title}`);
-                  });
-                  successCount++;
-                  return processedItems;
-                } else {
-                  console.log(`  ✗ "${keyword}": 검색 결과 없음`);
-                  failCount++;
-                  return [];
+                if (response.data?.tourismData?.response?.header?.resultCode === "0000" &&
+                    response.data?.tourismData?.response?.body?.items?.item) {
+                  const items = response.data.tourismData.response.body.items.item;
+                  const processedItems = Array.isArray(items) ? items : items ? [items] : [];
+                  
+                  if (processedItems.length > 0) {
+                    console.log(`✓ "${keyword}": ${processedItems.length}개 발견`);
+                    successCount++;
+                    return processedItems;
+                  }
                 }
-              } else {
-                console.log(`  ✗ "${keyword}": API 응답 오류`);
+                
+                console.log(`✗ "${keyword}": 검색 결과 없음`);
+                failCount++;
+                return [];
+              } catch (error) {
+                console.error(`✗ "${keyword}" 검색 실패:`, error);
                 failCount++;
                 return [];
               }
-            } catch (error) {
-              console.error(`  ✗ "${keyword}" 검색 실패:`, error);
-              failCount++;
-              return [];
+            });
+            
+            const batchResults = await Promise.all(batchPromises);
+            const batchMatched = batchResults.flat();
+            allMatchedPlaces = [...allMatchedPlaces, ...batchMatched];
+            
+            // 진행상황 표시
+            console.log(`배치 ${Math.floor(i/batchSize) + 1}/${Math.ceil(priorityKeywords.length/batchSize)} 완료 - 현재 ${allMatchedPlaces.length}개 장소 로드`);
+            
+            // 배치 간 짧은 지연
+            if (i + batchSize < priorityKeywords.length) {
+              await new Promise(resolve => setTimeout(resolve, 100));
             }
-          });
-          
-          const batchResults = await Promise.all(batchPromises);
-          const batchMatched = batchResults.flat();
-          allMatchedPlaces = [...allMatchedPlaces, ...batchMatched];
-          
-          // 배치 간 지연 (API 호출 제한 방지)
-          if (i + batchSize < keywordsToMatch.length) {
-            await new Promise(resolve => setTimeout(resolve, 200));
           }
+          
+          console.log(`우선순위 검색 완료 - 성공: ${successCount}개, 실패: ${failCount}개`);
         }
         
         console.log('\n=== 키워드별 검색 결과 요약 ===');
-        console.log(`성공한 키워드: ${successCount}개`);
-        console.log(`실패한 키워드: ${failCount}개`);
         console.log(`검색으로 찾은 총 관광지: ${allMatchedPlaces.length}개`);
         
         // 중복 제거 (contentid 기준)
