@@ -279,26 +279,94 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
         if (generalResponse.data?.tourismData && !generalResponse.data.tourismData.error && 
             generalResponse.data.tourismData.response?.header?.resultCode === "0000" &&
             generalResponse.data.tourismData.response?.body?.items?.item) {
-          const generalItems = generalResponse.data.tourismData.response.body.items.item;
-          const processedGeneralData = Array.isArray(generalItems) ? generalItems : generalItems ? [generalItems] : [];
-          console.log(`일반 관광지 ${processedGeneralData.length}개 가져옴`);
+          
+          // 여러 페이지에서 데이터 가져오기
+          let allGeneralItems: any[] = [];
+          const firstPageItems = generalResponse.data.tourismData.response.body.items.item;
+          allGeneralItems = Array.isArray(firstPageItems) ? firstPageItems : firstPageItems ? [firstPageItems] : [];
+          
+          // 추가 페이지들도 가져오기 (최대 5페이지까지)
+          const totalCount = generalResponse.data.tourismData.response.body.totalCount || 0;
+          const maxPages = Math.min(5, Math.ceil(totalCount / 200));
+          
+          console.log(`총 ${totalCount}개의 일반 관광지 중 최대 ${maxPages}페이지 로딩`);
+          
+          if (maxPages > 1) {
+            const additionalRequests = [];
+            for (let page = 2; page <= maxPages; page++) {
+              additionalRequests.push(
+                supabase.functions.invoke('combined-tour-api', {
+                  body: {
+                    areaCode: userAreaCode,
+                    numOfRows: '200',
+                    pageNo: page.toString(),
+                    keyword: petKeyword || '',
+                    activeTab: 'general'
+                  }
+                })
+              );
+            }
+            
+            const additionalResponses = await Promise.all(additionalRequests);
+            
+            additionalResponses.forEach((response, index) => {
+              if (response.data?.tourismData?.response?.body?.items?.item) {
+                const pageItems = response.data.tourismData.response.body.items.item;
+                const processedPageItems = Array.isArray(pageItems) ? pageItems : pageItems ? [pageItems] : [];
+                allGeneralItems = [...allGeneralItems, ...processedPageItems];
+                console.log(`페이지 ${index + 2}: ${processedPageItems.length}개 추가로드`);
+              }
+            });
+          }
+          
+          console.log(`전체 일반 관광지 ${allGeneralItems.length}개 로드 완료`);
           
           // 키워드 매칭 (검색어가 있으면 검색어 우선, 없으면 미리 정의된 키워드 사용)
           const keywordsToMatch = petKeyword ? [petKeyword] : petFriendlyKeywords;
+          console.log(`매칭할 키워드 ${keywordsToMatch.length}개:`, keywordsToMatch.slice(0, 10));
           
-          const matchedGeneralPlaces = processedGeneralData.filter((place: any) => {
+          const matchedGeneralPlaces = allGeneralItems.filter((place: any) => {
             if (!place.title) return false;
             
             return keywordsToMatch.some(keyword => {
-              const titleMatch = place.title.includes(keyword) || keyword.includes(place.title);
-              if (titleMatch) {
-                console.log(`매칭됨: "${place.title}" <-> "${keyword}"`);
+              // 더 유연한 매칭 방식
+              const normalizedTitle = place.title.trim();
+              const normalizedKeyword = keyword.trim();
+              
+              // 1. 정확히 일치
+              if (normalizedTitle === normalizedKeyword) {
+                console.log(`정확 매칭: "${normalizedTitle}" = "${normalizedKeyword}"`);
+                return true;
               }
-              return titleMatch;
+              
+              // 2. 제목이 키워드를 포함
+              if (normalizedTitle.includes(normalizedKeyword)) {
+                console.log(`제목 포함 매칭: "${normalizedTitle}" 포함 "${normalizedKeyword}"`);
+                return true;
+              }
+              
+              // 3. 키워드가 제목을 포함
+              if (normalizedKeyword.includes(normalizedTitle)) {
+                console.log(`키워드 포함 매칭: "${normalizedKeyword}" 포함 "${normalizedTitle}"`);
+                return true;
+              }
+              
+              // 4. 공백 제거 후 비교
+              const titleNoSpace = normalizedTitle.replace(/\s/g, '');
+              const keywordNoSpace = normalizedKeyword.replace(/\s/g, '');
+              if (titleNoSpace.includes(keywordNoSpace) || keywordNoSpace.includes(titleNoSpace)) {
+                console.log(`공백 제거 매칭: "${titleNoSpace}" <-> "${keywordNoSpace}"`);
+                return true;
+              }
+              
+              return false;
             });
           });
 
-          console.log(`키워드 매칭된 일반 관광지 ${matchedGeneralPlaces.length}개 추가`);
+          console.log(`키워드 매칭된 일반 관광지 ${matchedGeneralPlaces.length}개:`);
+          matchedGeneralPlaces.forEach((place: any, index: number) => {
+            console.log(`${index + 1}. ${place.title}`);
+          });
           
           // 중복 제거 (contentid 기준)
           const existingContentIds = new Set(combinedPetPlaces.map(place => place.contentid));
