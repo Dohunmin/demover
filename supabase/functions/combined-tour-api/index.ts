@@ -10,14 +10,23 @@ function parseXmlToJson(xmlText: string) {
   try {
     console.log('Parsing XML content:', xmlText.substring(0, 500));
     
-    // SERVICE ERROR 체크
+    // SERVICE ERROR 체크 - 더 상세한 로깅
     if (xmlText.includes('SERVICE ERROR') || xmlText.includes('NO_OPENAPI_SERVICE_ERROR')) {
       const errorMatch = xmlText.match(/<errMsg>(.*?)<\/errMsg>/);
+      const errorCodeMatch = xmlText.match(/<errCd>(.*?)<\/errCd>/);
       const errorMsg = errorMatch ? errorMatch[1] : 'Unknown service error';
-      console.error('API Service Error:', errorMsg);
+      const errorCode = errorCodeMatch ? errorCodeMatch[1] : 'Unknown error code';
+      
+      console.error('API Service Error Details:', {
+        errorCode,
+        errorMsg,
+        fullResponse: xmlText.substring(0, 500)
+      });
+      
       return {
         error: true,
-        message: errorMsg
+        message: `${errorCode}: ${errorMsg}`,
+        details: { errorCode, errorMsg }
       };
     }
     

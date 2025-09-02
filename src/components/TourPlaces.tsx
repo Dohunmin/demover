@@ -312,107 +312,12 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
             console.error(`"${petKeyword}" 검색 실패:`, error);
           }
         } else {
-          // 95개 전체 키워드 검색 - 에러에 안전한 방식
-          console.log(`95개 전체 키워드로 검색 시작 (총 ${petFriendlyKeywords.length}개)`);
+          // API 부하를 줄이기 위해 임시 중단
+          console.log('⚠️ API SERVICE ERROR 다발 발생으로 키워드 검색을 임시 중단합니다.');
+          console.log('현재 기존 반려동물 여행지만 표시합니다.');
           
-          let successCount = 0;
-          let failCount = 0;
-          let serverErrorCount = 0;
-          
-          // API 에러를 피하기 위해 작은 배치로 순차 처리
-          const batchSize = 3; // 더 작은 배치로 변경
-          
-          for (let i = 0; i < petFriendlyKeywords.length; i += batchSize) {
-            const batch = petFriendlyKeywords.slice(i, i + batchSize);
-            const batchNumber = Math.floor(i/batchSize) + 1;
-            const totalBatches = Math.ceil(petFriendlyKeywords.length/batchSize);
-            
-            console.log(`배치 ${batchNumber}/${totalBatches}: ${batch.length}개 키워드 검색 중...`);
-            
-            // 순차 처리로 변경 (병렬 처리 시 API 부하로 500 에러 발생)
-            for (const keyword of batch) {
-              try {
-                console.log(`  "${keyword}" 검색 중...`);
-                
-                const response = await supabase.functions.invoke('combined-tour-api', {
-                  body: {
-                    areaCode: userAreaCode,
-                    numOfRows: '3', // 더 적은 수로 변경
-                    pageNo: '1',
-                    keyword: keyword,
-                    activeTab: 'general'
-                  }
-                });
-                
-                // 응답 상태 확인 - 새로운 구조에 맞게 수정
-                if (response.error) {
-                  console.error(`  ✗ "${keyword}" Supabase 함수 에러:`, response.error);
-                  serverErrorCount++;
-                  failCount++;
-                  continue;
-                }
-                
-                // API 성공 여부 확인
-                if (response.data?.status?.tourism === 'success' &&
-                    response.data?.tourismData?.response?.header?.resultCode === "0000" &&
-                    response.data?.tourismData?.response?.body?.items?.item) {
-                  const items = response.data.tourismData.response.body.items.item;
-                  const processedItems = Array.isArray(items) ? items : items ? [items] : [];
-                  
-                  if (processedItems.length > 0) {
-                    console.log(`  ✓ "${keyword}": ${processedItems.length}개 발견`);
-                    allMatchedPlaces = [...allMatchedPlaces, ...processedItems];
-                    successCount++;
-                  } else {
-                    console.log(`  ✗ "${keyword}": 검색 결과 없음`);
-                    failCount++;
-                  }
-                } else if (response.data?.status?.tourism === 'failed') {
-                  // API는 성공했지만 검색 결과가 없거나 오류인 경우
-                  const errorMsg = response.data?.errors?.tourism || 'API 응답 오류';
-                  console.log(`  ✗ "${keyword}": ${errorMsg}`);
-                  if (errorMsg.includes('SERVICE ERROR') || errorMsg.includes('500')) {
-                    serverErrorCount++;
-                  }
-                  failCount++;
-                } else {
-                  console.log(`  ✗ "${keyword}": 예상치 못한 응답 구조`);
-                  failCount++;
-                }
-                
-                // 키워드 간 지연 (API 부하 방지)
-                await new Promise(resolve => setTimeout(resolve, 200)); // 지연 시간 단축
-                
-              } catch (error) {
-                console.error(`  ✗ "${keyword}" 검색 실패:`, error);
-                failCount++;
-                
-                if (error instanceof Error && (error.message?.includes('500') || error.message?.includes('Internal Server Error'))) {
-                  serverErrorCount++;
-                  console.log(`    → 서버 에러로 인한 실패 (총 ${serverErrorCount}개)`);
-                }
-              }
-            }
-            
-            // 진행상황 실시간 업데이트
-            console.log(`  → 배치 ${batchNumber} 완료: 현재 총 ${allMatchedPlaces.length}개 장소 발견`);
-            console.log(`    성공: ${successCount}, 실패: ${failCount}, 서버에러: ${serverErrorCount}`);
-            
-            // 배치 간 긴 지연 (API 안정화)
-            if (i + batchSize < petFriendlyKeywords.length) {
-              console.log(`  → 다음 배치까지 잠시 대기 중...`);
-              await new Promise(resolve => setTimeout(resolve, 1000)); // 1초 대기
-            }
-          }
-          
-          console.log(`\n전체 키워드 검색 완료!`);
-          console.log(`- 성공한 키워드: ${successCount}개`);
-          console.log(`- 실패한 키워드: ${failCount}개`);
-          console.log(`- 서버 에러: ${serverErrorCount}개`);
-          
-          if (serverErrorCount > 10) {
-            console.warn('⚠️ 서버 에러가 많이 발생했습니다. API 서비스에 일시적 문제가 있을 수 있습니다.');
-          }
+          // 사용자에게 알림
+          toast.error('한국관광공사 API에 일시적 문제가 발생했습니다. 기존 반려동물 여행지만 표시됩니다.');
         }
         
         console.log('\n=== 키워드별 검색 결과 요약 ===');
