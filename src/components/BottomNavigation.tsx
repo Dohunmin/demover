@@ -31,7 +31,7 @@ const BottomNavigation = ({ activeTab, onTabChange, onMbtiClick }: BottomNavigat
                 }
               }}
               className={cn(
-                "flex flex-col items-center justify-center h-full px-3 transition-colors duration-200 ease-in-out nav-item",
+                "flex flex-col items-center justify-center h-full px-1 transition-colors duration-200 ease-in-out nav-item",
                 "min-w-0 flex-1",
                 activeTab === id && "active"
               )}
