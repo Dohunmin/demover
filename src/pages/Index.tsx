@@ -174,6 +174,9 @@ const Index = () => {
         {/* MBTI Test Section */}
         <div className="px-5 py-6">
           <div className="card text-center">
+            <h2 className="card-title text-lg mb-4">
+              우리 강아지는 어떤 여행 스타일?
+            </h2>
             <div className="w-30 h-30 bg-white border border-gray-100 rounded-xl mx-auto mb-4 flex items-center justify-center shadow-[0_2px_6px_rgba(0,0,0,0.05)] overflow-hidden">
               <img 
                 src="/lovable-uploads/8e8852b6-3098-4496-bbe1-93b235fc4e6a.png" 
@@ -181,9 +184,6 @@ const Index = () => {
                 className="w-full h-full object-cover"
               />
             </div>
-            <h2 className="card-title text-lg mb-2">
-              우리 강아지는 어떤 여행 스타일?
-            </h2>
             <p className="card-subtitle text-sm mb-5 leading-relaxed">
               반려견의 성격에 맞는 완벽한 여행지를 추천해드려요
             </p>
