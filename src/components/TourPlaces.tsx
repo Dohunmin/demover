@@ -284,9 +284,13 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
 
         // 2. 일반 관광지에서 키워드 매칭된 것들 추가
         console.log('=== 정확한 키워드 95개로 개별 검색 시작 ===');
+        console.log('전체 petFriendlyKeywords 배열 크기:', petFriendlyKeywords.length);
+        console.log('첫 번째 키워드:', petFriendlyKeywords[0]);
+        console.log('마지막 키워드:', petFriendlyKeywords[petFriendlyKeywords.length - 1]);
         
         const keywordsToMatch = petKeyword ? [petKeyword] : petFriendlyKeywords;
-        console.log(`${keywordsToMatch.length}개 키워드로 정확한 매칭 검색 시작`);
+        console.log(`실제 검색할 키워드 개수: ${keywordsToMatch.length}개`);
+        console.log('petKeyword:', petKeyword ? `"${petKeyword}"` : '없음');
         
         let allMatchedPlaces: any[] = [];
         let successCount = 0;
