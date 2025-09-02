@@ -252,34 +252,51 @@ serve(async (req) => {
       }
     }
 
-    // 결과 확인 및 응답 구성
-    if (activeTab === "general" && !tourismData) {
-      throw new Error(`General Tourism API failed: ${tourismError}`);
-    }
-    
-    if (activeTab === "pet" && !petTourismData) {
-      throw new Error(`Pet Tourism API failed: ${petTourismError}`);
-    }
-
-    // 요청된 탭에 따라 해당 데이터만 반환
-    const combinedData = {
-      tourismData: activeTab === "general" ? (tourismData || { error: tourismError }) : null,
-      petTourismData: activeTab === "pet" ? (petTourismData || { error: petTourismError }) : null,
-      requestParams: { areaCode, numOfRows, pageNo, activeTab },
+    // 결과 확인 및 응답 구성 - 에러가 있어도 정상 응답 반환
+    const responseData = {
+      tourismData: null,
+      petTourismData: null,
+      requestParams: { areaCode, numOfRows, pageNo, activeTab, keyword },
       timestamp: new Date().toISOString(),
       status: {
-        tourism: activeTab === "general" ? (tourismData ? 'success' : 'failed') : 'not_requested',
-        petTourism: activeTab === "pet" ? (petTourismData ? 'success' : 'failed') : 'not_requested'
-      }
+        tourism: 'not_requested',
+        petTourism: 'not_requested'
+      },
+      errors: {}
     };
+
+    // 일반 관광지 데이터 처리
+    if (activeTab === "general") {
+      if (tourismData) {
+        responseData.tourismData = tourismData;
+        responseData.status.tourism = 'success';
+      } else {
+        responseData.tourismData = { error: tourismError };
+        responseData.status.tourism = 'failed';
+        responseData.errors.tourism = tourismError;
+      }
+    }
+
+    // 반려동물 데이터 처리
+    if (activeTab === "pet") {
+      if (petTourismData) {
+        responseData.petTourismData = petTourismData;
+        responseData.status.petTourism = 'success';
+      } else {
+        responseData.petTourismData = { error: petTourismError };
+        responseData.status.petTourism = 'failed';
+        responseData.errors.petTourism = petTourismError;
+      }
+    }
 
     console.log('Final response prepared:', {
       activeTab,
-      tourismSuccess: activeTab === "general" ? !!tourismData : 'not_requested',
-      petTourismSuccess: activeTab === "pet" ? !!petTourismData : 'not_requested'
+      tourismSuccess: responseData.status.tourism,
+      petTourismSuccess: responseData.status.petTourism,
+      hasErrors: Object.keys(responseData.errors).length > 0
     });
 
-    return new Response(JSON.stringify(combinedData), {
+    return new Response(JSON.stringify(responseData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 

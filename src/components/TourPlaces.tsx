@@ -344,18 +344,17 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
                   }
                 });
                 
-                // 응답 상태 확인
+                // 응답 상태 확인 - 새로운 구조에 맞게 수정
                 if (response.error) {
-                  console.error(`  ✗ "${keyword}" API 에러:`, response.error);
-                  if (response.error.message?.includes('500') || response.error.message?.includes('Internal Server Error')) {
-                    serverErrorCount++;
-                    console.log(`    → 서버 에러로 인한 실패 (총 ${serverErrorCount}개)`);
-                  }
+                  console.error(`  ✗ "${keyword}" Supabase 함수 에러:`, response.error);
+                  serverErrorCount++;
                   failCount++;
                   continue;
                 }
                 
-                if (response.data?.tourismData?.response?.header?.resultCode === "0000" &&
+                // API 성공 여부 확인
+                if (response.data?.status?.tourism === 'success' &&
+                    response.data?.tourismData?.response?.header?.resultCode === "0000" &&
                     response.data?.tourismData?.response?.body?.items?.item) {
                   const items = response.data.tourismData.response.body.items.item;
                   const processedItems = Array.isArray(items) ? items : items ? [items] : [];
@@ -368,19 +367,27 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
                     console.log(`  ✗ "${keyword}": 검색 결과 없음`);
                     failCount++;
                   }
+                } else if (response.data?.status?.tourism === 'failed') {
+                  // API는 성공했지만 검색 결과가 없거나 오류인 경우
+                  const errorMsg = response.data?.errors?.tourism || 'API 응답 오류';
+                  console.log(`  ✗ "${keyword}": ${errorMsg}`);
+                  if (errorMsg.includes('SERVICE ERROR') || errorMsg.includes('500')) {
+                    serverErrorCount++;
+                  }
+                  failCount++;
                 } else {
-                  console.log(`  ✗ "${keyword}": API 응답 오류 (${response.data?.tourismData?.response?.header?.resultCode || 'unknown'})`);
+                  console.log(`  ✗ "${keyword}": 예상치 못한 응답 구조`);
                   failCount++;
                 }
                 
                 // 키워드 간 지연 (API 부하 방지)
-                await new Promise(resolve => setTimeout(resolve, 300));
+                await new Promise(resolve => setTimeout(resolve, 200)); // 지연 시간 단축
                 
               } catch (error) {
                 console.error(`  ✗ "${keyword}" 검색 실패:`, error);
                 failCount++;
                 
-                if (error instanceof Error && error.message?.includes('500')) {
+                if (error instanceof Error && (error.message?.includes('500') || error.message?.includes('Internal Server Error'))) {
                   serverErrorCount++;
                   console.log(`    → 서버 에러로 인한 실패 (총 ${serverErrorCount}개)`);
                 }
