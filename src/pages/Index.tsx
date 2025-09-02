@@ -7,6 +7,7 @@ import BottomNavigation from "@/components/BottomNavigation";
 import CategoryGrid from "@/components/CategoryGrid";
 import BeachStatus from "@/components/BeachStatus";
 import UserProfile from "@/components/UserProfile";
+import RecommendationSlider from "@/components/RecommendationSlider";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -118,10 +119,13 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Preview Content */}
-          <CategoryGrid />
-          <BeachStatus />
-        </main>
+        {/* Preview Content */}
+        <CategoryGrid />
+        <BeachStatus />
+        
+        {/* Recommendation Section */}
+        <RecommendationSlider />
+      </main>
 
       </div>
     );
@@ -205,6 +209,9 @@ const Index = () => {
 
         {/* Beach Status Section */}
         <BeachStatus />
+
+        {/* Recommendation Section */}
+        <RecommendationSlider />
       </main>
 
     </div>
