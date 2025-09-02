@@ -89,22 +89,22 @@ const News = () => {
 
 
   return (
-    <div className="min-h-screen bg-gray-50 max-w-md mx-auto pb-20">
+    <div className="min-h-screen bg-background max-w-md mx-auto pb-20">
       {/* Header */}
-      <header className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 text-white p-6 rounded-b-3xl shadow-xl relative overflow-hidden">
+      <header className="header p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate("/")}
-              className="text-white hover:bg-white/10 p-2"
+              className="text-foreground hover:bg-muted p-2"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-xl font-bold">소식</h1>
-              <p className="text-blue-100 text-sm">최신 행사 및 할인 정보</p>
+              <h1 className="header-title">소식</h1>
+              <p className="header-subtitle">최신 행사 및 할인 정보</p>
             </div>
           </div>
           
@@ -113,7 +113,7 @@ const News = () => {
               variant="ghost"
               size="sm"
               onClick={() => navigate("/admin")}
-              className="text-white hover:bg-white/10 p-2"
+              className="text-foreground hover:bg-muted p-2"
             >
               <Settings className="w-5 h-5" />
             </Button>
@@ -124,13 +124,13 @@ const News = () => {
       {/* Main Content */}
       <main className="p-5 space-y-6">
         {/* 축제/이벤트 섹션 */}
-        <Card className="p-6 bg-white rounded-2xl shadow-lg">
+        <div className="card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-900 flex items-center">
-              <Calendar className="w-5 h-5 mr-2 text-blue-600" />
+            <h2 className="card-title text-lg flex items-center">
+              <Calendar className="w-5 h-5 mr-2" style={{ color: 'var(--primary-color)' }} />
               축제/이벤트
             </h2>
-            <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
+            <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
               <Plus className="w-4 h-4 mr-1" />
               더보기
             </Button>
@@ -138,8 +138,8 @@ const News = () => {
           
           {loading ? (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="text-gray-500 text-sm mt-2">로딩 중...</p>
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+              <p className="text-muted-foreground text-sm mt-2">로딩 중...</p>
             </div>
           ) : events.length > 0 ? (
             <div className="space-y-3">
@@ -147,7 +147,7 @@ const News = () => {
                 <div 
                   key={event.id}
                   onClick={() => navigate(`/news/${event.id}`)}
-                  className="flex items-start p-3 bg-gray-50 rounded-xl hover:bg-blue-50 transition-colors cursor-pointer"
+                  className="flex items-start p-3 bg-muted/30 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer"
                 >
                   {event.image_url && (
                     <div className="flex-shrink-0 mr-3">
@@ -158,13 +158,13 @@ const News = () => {
                       />
                     </div>
                   )}
-                  <div className="w-2 h-2 bg-blue-500 rounded-full mr-3 flex-shrink-0 mt-2"></div>
+                  <div className="w-2 h-2 bg-primary rounded-full mr-3 flex-shrink-0 mt-2"></div>
                   <div className="flex-1">
-                    <span className="text-sm text-gray-700 font-medium block">{event.title}</span>
+                    <span className="text-sm text-foreground font-medium block">{event.title}</span>
                     {event.content && (
-                      <p className="text-xs text-gray-500 mt-1 line-clamp-2">{event.content}</p>
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{event.content}</p>
                     )}
-                    <span className="text-xs text-gray-400 mt-1 block">
+                    <span className="text-xs text-muted-foreground mt-1 block">
                       {new Date(event.created_at).toLocaleDateString('ko-KR')}
                     </span>
                   </div>
@@ -173,19 +173,19 @@ const News = () => {
             </div>
           ) : (
             <div className="text-center py-8">
-              <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <Calendar className="w-8 h-8 text-gray-400" />
+              <div className="w-16 h-16 bg-muted rounded-full mx-auto mb-4 flex items-center justify-center">
+                <Calendar className="w-8 h-8 text-muted-foreground" />
               </div>
-              <p className="text-gray-500 text-sm">현재 진행 중인 축제/이벤트가 없습니다</p>
-              <p className="text-gray-400 text-xs mt-1">새로운 행사 정보를 기다려주세요!</p>
+              <p className="text-muted-foreground text-sm">현재 진행 중인 축제/이벤트가 없습니다</p>
+              <p className="text-muted-foreground text-xs mt-1">새로운 행사 정보를 기다려주세요!</p>
             </div>
           )}
-        </Card>
+        </div>
 
         {/* 세일 섹션 */}
-        <Card className="p-6 bg-white rounded-2xl shadow-lg">
+        <div className="card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-900 flex items-center">
+            <h2 className="card-title text-lg flex items-center">
               <Tag className="w-5 h-5 mr-2 text-red-600" />
               세일
             </h2>
@@ -198,7 +198,7 @@ const News = () => {
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-600 mx-auto"></div>
-              <p className="text-gray-500 text-sm mt-2">로딩 중...</p>
+              <p className="text-muted-foreground text-sm mt-2">로딩 중...</p>
             </div>
           ) : sales.length > 0 ? (
             <div className="space-y-3">
@@ -206,7 +206,7 @@ const News = () => {
                 <div 
                   key={sale.id}
                   onClick={() => navigate(`/news/${sale.id}`)}
-                  className="flex items-start p-3 bg-gray-50 rounded-xl hover:bg-red-50 transition-colors cursor-pointer"
+                  className="flex items-start p-3 bg-muted/30 rounded-xl hover:bg-red-50 transition-colors cursor-pointer"
                 >
                   {sale.image_url && (
                     <div className="flex-shrink-0 mr-3">
@@ -219,11 +219,11 @@ const News = () => {
                   )}
                   <div className="w-2 h-2 bg-red-500 rounded-full mr-3 flex-shrink-0 mt-2"></div>
                   <div className="flex-1">
-                    <span className="text-sm text-gray-700 font-medium block">{sale.title}</span>
+                    <span className="text-sm text-foreground font-medium block">{sale.title}</span>
                     {sale.content && (
-                      <p className="text-xs text-gray-500 mt-1 line-clamp-2">{sale.content}</p>
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{sale.content}</p>
                     )}
-                    <span className="text-xs text-gray-400 mt-1 block">
+                    <span className="text-xs text-muted-foreground mt-1 block">
                       {new Date(sale.created_at).toLocaleDateString('ko-KR')}
                     </span>
                   </div>
@@ -232,14 +232,14 @@ const News = () => {
             </div>
           ) : (
             <div className="text-center py-8">
-              <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <Tag className="w-8 h-8 text-gray-400" />
+              <div className="w-16 h-16 bg-muted rounded-full mx-auto mb-4 flex items-center justify-center">
+                <Tag className="w-8 h-8 text-muted-foreground" />
               </div>
-              <p className="text-gray-500 text-sm">현재 진행 중인 세일이 없습니다</p>
-              <p className="text-gray-400 text-xs mt-1">새로운 할인 정보를 기다려주세요!</p>
+              <p className="text-muted-foreground text-sm">현재 진행 중인 세일이 없습니다</p>
+              <p className="text-muted-foreground text-xs mt-1">새로운 할인 정보를 기다려주세요!</p>
             </div>
           )}
-        </Card>
+        </div>
       </main>
 
     </div>

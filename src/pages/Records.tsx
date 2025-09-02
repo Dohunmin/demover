@@ -113,63 +113,63 @@ const Records = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 max-w-md mx-auto pb-20">
-        <header className="bg-gradient-to-br from-purple-600 via-purple-700 to-indigo-700 text-white p-6 rounded-b-3xl shadow-xl relative overflow-hidden">
+      <div className="min-h-screen bg-background max-w-md mx-auto pb-20">
+        <header className="header p-6">
           <div className="flex items-center space-x-3">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate("/")}
-              className="text-white hover:bg-white/10 p-2"
+              className="text-foreground hover:bg-muted p-2"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-xl font-bold">기록</h1>
-              <p className="text-purple-100 text-sm">북마크한 소식들</p>
+              <h1 className="header-title">기록</h1>
+              <p className="header-subtitle">북마크한 소식들</p>
             </div>
           </div>
         </header>
 
         <main className="p-5">
-          <Card className="p-8 text-center bg-white border-0 shadow-lg rounded-2xl">
-            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg">
-              <BookOpen className="w-8 h-8 text-white" />
+          <div className="card text-center">
+            <div className="w-16 h-16 bg-foreground rounded-2xl mx-auto mb-4 flex items-center justify-center">
+              <BookOpen className="w-8 h-8 text-background" />
             </div>
-            <h2 className="text-lg font-bold text-gray-900 mb-2">
+            <h2 className="card-title text-lg mb-2">
               로그인이 필요합니다
             </h2>
-            <p className="text-gray-600 text-sm mb-5 leading-relaxed">
+            <p className="card-subtitle text-sm mb-5 leading-relaxed">
               북마크한 소식을 확인하려면<br />먼저 로그인해주세요
             </p>
             <Button 
               onClick={() => navigate("/auth")}
-              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+              className="button-primary w-full"
             >
               로그인하러 가기
             </Button>
-          </Card>
+          </div>
         </main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 max-w-md mx-auto pb-20">
+    <div className="min-h-screen bg-background max-w-md mx-auto pb-20">
       {/* Header */}
-      <header className="bg-gradient-to-br from-purple-600 via-purple-700 to-indigo-700 text-white p-6 rounded-b-3xl shadow-xl relative overflow-hidden">
+      <header className="header p-6">
         <div className="flex items-center space-x-3">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate("/")}
-            className="text-white hover:bg-white/10 p-2"
+            className="text-foreground hover:bg-muted p-2"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold">기록</h1>
-            <p className="text-purple-100 text-sm">북마크한 소식들</p>
+            <h1 className="header-title">기록</h1>
+            <p className="header-subtitle">북마크한 소식들</p>
           </div>
         </div>
       </header>
@@ -178,8 +178,8 @@ const Records = () => {
       <main className="p-5">
         {loading ? (
           <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
-            <p className="text-gray-600 mt-2">로딩 중...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <p className="text-muted-foreground mt-2">로딩 중...</p>
           </div>
         ) : bookmarks.length > 0 ? (
           <div className="space-y-4">
@@ -188,10 +188,10 @@ const Records = () => {
               const IconComponent = categoryInfo.icon;
 
               return (
-                <Card key={bookmark.id} className="p-4 shadow-sm border-0 bg-white rounded-2xl">
+                <div key={bookmark.id} className="card">
                   <div className="flex gap-4">
                     {bookmark.news_posts.image_url && (
-                      <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                      <div className="w-20 h-20 bg-muted rounded-lg overflow-hidden flex-shrink-0">
                         <img 
                           src={bookmark.news_posts.image_url} 
                           alt={bookmark.news_posts.title}
@@ -210,18 +210,18 @@ const Records = () => {
                         </div>
                       </div>
                       <h4 
-                        className="font-semibold text-gray-900 mb-1 line-clamp-1 cursor-pointer hover:text-purple-600"
+                        className="card-title font-semibold mb-1 line-clamp-1 cursor-pointer hover:text-primary"
                         onClick={() => navigate(`/news/${bookmark.news_posts.id}`)}
                       >
                         {bookmark.news_posts.title}
                       </h4>
                       {bookmark.news_posts.content && (
-                        <p className="text-xs text-gray-500 mb-2 line-clamp-2">
+                        <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
                           {bookmark.news_posts.content}
                         </p>
                       )}
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-muted-foreground">
                           북마크: {new Date(bookmark.created_at).toLocaleDateString('ko-KR')}
                         </span>
                       </div>
@@ -230,7 +230,7 @@ const Records = () => {
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="p-2 h-auto text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                        className="p-2 h-auto text-primary hover:text-primary/80 hover:bg-primary/10"
                         onClick={() => navigate(`/news/${bookmark.news_posts.id}`)}
                       >
                         <BookOpen className="w-4 h-4" />
@@ -245,28 +245,28 @@ const Records = () => {
                       </Button>
                     </div>
                   </div>
-                </Card>
+                </div>
               );
             })}
           </div>
         ) : (
-          <Card className="p-8 text-center bg-white border-0 shadow-lg rounded-2xl">
-            <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-              <Heart className="w-8 h-8 text-gray-400" />
+          <div className="card text-center">
+            <div className="w-16 h-16 bg-muted rounded-full mx-auto mb-4 flex items-center justify-center">
+              <Heart className="w-8 h-8 text-muted-foreground" />
             </div>
-            <h2 className="text-lg font-bold text-gray-900 mb-2">
+            <h2 className="card-title text-lg mb-2">
               북마크한 소식이 없습니다
             </h2>
-            <p className="text-gray-600 text-sm mb-5 leading-relaxed">
+            <p className="card-subtitle text-sm mb-5 leading-relaxed">
               소식 페이지에서 하트 버튼을 눌러<br />관심 있는 소식을 저장해보세요!
             </p>
             <Button 
               onClick={() => navigate("/news")}
-              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+              className="button-primary w-full"
             >
               소식 보러가기
             </Button>
-          </Card>
+          </div>
         )}
       </main>
     </div>
