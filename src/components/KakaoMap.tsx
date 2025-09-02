@@ -46,6 +46,106 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
   const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [showMobileList, setShowMobileList] = useState(false);
   const [petTourismMarkers, setPetTourismMarkers] = useState<any[]>([]); // 반려동물 여행지 전용 마커들
+  const [generalAsPetMarkers, setGeneralAsPetMarkers] = useState<any[]>([]); // 일반 관광지를 반려동물 동반으로 표시하는 마커들
+
+  // 반려동물 동반 가능한 일반 관광지 키워드 목록
+  const petFriendlyKeywords = [
+    '롯데프리미엄아울렛 동부산점',
+    '몽작',
+    '부산시민공원',
+    '센텀 APEC나루공원',
+    '신호공원',
+    '오르디',
+    '온천천시민공원',
+    '칠암만장',
+    '카페 만디',
+    '포레스트3002',
+    '홍법사(부산)',
+    '감나무집',
+    '광안리해변 테마거리',
+    '광안리해수욕장',
+    '구덕포끝집고기',
+    '구포시장',
+    '국립부산과학관',
+    '그림하우스',
+    '금강사(부산)',
+    '다대포 꿈의 낙조분수',
+    '다대포해수욕장',
+    '대보름',
+    '대저생태공원',
+    '대저수문 생태공원',
+    '더웨이브',
+    '더펫텔프리미엄스위트',
+    '덕미',
+    '듀스포레',
+    '드림서프라운지',
+    '만달리',
+    '맥도생태공원',
+    '모닝듀 게스트 하우스(모닝듀)',
+    '무명일기',
+    '문탠로드',
+    '민락수변공원',
+    '밀락더마켓',
+    '부산 감천문화마을',
+    '부산 송도해상케이블카',
+    '부산 송도해수욕장',
+    '부산 암남공원',
+    '부산북항 친수공원',
+    '부산어린이대공원',
+    '불란서그로서리',
+    '브리타니',
+    '비아조',
+    '빅토리아 베이커리 가든',
+    '삼락생태공원',
+    '성안집',
+    '송도 구름산책로',
+    '송정물총칼국수',
+    '송정해수욕장',
+    '스노잉클라우드',
+    '스포원파크',
+    '신세계사이먼 부산 프리미엄 아울렛',
+    '아르반호텔[한국관광 품질인증/Korea Quality]',
+    '아미르공원',
+    '알로이삥삥',
+    '옐로우라이트하우스',
+    '오구카페',
+    '용소웰빙공원',
+    '원시학',
+    '웨스턴챔버',
+    '웨이브온 커피',
+    '윙민박',
+    '유정1995 기장 본점',
+    '을숙도 공원',
+    '이바구캠프',
+    '장림포구',
+    '절영해안산책로',
+    '죽성드림세트장',
+    '카페베이스',
+    '카페윤',
+    '캐빈스위트광안',
+    '캔버스',
+    '캔버스 블랙',
+    '태종대',
+    '팝콘 호스텔 해운대점',
+    '프루터리포레스트',
+    '해동용궁사',
+    '해운대 달맞이길',
+    '해운대 동백섬',
+    '해운대 블루라인파크',
+    '해운대 영무파라드호텔',
+    '해운대해수욕장',
+    '해월전망대',
+    '형제가든',
+    '황령산',
+    '황령산 전망대',
+    '황령산레포츠공원',
+    '회동수원지',
+    '회동수원지 둘레길',
+    'AJ하우스(AJ House)',
+    'EL16.52',
+    'JSTAY',
+    'The Park Guest House'
+  ];
 
   // 카카오 지도 SDK 로드 (재시도 로직 포함)
   useEffect(() => {
@@ -224,8 +324,132 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
   useEffect(() => {
     if (isMapLoaded) {
       loadPetTourismMarkers();
+      loadGeneralTourismAsPet(); // 일반 관광지를 반려동물 동반으로 표시
     }
   }, [isMapLoaded]);
+
+  // 일반 관광지 중 반려동물 동반 가능한 곳들 로드
+  const loadGeneralTourismAsPet = useCallback(async () => {
+    try {
+      console.log('일반 관광지를 반려동물 동반으로 표시 시작...');
+      
+      const response = await supabase.functions.invoke('combined-tour-api', {
+        body: {
+          areaCode: '6', // 부산
+          numOfRows: '100', // 키워드 매칭을 위해 더 많은 데이터 가져오기
+          pageNo: '1',
+          keyword: '', // 키워드 없이 전체 목록
+          activeTab: 'general'
+        }
+      });
+
+      if (response.data?.tourismData?.response?.body?.items?.item) {
+        const generalPlaces = response.data.tourismData.response.body.items.item;
+        console.log(`${generalPlaces.length}개의 일반 관광지 데이터를 가져왔습니다.`);
+        
+        // 키워드 매칭
+        const matchedPlaces = generalPlaces.filter((place: any) => 
+          petFriendlyKeywords.some(keyword => 
+            place.title && place.title.includes(keyword)
+          )
+        );
+        
+        console.log(`${matchedPlaces.length}개의 일반 관광지가 반려동물 동반 키워드와 매칭되었습니다.`);
+        
+        if (matchedPlaces.length > 0) {
+          createGeneralTourismAsPetMarkers(matchedPlaces);
+          toast.success(`${matchedPlaces.length}개의 일반 관광지를 반려동물 동반 여행지로 추가 표시했습니다.`);
+        }
+      } else {
+        console.log('일반 관광지 데이터가 없습니다.');
+      }
+    } catch (error) {
+      console.error('일반 관광지를 반려동물 동반으로 표시 오류:', error);
+      toast.error('일반 관광지 반려동물 동반 표시에 실패했습니다.');
+    }
+  }, [petFriendlyKeywords]);
+
+  // 일반 관광지를 반려동물 동반으로 표시하는 마커 생성
+  const createGeneralTourismAsPetMarkers = useCallback((matchedPlaces: any[]) => {
+    if (!mapInstance.current || !window.kakao) return;
+
+    // 기존 일반->반려동물 마커들 제거
+    generalAsPetMarkers.forEach(marker => {
+      marker.setMap(null);
+    });
+
+    const newGeneralAsPetMarkers: any[] = [];
+
+    matchedPlaces.forEach((place) => {
+      if (!place.mapx || !place.mapy || place.mapx === '0' || place.mapy === '0') {
+        return; // 좌표가 없는 경우 스킵
+      }
+
+      const position = new window.kakao.maps.LatLng(place.mapy, place.mapx);
+      
+      // 일반->반려동물 전용 마커 이미지 생성 (파란색 강아지 아이콘)
+      const imageSize = new window.kakao.maps.Size(30, 30);
+      const imageOption = { offset: new window.kakao.maps.Point(15, 30) };
+      
+      // 파란색 강아지 아이콘 이미지 (SVG를 base64로 인코딩)
+      const blueDogIconSvg = `data:image/svg+xml;base64,${btoa(`
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#3B82F6" width="30" height="30">
+          <circle cx="12" cy="12" r="10" fill="#E0F2FE" stroke="#3B82F6" stroke-width="2"/>
+          <path d="M8 10c0-1.1.9-2 2-2s2 .9 2 2-2 3-2 3-2-1.9-2-3zm6 0c0-1.1.9-2 2-2s2 .9 2 2-2 3-2 3-2-1.9-2-3z" fill="#3B82F6"/>
+          <circle cx="10" cy="10" r="1.5" fill="#333"/>
+          <circle cx="14" cy="10" r="1.5" fill="#333"/>
+          <path d="M12 13c-1 0-2 .5-2 1s1 1 2 1 2-.5 2-1-.5-1-2-1z" fill="#333"/>
+        </svg>
+      `)}`;
+      
+      const markerImage = new window.kakao.maps.MarkerImage(
+        blueDogIconSvg,
+        imageSize,
+        imageOption
+      );
+
+      const marker = new window.kakao.maps.Marker({
+        position: position,
+        image: markerImage,
+        clickable: true
+      });
+
+      marker.setMap(mapInstance.current);
+
+      // 마커 클릭 이벤트 - 일반->반려동물 여행지 상세 정보 표시
+      window.kakao.maps.event.addListener(marker, 'click', () => {
+        showGeneralAsPetDetail(marker, place);
+      });
+
+      newGeneralAsPetMarkers.push(marker);
+    });
+
+    setGeneralAsPetMarkers(newGeneralAsPetMarkers);
+    console.log(`${newGeneralAsPetMarkers.length}개의 일반->반려동물 동반 마커를 생성했습니다.`);
+  }, [generalAsPetMarkers]);
+
+  // 일반->반려동물 여행지 상세 정보 표시
+  const showGeneralAsPetDetail = useCallback((marker: any, place: any) => {
+    const content = `
+      <div style="padding: 15px; min-width: 250px; max-width: 300px; font-family: 'Malgun Gothic', sans-serif;">
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+          <span style="font-size: 20px; margin-right: 8px;">🐕</span>
+          <div style="font-weight: bold; font-size: 14px; color: #3B82F6;">${place.title}</div>
+        </div>
+        <div style="font-size: 12px; color: #666; margin-bottom: 3px; background: #E0F2FE; padding: 2px 6px; border-radius: 10px; display: inline-block;">반려동물 동반 추천 관광지</div>
+        <div style="font-size: 11px; color: #888; margin-bottom: 3px; line-height: 1.4;">${place.addr1 || ''}</div>
+        ${place.tel ? `<div style="font-size: 11px; color: #888; margin-bottom: 8px;"><span style="color: #3B82F6;">📞</span> ${place.tel}</div>` : ''}
+        ${place.firstimage ? `<div style="margin-bottom: 8px;"><img src="${place.firstimage}" alt="${place.title}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 6px;"/></div>` : ''}
+        <div style="font-size: 10px; color: #999; margin-bottom: 8px; line-height: 1.3;">※ 반려동물 동반 가능 여부는 현장 확인 필요</div>
+        <div style="text-align: center; margin-top: 8px;">
+          <a href="https://korean.visitkorea.or.kr/detail/detail.do?cotid=${place.contentid}" target="_blank" style="color: #3B82F6; font-size: 11px; text-decoration: none; font-weight: bold;">🔗 상세보기</a>
+        </div>
+      </div>
+    `;
+    
+    infoWindow.current.setContent(content);
+    infoWindow.current.open(mapInstance.current, marker);
+  }, []);
 
   // 반려동물 여행지 마커들 로드
   const loadPetTourismMarkers = useCallback(async () => {
