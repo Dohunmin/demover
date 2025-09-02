@@ -435,61 +435,6 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
 
   // 페이지네이션 관련 계산
   const currentTotalCount = activeTab === "general" ? totalCount : petTotalCount;
-  
-  // API 상태 테스트 함수
-  const testApiStatus = async () => {
-    console.log('🔍 API 상태 테스트 시작...');
-    try {
-      const { data, error } = await supabase.functions.invoke('test-api-status', {
-        body: {}
-      });
-      
-      if (error) {
-        console.error('API 테스트 실패:', error);
-        toast.error('API 테스트에 실패했습니다.');
-        return;
-      }
-      
-      console.log('📊 API 테스트 결과:', data);
-      
-      // 결과 분석
-      const results = data.tests || [];
-      const listApiSuccess = results.find(test => test.name === "일반 목록 API")?.success;
-      const searchApiSuccess = results.find(test => test.name.includes("키워드 검색"))?.success;
-      const petApiSuccess = results.find(test => test.name === "반려동물 목록 API")?.success;
-      const keyStatus = results.find(test => test.name === "API 키 유효성 테스트")?.keyStatus;
-      
-      let message = `API 상태 확인 결과:\n`;
-      message += `• 일반 목록 API: ${listApiSuccess ? '✅ 정상' : '❌ 실패'}\n`;
-      message += `• 키워드 검색 API: ${searchApiSuccess ? '✅ 정상' : '❌ 실패'}\n`;
-      message += `• 반려동물 API: ${petApiSuccess ? '✅ 정상' : '❌ 실패'}\n`;
-      message += `• API 키 상태: ${keyStatus || '알 수 없음'}`;
-      
-      if (!searchApiSuccess && listApiSuccess) {
-        message += `\n\n🔍 키워드 검색 API만 막혀있습니다. 일일 검색 한도를 초과했을 가능성이 높습니다.`;
-        toast.warning('키워드 검색 API 한도가 초과된 것 같습니다. 내일 다시 시도해주세요.');
-      } else if (!listApiSuccess) {
-        message += `\n\n⚠️ 전체 API에 문제가 있습니다. API 키나 서비스 상태를 확인해주세요.`;
-        toast.error('API 서비스에 문제가 발생했습니다.');
-      } else {
-        toast.success('모든 API가 정상 작동 중입니다!');
-      }
-      
-      console.log(message);
-      
-      // 에러 메시지도 출력
-      results.forEach(test => {
-        if (test.error) {
-          console.error(`${test.name} 에러:`, test.error);
-        }
-      });
-      
-    } catch (error) {
-      console.error('API 테스트 중 오류:', error);
-      toast.error('API 테스트 중 오류가 발생했습니다.');
-    }
-  };
-
   const currentPage = activeTab === "general" ? generalCurrentPage : petCurrentPage;
   const itemsPerPage = 10;
   const totalPages = Math.ceil(currentTotalCount / itemsPerPage);
@@ -791,16 +736,6 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
               className="w-8 h-8 p-0"
             >
               <ChevronsRight className="h-4 w-4" />
-            </Button>
-
-            {/* API 상태 테스트 버튼 */}
-            <Button 
-              onClick={testApiStatus}
-              variant="outline"
-              size="sm"
-              className="ml-4"
-            >
-              🔍 API 상태 확인
             </Button>
           </div>
         </div>
