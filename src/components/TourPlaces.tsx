@@ -282,80 +282,77 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
           combinedPetPlaces = [...processedPetData];
         }
 
-        // 2. 95개 전체 키워드로 반려동물 동반 관광지 검색
-        console.log('=== 95개 전체 키워드로 반려동물 동반 여행지 검색 시작 ===');
-        console.log('전체 petFriendlyKeywords 배열 크기:', petFriendlyKeywords.length);
+        // 2. 일반 관광지에서 키워드 매칭된 것들 추가
+        console.log('=== 정확한 키워드 95개로 개별 검색 시작 ===');
+        
+        const keywordsToMatch = petKeyword ? [petKeyword] : petFriendlyKeywords;
+        console.log(`${keywordsToMatch.length}개 키워드로 정확한 매칭 검색 시작`);
         
         let allMatchedPlaces: any[] = [];
+        let successCount = 0;
+        let failCount = 0;
         
-        if (petKeyword) {
-          // 특정 키워드 검색인 경우
-          console.log(`특정 키워드 "${petKeyword}" 검색`);
-          try {
-            const response = await supabase.functions.invoke('combined-tour-api', {
-              body: {
-                areaCode: userAreaCode,
-                numOfRows: '20',
-                pageNo: '1',
-                keyword: petKeyword,
-                activeTab: 'general'
-              }
-            });
-            
-            if (response.data?.tourismData?.response?.header?.resultCode === "0000" &&
-                response.data?.tourismData?.response?.body?.items?.item) {
-              const items = response.data.tourismData.response.body.items.item;
-              allMatchedPlaces = Array.isArray(items) ? items : items ? [items] : [];
-              console.log(`"${petKeyword}" 검색 결과: ${allMatchedPlaces.length}개`);
-            }
-          } catch (error) {
-            console.error(`"${petKeyword}" 검색 실패:`, error);
-          }
-        } else {
-          // 키워드 검색 API가 막혀있어서 클라이언트 사이드 필터링으로 대체
-          console.log('🔍 키워드 검색 API 문제로 클라이언트 사이드 매칭을 시도합니다...');
-          console.log('📋 이미 로드된 일반 관광지에서 반려동물 동반 가능한 곳을 찾아보겠습니다.');
+        // 키워드를 배치로 나누어 병렬 처리 (한번에 5개씩 - API 부하 줄이기)
+        const batchSize = 5;
+        for (let i = 0; i < keywordsToMatch.length; i += batchSize) {
+          const batch = keywordsToMatch.slice(i, i + batchSize);
+          console.log(`배치 ${Math.floor(i/batchSize) + 1}/${Math.ceil(keywordsToMatch.length/batchSize)}: ${batch.length}개 키워드 검색 중...`);
           
-          // 이미 로드된 일반 관광지 데이터에서 키워드 매칭
-          if (generalResponse.data?.tourismData?.response?.header?.resultCode === "0000" &&
-              generalResponse.data?.tourismData?.response?.body?.items?.item) {
-            const generalItems = generalResponse.data.tourismData.response.body.items.item;
-            const processedGeneralData = Array.isArray(generalItems) ? generalItems : generalItems ? [generalItems] : [];
-            
-            console.log(`💡 ${processedGeneralData.length}개 일반 관광지에서 키워드 매칭 중...`);
-            
-            // petFriendlyKeywords 배열의 키워드들과 매칭
-            const matchedPlaces = processedGeneralData.filter(place => {
-              const title = place.title?.toLowerCase() || '';
-              return petFriendlyKeywords.some(keyword => 
-                title.includes(keyword.toLowerCase()) || 
-                keyword.toLowerCase().includes(title) ||
-                // 부분 매칭도 시도
-                (title.length > 2 && keyword.toLowerCase().includes(title)) ||
-                (keyword.length > 2 && title.includes(keyword.toLowerCase()))
-              );
-            });
-            
-            console.log(`🎯 ${matchedPlaces.length}개 매칭된 관광지 발견!`);
-            
-            if (matchedPlaces.length > 0) {
-              console.log('매칭된 장소들:');
-              matchedPlaces.forEach((place: any, index: number) => {
-                console.log(`  ${index + 1}. ${place.title} (${place.addr1})`);
+          const batchPromises = batch.map(async (keyword) => {
+            try {
+              console.log(`  "${keyword}" 검색 중...`);
+              const response = await supabase.functions.invoke('combined-tour-api', {
+                body: {
+                  areaCode: userAreaCode,
+                  numOfRows: '10', // 키워드당 최대 10개
+                  pageNo: '1',
+                  keyword: keyword, // 정확한 키워드로 검색
+                  activeTab: 'general'
+                }
               });
-              allMatchedPlaces = matchedPlaces;
-              toast.success(`${matchedPlaces.length}개의 추가 반려동물 동반 가능 장소를 발견했습니다!`);
-            } else {
-              console.log('❌ 매칭되는 장소를 찾지 못했습니다.');
-              toast.info('현재 데이터에서는 추가 반려동물 동반 장소를 찾지 못했습니다.');
+              
+              if (response.data?.tourismData?.response?.header?.resultCode === "0000" &&
+                  response.data?.tourismData?.response?.body?.items?.item) {
+                const items = response.data.tourismData.response.body.items.item;
+                const processedItems = Array.isArray(items) ? items : items ? [items] : [];
+                
+                if (processedItems.length > 0) {
+                  console.log(`  ✓ "${keyword}": ${processedItems.length}개 발견`);
+                  processedItems.forEach((item: any, idx: number) => {
+                    console.log(`    ${idx + 1}. ${item.title}`);
+                  });
+                  successCount++;
+                  return processedItems;
+                } else {
+                  console.log(`  ✗ "${keyword}": 검색 결과 없음`);
+                  failCount++;
+                  return [];
+                }
+              } else {
+                console.log(`  ✗ "${keyword}": API 응답 오류`);
+                failCount++;
+                return [];
+              }
+            } catch (error) {
+              console.error(`  ✗ "${keyword}" 검색 실패:`, error);
+              failCount++;
+              return [];
             }
-          } else {
-            console.log('❌ 일반 관광지 데이터가 없어서 매칭을 수행할 수 없습니다.');
-            toast.warning('매칭할 데이터가 없어 키워드 검색을 수행할 수 없습니다.');
+          });
+          
+          const batchResults = await Promise.all(batchPromises);
+          const batchMatched = batchResults.flat();
+          allMatchedPlaces = [...allMatchedPlaces, ...batchMatched];
+          
+          // 배치 간 지연 (API 호출 제한 방지)
+          if (i + batchSize < keywordsToMatch.length) {
+            await new Promise(resolve => setTimeout(resolve, 200));
           }
         }
         
         console.log('\n=== 키워드별 검색 결과 요약 ===');
+        console.log(`성공한 키워드: ${successCount}개`);
+        console.log(`실패한 키워드: ${failCount}개`);
         console.log(`검색으로 찾은 총 관광지: ${allMatchedPlaces.length}개`);
         
         // 중복 제거 (contentid 기준)
