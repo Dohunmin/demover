@@ -312,12 +312,99 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
             console.error(`"${petKeyword}" 검색 실패:`, error);
           }
         } else {
-          // API 부하를 줄이기 위해 임시 중단
-          console.log('⚠️ API SERVICE ERROR 다발 발생으로 키워드 검색을 임시 중단합니다.');
-          console.log('현재 기존 반려동물 여행지만 표시합니다.');
+          // 매우 보수적으로 키워드 검색 재시작
+          console.log('🔄 키워드 검색을 보수적으로 재시작합니다...');
+          console.log('⚠️  API 안정성을 위해 키워드당 500ms, 배치당 2초 대기합니다.');
           
-          // 사용자에게 알림
-          toast.error('한국관광공사 API에 일시적 문제가 발생했습니다. 기존 반려동물 여행지만 표시됩니다.');
+          // 키워드를 작은 배치로 처리
+          const BATCH_SIZE = 1; // 한 번에 1개씩만
+          const RESULTS_PER_KEYWORD = 2; // 키워드당 2개 결과만
+          const DELAY_BETWEEN_KEYWORDS = 500; // 500ms 대기
+          const DELAY_BETWEEN_BATCHES = 2000; // 2초 대기
+          
+          const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+          
+          let successCount = 0;
+          let failureCount = 0;
+          
+          // 키워드를 배치로 나누기
+          const totalBatches = Math.ceil(petFriendlyKeywords.length / BATCH_SIZE);
+          
+          for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
+            const start = batchIndex * BATCH_SIZE;
+            const end = Math.min(start + BATCH_SIZE, petFriendlyKeywords.length);
+            const batch = petFriendlyKeywords.slice(start, end);
+            
+            console.log(`배치 ${batchIndex + 1}/${totalBatches}: ${batch.length}개 키워드 검색 중...`);
+            
+            for (const keyword of batch) {
+              try {
+                console.log(`  "${keyword}" 검색 중...`);
+                
+                const response = await supabase.functions.invoke('combined-tour-api', {
+                  body: {
+                    areaCode: userAreaCode,
+                    numOfRows: RESULTS_PER_KEYWORD.toString(),
+                    pageNo: '1',
+                    keyword: keyword,
+                    activeTab: 'general'
+                  }
+                });
+                
+                if (response.data?.tourismData?.response?.header?.resultCode === "0000" &&
+                    response.data?.tourismData?.response?.body?.items?.item) {
+                  const items = response.data.tourismData.response.body.items.item;
+                  const newItems = Array.isArray(items) ? items : items ? [items] : [];
+                  allMatchedPlaces = [...allMatchedPlaces, ...newItems];
+                  console.log(`  ✓ "${keyword}": ${newItems.length}개 발견`);
+                  successCount++;
+                } else if (response.data?.tourismData && response.data.tourismData.error) {
+                  console.log(`  ✗ "${keyword}": ${response.data.tourismData.error}`);
+                  failureCount++;
+                } else {
+                  console.log(`  ✗ "${keyword}": 결과 없음`);
+                  failureCount++;
+                }
+                
+                // 키워드 간 대기
+                await delay(DELAY_BETWEEN_KEYWORDS);
+                
+              } catch (error) {
+                console.error(`  ✗ "${keyword}" 검색 실패:`, error);
+                failureCount++;
+                
+                // 에러가 너무 많으면 중단
+                if (failureCount > 10) {
+                  console.log('⚠️ 에러가 너무 많아 검색을 중단합니다.');
+                  toast.warning('API 에러로 인해 일부 검색이 중단되었습니다.');
+                  break;
+                }
+              }
+            }
+            
+            console.log(`→ 배치 ${batchIndex + 1} 완료: 현재 총 ${allMatchedPlaces.length}개 장소 발견`);
+            console.log(`  성공: ${successCount}, 실패: ${failureCount}`);
+            
+            // 배치 간 대기 (마지막 배치가 아닐 때만)
+            if (batchIndex < totalBatches - 1) {
+              console.log(`→ 다음 배치까지 잠시 대기 중...`);
+              await delay(DELAY_BETWEEN_BATCHES);
+            }
+            
+            // 에러가 너무 많으면 전체 중단
+            if (failureCount > 10) {
+              break;
+            }
+          }
+          
+          console.log(`🎯 키워드 검색 완료: 총 ${allMatchedPlaces.length}개 추가 장소 발견`);
+          console.log(`  최종 성공: ${successCount}, 실패: ${failureCount}`);
+          
+          if (successCount > 0) {
+            toast.success(`${successCount}개 키워드에서 ${allMatchedPlaces.length}개 추가 장소를 찾았습니다!`);
+          } else {
+            toast.warning('키워드 검색에서 추가 장소를 찾지 못했습니다.');
+          }
         }
         
         console.log('\n=== 키워드별 검색 결과 요약 ===');
