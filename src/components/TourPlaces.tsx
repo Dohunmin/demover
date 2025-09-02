@@ -386,31 +386,44 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
          
          console.log(`기존 반려동물 여행지와 겹치는 키워드: ${duplicateKeywords.length}개`);
          console.log(`실제 새로 추가할 키워드: ${keywordsToMatch.length - duplicateKeywords.length}개`);
-        
-        // 중복 제거 (contentid 기준)
-        const existingContentIds = new Set(combinedPetPlaces.map(place => place.contentid));
-        const seenContentIds = new Set();
-        
-        const uniqueMatchedPlaces = allMatchedPlaces.filter(place => {
-          const contentId = place.contentid;
-          if (!contentId || existingContentIds.has(contentId) || seenContentIds.has(contentId)) {
-            return false;
-          }
-          seenContentIds.add(contentId);
-          return true;
-        });
-        
-        console.log(`중복 제거 후 ${uniqueMatchedPlaces.length}개 최종 추가`);
-        
-        // 추가된 관광지 목록 출력
-        if (uniqueMatchedPlaces.length > 0) {
-          console.log('추가된 관광지들:');
-          uniqueMatchedPlaces.forEach((place: any, index: number) => {
-            console.log(`${index + 1}. ${place.title} (${place.addr1})`);
-          });
-        }
-        
-        combinedPetPlaces = [...combinedPetPlaces, ...uniqueMatchedPlaces];
+         
+         // 중복 제거 (contentid 기준)
+         const existingContentIds = new Set(combinedPetPlaces.map(place => place.contentid));
+         const seenContentIds = new Set();
+         
+         const uniqueMatchedPlaces = allMatchedPlaces.filter(place => {
+           const contentId = place.contentid;
+           if (!contentId || existingContentIds.has(contentId) || seenContentIds.has(contentId)) {
+             return false;
+           }
+           seenContentIds.add(contentId);
+           return true;
+         });
+         
+         console.log('\n=== 최종 결과 분석 ===');
+         console.log(`📍 키워드 분석:`);
+         console.log(`  - 전체 입력 키워드: ${keywordsToMatch.length}개`);
+         console.log(`  - 기존 반려동물 여행지와 겹치는 키워드: ${duplicateKeywords.length}개`);
+         console.log(`  - 새로 검색할 키워드: ${keywordsToMatch.length - duplicateKeywords.length}개`);
+         
+         console.log(`🏛️ 관광지 분석:`);
+         console.log(`  - 키워드 검색으로 찾은 총 관광지: ${allMatchedPlaces.length}개`);
+         console.log(`  - 기존 반려동물 여행지: ${combinedPetPlaces.length}개`);
+         console.log(`  - 중복 제거 후 새로 추가될 관광지: ${uniqueMatchedPlaces.length}개`);
+         console.log(`  - 최종 반려동물 동반 여행지 총합: ${combinedPetPlaces.length + uniqueMatchedPlaces.length}개`);
+         
+         console.log(`\n🔍 왜 키워드 개수와 관광지 개수가 다른가?`);
+         console.log(`  - 한 키워드로 검색하면 관련된 여러 관광지가 나올 수 있음`);
+         console.log(`  - 예: "부산시민공원" → 부산시민공원, 부산시민공원 산책로 등`);
+         
+         if (uniqueMatchedPlaces.length > 0) {
+           console.log(`\n📝 새로 추가되는 ${uniqueMatchedPlaces.length}개 관광지 목록:`);
+           uniqueMatchedPlaces.forEach((place: any, index: number) => {
+             console.log(`${index + 1}. ${place.title} (${place.addr1})`);
+           });
+         }
+         
+         combinedPetPlaces = [...combinedPetPlaces, ...uniqueMatchedPlaces];
 
         // 페이지네이션 적용 (클라이언트 사이드)
         const itemsPerPage = 10;
