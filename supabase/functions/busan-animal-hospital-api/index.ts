@@ -31,23 +31,12 @@ serve(async (req) => {
 
     console.log('Fetching animal hospital data with params:', { pageNo, numOfRows, gugun, hospitalName });
 
-    // 부산 동물병원 OpenAPI 호출 (HTTPS 먼저 시도, 실패시 HTTP로 fallback)
-    let apiUrl = `https://apis.data.go.kr/6260000/BusanAnimalHospService/getTblAnimalHospital?serviceKey=${apiKey}&pageNo=${pageNo}&numOfRows=${numOfRows}&resultType=json`;
+    // 부산 동물병원 OpenAPI 호출 (HTTP 직접 사용 - Deno TLS 호환성 문제로 인해)
+    const apiUrl = `http://apis.data.go.kr/6260000/BusanAnimalHospService/getTblAnimalHospital?serviceKey=${apiKey}&pageNo=${pageNo}&numOfRows=${numOfRows}&resultType=json`;
     
-    console.log('HTTPS API URL:', apiUrl);
+    console.log('HTTP API URL:', apiUrl);
 
-    let response;
-    try {
-      response = await fetch(apiUrl);
-    } catch (httpsError) {
-      console.log('HTTPS failed, trying HTTP:', httpsError.message);
-      
-      // HTTP로 재시도
-      apiUrl = `http://apis.data.go.kr/6260000/BusanAnimalHospService/getTblAnimalHospital?serviceKey=${apiKey}&pageNo=${pageNo}&numOfRows=${numOfRows}&resultType=json`;
-      console.log('HTTP API URL:', apiUrl);
-      
-      response = await fetch(apiUrl);
-    }
+    const response = await fetch(apiUrl);
     
     if (!response.ok) {
       console.error('API Response Error:', response.status, response.statusText);
