@@ -258,16 +258,12 @@ serve(async (req) => {
           const allResults = [];
           let totalSearched = 0;
           
-          // 키워드를 청크로 나누어 병렬 처리 (API 한도 고려해서 3개씩으로 줄임)
-          const chunkSize = 3;
+          // 키워드를 청크로 나누어 병렬 처리 (API 한도 고려해서 5개씩)
+          const chunkSize = 5;
           console.log(`키워드를 ${chunkSize}개씩 청크로 나누어 처리 시작`);
           
-          // 처음 20개 키워드만 사용 (API 한도 고려)
-          const limitedKeywords = petFriendlyKeywords.slice(0, 20);
-          console.log(`API 한도 고려하여 처음 ${limitedKeywords.length}개 키워드만 사용`);
-          
-          for (let i = 0; i < limitedKeywords.length; i += chunkSize) {
-            const chunk = limitedKeywords.slice(i, i + chunkSize);
+          for (let i = 0; i < petFriendlyKeywords.length; i += chunkSize) {
+            const chunk = petFriendlyKeywords.slice(i, i + chunkSize);
             console.log(`청크 ${Math.floor(i/chunkSize) + 1} 처리 중:`, chunk);
             
             const promises = chunk.map(async (keywordItem) => {
