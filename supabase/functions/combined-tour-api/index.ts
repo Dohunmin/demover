@@ -201,6 +201,9 @@ serve(async (req) => {
       // 2. 한국관광공사 반려동물 동반 여행지 서비스 호출 (반려동물만)
       if (loadAllPetKeywords) {
         // 95개 키워드로 모든 반려동물 여행지 검색만 수행 (일반 Pet API 호출 생략)
+        console.log('=== 95개 키워드 검색 시작 ===');
+        console.log('loadAllPetKeywords:', loadAllPetKeywords);
+        console.log('petFriendlyKeywords 길이:', petFriendlyKeywords.length);
         console.log('Loading all pet-friendly places using', petFriendlyKeywords.length, 'keywords (skipping general pet API)');
         
         try {
@@ -211,41 +214,62 @@ serve(async (req) => {
             decodedApiKey = apiKey;
           }
           
+          console.log('API 키 디코딩 완료');
+          
           const allResults = [];
           let totalSearched = 0;
           
           // 키워드를 청크로 나누어 병렬 처리 (API 한도 고려해서 5개씩)
           const chunkSize = 5;
+          console.log(`키워드를 ${chunkSize}개씩 청크로 나누어 처리 시작`);
+          
           for (let i = 0; i < petFriendlyKeywords.length; i += chunkSize) {
             const chunk = petFriendlyKeywords.slice(i, i + chunkSize);
+            console.log(`청크 ${Math.floor(i/chunkSize) + 1} 처리 중:`, chunk);
             
             const promises = chunk.map(async (keywordItem) => {
               const searchUrl = `https://apis.data.go.kr/B551011/KorPetTourService/searchKeyword?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&keyword=${encodeURIComponent(keywordItem)}&areaCode=${areaCode}&numOfRows=20&pageNo=1&_type=xml`;
+              console.log(`키워드 "${keywordItem}" 검색 URL:`, searchUrl);
               
               try {
                 const response = await fetch(searchUrl).catch(async (httpsError) => {
+                  console.log(`키워드 "${keywordItem}" HTTPS 실패, HTTP로 재시도:`, httpsError.message);
                   const httpUrl = searchUrl.replace('https://', 'http://');
                   return await fetch(httpUrl);
                 });
                 
+                console.log(`키워드 "${keywordItem}" 응답 상태:`, response.status);
+                
                 if (response.ok) {
                   const responseText = await response.text();
+                  console.log(`키워드 "${keywordItem}" 응답 길이:`, responseText.length);
                   const parsedData = parseXmlToJson(responseText);
+                  
+                  if (parsedData?.error) {
+                    console.error(`키워드 "${keywordItem}" XML 파싱 에러:`, parsedData.message);
+                    return [];
+                  }
                   
                   if (parsedData?.response?.body?.items?.item) {
                     const items = Array.isArray(parsedData.response.body.items.item) 
                       ? parsedData.response.body.items.item 
                       : [parsedData.response.body.items.item];
                     
+                    console.log(`키워드 "${keywordItem}"에서 ${items.length}개 결과 발견`);
+                    
                     return items.map(item => ({
                       ...item,
                       searchKeyword: keywordItem // 어떤 키워드로 찾았는지 표시
                     }));
+                  } else {
+                    console.log(`키워드 "${keywordItem}"에서 결과 없음`);
                   }
+                } else {
+                  console.error(`키워드 "${keywordItem}" 응답 실패:`, response.status);
                 }
                 return [];
               } catch (error) {
-                console.log(`Keyword "${keywordItem}" search failed:`, error.message);
+                console.error(`키워드 "${keywordItem}" 검색 실패:`, error.message);
                 return [];
               }
             });
