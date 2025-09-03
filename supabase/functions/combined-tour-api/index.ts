@@ -214,12 +214,13 @@ serve(async (req) => {
           const allResults = [];
           let totalSearched = 0;
           
-          // 키워드를 청크로 나누어 병렬 처리 (API 한도 고려해서 5개씩)
-          const chunkSize = 5;
+          // 키워드를 청크로 나누어 순차 처리 (API 한도 고려해서 1개씩, 딜레이 추가)
+          const chunkSize = 1;
           for (let i = 0; i < petFriendlyKeywords.length; i += chunkSize) {
             const chunk = petFriendlyKeywords.slice(i, i + chunkSize);
             
-            const promises = chunk.map(async (keywordItem) => {
+            // 순차 처리로 변경 (병렬 처리가 API 한도를 초과함)
+            for (const keywordItem of chunk) {
               const searchUrl = `https://apis.data.go.kr/B551011/KorService2/searchKeyword2?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&keyword=${encodeURIComponent(keywordItem)}&areaCode=${areaCode}&numOfRows=20&pageNo=1&_type=xml`;
               
               try {
@@ -237,33 +238,27 @@ serve(async (req) => {
                       ? parsedData.response.body.items.item 
                       : [parsedData.response.body.items.item];
                     
-                    return items.map(item => ({
+                    const mappedItems = items.map(item => ({
                       ...item,
                       searchKeyword: keywordItem // 어떤 키워드로 찾았는지 표시
                     }));
+                    
+                    allResults.push(...mappedItems);
+                    console.log(`키워드 "${keywordItem}": ${mappedItems.length}개 결과`);
                   }
+                } else {
+                  console.log(`키워드 "${keywordItem}": HTTP ${response.status}`);
                 }
-                return [];
               } catch (error) {
-                console.log(`Keyword "${keywordItem}" search failed:`, error.message);
-                return [];
+                console.log(`키워드 "${keywordItem}" 검색 실패:`, error.message);
               }
-            });
-            
-            const chunkResults = await Promise.all(promises);
-            chunkResults.forEach(result => {
-              if (result.length > 0) {
-                allResults.push(...result);
-              }
-            });
+              
+              // 각 키워드마다 2초 딜레이 (API 한도 고려)
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            }
             
             totalSearched += chunk.length;
-            console.log(`Processed ${totalSearched}/${petFriendlyKeywords.length} keywords`);
-            
-            // API 한도를 고려한 딜레이 (1초)
-            if (i + chunkSize < petFriendlyKeywords.length) {
-              await new Promise(resolve => setTimeout(resolve, 1000));
-            }
+            console.log(`처리 완료: ${totalSearched}/${petFriendlyKeywords.length} 키워드, 현재 결과: ${allResults.length}개`);
           }
           
           // 중복 제거 (contentid 기준)
