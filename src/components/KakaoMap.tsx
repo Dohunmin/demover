@@ -328,45 +328,69 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
     }
   }, [isMapLoaded]);
 
-  // 95개 키워드로 반려동물 동반 여행지 모든 데이터 로드
+  // 일반 관광지 중 반려동물 동반 가능한 곳들 로드
   const loadGeneralTourismAsPet = useCallback(async () => {
     try {
-      console.log('=== 95개 키워드로 반려동물 동반 여행지 로드 시작 ===');
+      console.log('=== 일반 관광지를 반려동물 동반으로 표시 시작 ===');
       console.log('petFriendlyKeywords 개수:', petFriendlyKeywords.length);
       
       const response = await supabase.functions.invoke('combined-tour-api', {
         body: {
           areaCode: '6', // 부산
-          numOfRows: '10', // 사용되지 않음
-          pageNo: '1', // 사용되지 않음
-          keyword: '',
-          activeTab: 'pet',
-          loadAllPetKeywords: true // 95개 키워드 모두 검색
+          numOfRows: '200', // 더 많은 데이터 가져오기
+          pageNo: '1',
+          keyword: '', // 키워드 없이 전체 목록
+          activeTab: 'general'
         }
       });
 
-      console.log('95개 키워드 검색 API 응답:', response);
+      console.log('API 응답:', response);
 
-      if (response.data?.petTourismData?.response?.body?.items?.item) {
-        const allPetPlaces = response.data.petTourismData.response.body.items.item;
-        console.log(`95개 키워드로 ${allPetPlaces.length}개의 반려동물 여행지 데이터를 가져왔습니다.`);
+      if (response.data?.tourismData?.response?.body?.items?.item) {
+        const generalPlaces = response.data.tourismData.response.body.items.item;
+        console.log(`${generalPlaces.length}개의 일반 관광지 데이터를 가져왔습니다.`);
         
-        // 처음 10개의 여행지 제목을 콘솔에 출력
-        console.log('가져온 반려동물 여행지들 (처음 10개):');
-        allPetPlaces.slice(0, 10).forEach((place: any, index: number) => {
-          console.log(`${index + 1}. ${place.title} (키워드: ${place.searchKeyword || '알 수 없음'})`);
+        // 처음 10개의 관광지 제목을 콘솔에 출력
+        console.log('가져온 관광지들 (처음 10개):');
+        generalPlaces.slice(0, 10).forEach((place: any, index: number) => {
+          console.log(`${index + 1}. ${place.title}`);
         });
         
-        createGeneralTourismAsPetMarkers(allPetPlaces);
-        toast.success(`95개 키워드로 ${allPetPlaces.length}개의 반려동물 동반 여행지를 지도에 표시했습니다!`);
+        // 키워드 매칭 - 더 유연한 매칭 방식
+        const matchedPlaces = generalPlaces.filter((place: any) => {
+          if (!place.title) return false;
+          
+          return petFriendlyKeywords.some(keyword => {
+            // 정확히 일치하거나, 키워드가 제목에 포함되거나, 제목이 키워드에 포함되는 경우
+            const titleMatch = place.title.includes(keyword) || keyword.includes(place.title);
+            if (titleMatch) {
+              console.log(`매칭됨: "${place.title}" <-> "${keyword}"`);
+            }
+            return titleMatch;
+          });
+        });
+        
+        console.log(`${matchedPlaces.length}개의 일반 관광지가 반려동물 동반 키워드와 매칭되었습니다.`);
+        
+        if (matchedPlaces.length > 0) {
+          console.log('매칭된 관광지들:');
+          matchedPlaces.forEach((place: any, index: number) => {
+            console.log(`${index + 1}. ${place.title} (${place.addr1})`);
+          });
+          
+          createGeneralTourismAsPetMarkers(matchedPlaces);
+          toast.success(`${matchedPlaces.length}개의 일반 관광지를 반려동물 동반 여행지로 추가 표시했습니다.`);
+        } else {
+          console.log('매칭되는 관광지가 없습니다.');
+          toast.warning('키워드와 매칭되는 관광지를 찾을 수 없습니다.');
+        }
       } else {
-        console.log('95개 키워드 검색 결과가 없습니다.');
+        console.log('일반 관광지 데이터가 없습니다.');
         console.log('Response structure:', JSON.stringify(response.data, null, 2));
-        toast.warning('95개 키워드 검색 결과가 없습니다.');
       }
     } catch (error) {
-      console.error('95개 키워드로 반려동물 여행지 로드 오류:', error);
-      toast.error('95개 키워드 검색에 실패했습니다.');
+      console.error('일반 관광지를 반려동물 동반으로 표시 오류:', error);
+      toast.error('일반 관광지 반려동물 동반 표시에 실패했습니다.');
     }
   }, [petFriendlyKeywords]);
 
@@ -437,8 +461,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
           <span style="font-size: 20px; margin-right: 8px;">🐕</span>
           <div style="font-weight: bold; font-size: 14px; color: #3B82F6;">${place.title}</div>
         </div>
-        <div style="font-size: 12px; color: #666; margin-bottom: 3px; background: #E0F2FE; padding: 2px 6px; border-radius: 10px; display: inline-block;">반려동물 동반 여행지</div>
-        ${place.searchKeyword ? `<div style="font-size: 10px; color: #888; margin-bottom: 3px;">검색 키워드: ${place.searchKeyword}</div>` : ''}
+        <div style="font-size: 12px; color: #666; margin-bottom: 3px; background: #E0F2FE; padding: 2px 6px; border-radius: 10px; display: inline-block;">반려동물 동반 추천 관광지</div>
         <div style="font-size: 11px; color: #888; margin-bottom: 3px; line-height: 1.4;">${place.addr1 || ''}</div>
         ${place.tel ? `<div style="font-size: 11px; color: #888; margin-bottom: 8px;"><span style="color: #3B82F6;">📞</span> ${place.tel}</div>` : ''}
         ${place.firstimage ? `<div style="margin-bottom: 8px;"><img src="${place.firstimage}" alt="${place.title}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 6px;"/></div>` : ''}
