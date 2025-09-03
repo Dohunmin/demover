@@ -67,7 +67,7 @@ const KakaoLogin = ({ onSuccess, onError }: KakaoLoginProps) => {
     setLoading(true);
 
     const REDIRECT_URI = `${window.location.origin}/auth`;
-    const SCOPES = ['profile_nickname', 'account_email', 'gender', 'birthday'];
+    const SCOPES = ['profile_nickname', 'account_email', 'gender'];
 
     // 카카오 OAuth 인증 URL 생성
     const kakaoAuthUrl = new URL('https://kauth.kakao.com/oauth/authorize');
@@ -131,7 +131,6 @@ const KakaoLogin = ({ onSuccess, onError }: KakaoLoginProps) => {
                 kakao_id: userInfo.kakaoId,
                 provider: 'kakao',
                 gender: userInfo.gender,
-                birthday: userInfo.birthday,
                 birthyear: userInfo.birthyear
               },
               emailRedirectTo: `${window.location.origin}/`
