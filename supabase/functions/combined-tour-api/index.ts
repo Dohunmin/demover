@@ -286,6 +286,36 @@ serve(async (req) => {
           console.log(`${uniqueResults.length}개의 일반->반려동물 동반 마커를 생성했습니다.`);
           
           // 95개 키워드 검색 결과만으로 응답 구성 (일반 Pet API는 호출하지 않음)
+          // 순환 참조 방지를 위해 필요한 필드만 추출
+          const cleanResults = uniqueResults.map(item => ({
+            addr1: item.addr1 || '',
+            addr2: item.addr2 || '',
+            zipcode: item.zipcode || '',
+            areacode: item.areacode || '',
+            cat1: item.cat1 || '',
+            cat2: item.cat2 || '',
+            cat3: item.cat3 || '',
+            contentid: item.contentid || '',
+            contenttypeid: item.contenttypeid || '',
+            createdtime: item.createdtime || '',
+            firstimage: item.firstimage || '',
+            firstimage2: item.firstimage2 || '',
+            cpyrhtDivCd: item.cpyrhtDivCd || '',
+            mapx: item.mapx || '',
+            mapy: item.mapy || '',
+            mlevel: item.mlevel || '',
+            modifiedtime: item.modifiedtime || '',
+            sigungucode: item.sigungucode || '',
+            tel: item.tel || '',
+            title: item.title || '',
+            lDongRegnCd: item.lDongRegnCd || '',
+            lDongSignguCd: item.lDongSignguCd || '',
+            lclsSystm1: item.lclsSystm1 || '',
+            lclsSystm2: item.lclsSystm2 || '',
+            lclsSystm3: item.lclsSystm3 || '',
+            searchKeyword: item.searchKeyword || ''
+          }));
+          
           petTourismData = {
             response: {
               header: {
@@ -293,11 +323,11 @@ serve(async (req) => {
                 resultMsg: "OK"
               },
               body: {
-                totalCount: uniqueResults.length,
-                numOfRows: uniqueResults.length,
+                totalCount: cleanResults.length,
+                numOfRows: cleanResults.length,
                 pageNo: 1,
                 items: {
-                  item: uniqueResults
+                  item: cleanResults
                 }
               }
             }
