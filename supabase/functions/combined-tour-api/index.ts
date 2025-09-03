@@ -83,6 +83,22 @@ function parseXmlToJson(xmlText: string) {
   }
 }
 
+// 반려동물 동반 가능한 키워드 목록
+const petFriendlyKeywords = [
+  '롯데프리미엄아울렛 동부산점', '동백섬', '더베이101', '해운대시장', '누리마루APEC하우스', '해운대해수욕장', '센텀시티', '광안리해수욕장',
+  '광안대교', '영화의전당', '부산시립미술관', '부산박물관', '부산현대미술관', '부산문화회관', '부산시민공원', '용두산공원', 
+  '태종대', '흰여울문화마을', '감천문화마을', '부산항대교', '자갈치시장', '국제시장', '보수동책방골목', '40계단문화관', 
+  '망미동먹거리거리', '서면', '남포동', '부산역', '부산항', '송도해수욕장', '송도케이블카', '송도구름산책로', '암남공원',
+  '다대포해수욕장', '몰운대', '낙동강하구에코센터', '을숙도', '강서습지생태공원', '대저생태공원', '화명생태공원', '삼락생태공원',
+  '온천천', '수영강', '동래온천', '금정산', '범어사', '금정산성', '동래읍성', '복천박물관', '동래향교', '부산어린이대공원',
+  '기장군', '해동용궁사', '국립부산과학관', '아홉산숲', '정관신도시', '일광해수욕장', '임랑해수욕장', '죽성드림세트장',
+  '기장시장', '용궁사', '장안사', '불광사', '개운포구', '연화리마을', '이가리닻바위', '죽도공원', '대변항', '월전리',
+  '구포시장', '덕천공원', '만덕고개', '화명공원', '북구청', '구포역', '덕포역', '만덕터널', '낙동강', '금곡동',
+  '아시아드주경기장', '부산종합운동장', '학장동', '신평동', '다대동', '괴정동', '하단동', '장림동', '구덕운동장', '승학산',
+  '을숙도문화회관', '부산진시장', '서부산유통지구', '홈플러스 사하점', '부산외국어고등학교', '신라대학교', '몰운대전망대',
+  '구덕터널', '신평·장림생태공원', '하단역', '다대역', '신평역', '괴정역', '서대신역', '동대신역', '부산진역', '초량역'
+];
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -90,7 +106,7 @@ serve(async (req) => {
   }
 
   try {
-    const { areaCode = '6', numOfRows = '10', pageNo = '1', keyword = '', activeTab = 'general' } = await req.json().catch(() => ({}));
+    const { areaCode = '6', numOfRows = '10', pageNo = '1', keyword = '', activeTab = 'general', loadAllPetKeywords = false } = await req.json().catch(() => ({}));
     
     const apiKey = Deno.env.get('KOREA_TOUR_API_KEY');
     if (!apiKey) {
@@ -181,6 +197,111 @@ serve(async (req) => {
 
     if (activeTab === "pet") {
       // 2. 한국관광공사 반려동물 동반 여행지 서비스 호출 (반려동물만)
+      if (loadAllPetKeywords) {
+        // 95개 키워드로 모든 반려동물 여행지 검색
+        console.log('Loading all pet-friendly places using', petFriendlyKeywords.length, 'keywords');
+        
+        try {
+          let decodedApiKey = apiKey;
+          try {
+            decodedApiKey = decodeURIComponent(apiKey);
+          } catch (e) {
+            decodedApiKey = apiKey;
+          }
+          
+          const allResults = [];
+          let totalSearched = 0;
+          
+          // 키워드를 청크로 나누어 병렬 처리 (API 한도 고려해서 5개씩)
+          const chunkSize = 5;
+          for (let i = 0; i < petFriendlyKeywords.length; i += chunkSize) {
+            const chunk = petFriendlyKeywords.slice(i, i + chunkSize);
+            
+            const promises = chunk.map(async (keywordItem) => {
+              const searchUrl = `https://apis.data.go.kr/B551011/KorService2/searchKeyword2?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&keyword=${encodeURIComponent(keywordItem)}&areaCode=${areaCode}&numOfRows=20&pageNo=1&_type=xml`;
+              
+              try {
+                const response = await fetch(searchUrl).catch(async (httpsError) => {
+                  const httpUrl = searchUrl.replace('https://', 'http://');
+                  return await fetch(httpUrl);
+                });
+                
+                if (response.ok) {
+                  const responseText = await response.text();
+                  const parsedData = parseXmlToJson(responseText);
+                  
+                  if (parsedData?.response?.body?.items?.item) {
+                    const items = Array.isArray(parsedData.response.body.items.item) 
+                      ? parsedData.response.body.items.item 
+                      : [parsedData.response.body.items.item];
+                    
+                    return items.map(item => ({
+                      ...item,
+                      searchKeyword: keywordItem // 어떤 키워드로 찾았는지 표시
+                    }));
+                  }
+                }
+                return [];
+              } catch (error) {
+                console.log(`Keyword "${keywordItem}" search failed:`, error.message);
+                return [];
+              }
+            });
+            
+            const chunkResults = await Promise.all(promises);
+            chunkResults.forEach(result => {
+              if (result.length > 0) {
+                allResults.push(...result);
+              }
+            });
+            
+            totalSearched += chunk.length;
+            console.log(`Processed ${totalSearched}/${petFriendlyKeywords.length} keywords`);
+            
+            // API 한도를 고려한 딜레이 (1초)
+            if (i + chunkSize < petFriendlyKeywords.length) {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+          }
+          
+          // 중복 제거 (contentid 기준)
+          const uniqueResults = [];
+          const seenIds = new Set();
+          
+          for (const item of allResults) {
+            if (!seenIds.has(item.contentid)) {
+              seenIds.add(item.contentid);
+              uniqueResults.push(item);
+            }
+          }
+          
+          console.log(`Found ${allResults.length} total results, ${uniqueResults.length} unique results`);
+          
+          // 응답 형태로 구성
+          petTourismData = {
+            response: {
+              header: {
+                resultCode: "0000",
+                resultMsg: "OK"
+              },
+              body: {
+                totalCount: uniqueResults.length,
+                numOfRows: uniqueResults.length,
+                pageNo: 1,
+                items: {
+                  item: uniqueResults
+                }
+              }
+            }
+          };
+          
+        } catch (error) {
+          petTourismError = `Pet keywords search error: ${error.message}`;
+          console.error(petTourismError);
+        }
+        
+      } else {
+        // 기존 방식: 단일 API 호출
       try {
         // API 키 디코딩 시도 (중복 인코딩 문제 해결)
         let decodedApiKey = apiKey;
@@ -249,6 +370,7 @@ serve(async (req) => {
       } catch (error) {
         petTourismError = `Pet Tourism API error: ${error.message}`;
         console.error(petTourismError);
+      }
       }
     }
 
