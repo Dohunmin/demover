@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.kakao-proxy]
 verify_jwt = false
+
+[functions.kakao-auth]
+verify_jwt = false
