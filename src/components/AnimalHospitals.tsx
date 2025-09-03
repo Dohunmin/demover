@@ -21,7 +21,7 @@ const AnimalHospitals = () => {
   const [filteredHospitals, setFilteredHospitals] = useState<AnimalHospital[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchName, setSearchName] = useState('');
-  const [selectedGugun, setSelectedGugun] = useState('');
+  const [selectedGugun, setSelectedGugun] = useState('all');
   const [currentView, setCurrentView] = useState<'list' | 'map'>('list');
 
   // 부산 구/군 목록
@@ -75,7 +75,7 @@ const AnimalHospitals = () => {
       );
     }
 
-    if (selectedGugun) {
+    if (selectedGugun && selectedGugun !== 'all') {
       filtered = filtered.filter(hospital => 
         hospital.gugun && hospital.gugun.includes(selectedGugun)
       );
@@ -86,7 +86,7 @@ const AnimalHospitals = () => {
 
   const handleReset = () => {
     setSearchName('');
-    setSelectedGugun('');
+    setSelectedGugun('all');
     setFilteredHospitals(hospitals);
   };
 
@@ -137,7 +137,7 @@ const AnimalHospitals = () => {
                 <SelectValue placeholder="구/군 선택" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">전체</SelectItem>
+                <SelectItem value="all">전체</SelectItem>
                 {busanDistricts.map(district => (
                   <SelectItem key={district} value={district}>
                     {district}
@@ -199,7 +199,7 @@ const AnimalHospitals = () => {
               <SelectValue placeholder="구/군 선택" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">전체</SelectItem>
+              <SelectItem value="all">전체</SelectItem>
               {busanDistricts.map(district => (
                 <SelectItem key={district} value={district}>
                   {district}
