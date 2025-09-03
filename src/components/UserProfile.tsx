@@ -20,6 +20,7 @@ interface Profile {
   pet_breed?: string;
   pet_image_url?: string;
   provider?: string;
+  kakao_id?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -205,7 +206,7 @@ const UserProfile = () => {
   };
 
   const handleDeleteAccount = async () => {
-    const isKakaoUser = profile?.provider === 'kakao';
+    const isKakaoUser = profile?.provider === 'kakao' || profile?.kakao_id != null;
     
     // 카카오 사용자가 아닌 경우 비밀번호 확인
     if (!isKakaoUser && !deletePassword.trim()) {
@@ -570,7 +571,7 @@ const UserProfile = () => {
                         <li>• 여행 기록이 모두 삭제됩니다</li>
                         <li>• 이 작업은 되돌릴 수 없습니다</li>
                       </ul>
-                      {profile?.provider !== 'kakao' && (
+                      {(profile?.provider !== 'kakao' && profile?.kakao_id == null) && (
                         <div className="space-y-2">
                           <Label htmlFor="deletePassword" className="text-sm font-medium">
                             비밀번호를 한번 더 입력해주세요
@@ -585,7 +586,7 @@ const UserProfile = () => {
                           />
                         </div>
                       )}
-                      {profile?.provider === 'kakao' && (
+                      {(profile?.provider === 'kakao' || profile?.kakao_id != null) && (
                         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                           <p className="text-sm text-yellow-800 font-medium">
                             위 내용을 모두 이해했으며, 탈퇴에 동의합니다.
@@ -604,10 +605,10 @@ const UserProfile = () => {
                   </AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleDeleteAccount}
-                    disabled={isDeleting || (profile?.provider !== 'kakao' && !deletePassword.trim())}
+                    disabled={isDeleting || ((profile?.provider !== 'kakao' && profile?.kakao_id == null) && !deletePassword.trim())}
                     className="bg-red-600 hover:bg-red-700 text-white"
                   >
-                    {isDeleting ? "탈퇴 처리 중..." : profile?.provider === 'kakao' ? "이해했습니다" : "회원 탈퇴"}
+                    {isDeleting ? "탈퇴 처리 중..." : (profile?.provider === 'kakao' || profile?.kakao_id != null) ? "이해했습니다" : "회원 탈퇴"}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

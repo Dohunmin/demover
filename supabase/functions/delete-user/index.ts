@@ -20,6 +20,15 @@ serve(async (req) => {
     const authHeader = req.headers.get('Authorization')!;
     const token = authHeader.replace('Bearer ', '');
     
+    // Get request body for admin delete
+    let targetUserId = null;
+    try {
+      const body = await req.json();
+      targetUserId = body?.userId;
+    } catch {
+      // No body, use current user
+    }
+    
     // Verify the user is authenticated
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
     
@@ -30,8 +39,27 @@ serve(async (req) => {
       );
     }
 
+    // If admin is deleting another user, check admin permissions
+    if (targetUserId && targetUserId !== user.id) {
+      const { data: adminRole, error: adminError } = await supabaseAdmin
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+      
+      if (adminError || !adminRole) {
+        return new Response(
+          JSON.stringify({ error: 'Admin access required' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
+    const userIdToDelete = targetUserId || user.id;
+
     // Delete the user from auth
-    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user.id);
+    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userIdToDelete);
     
     if (deleteError) {
       console.error('Error deleting user:', deleteError);

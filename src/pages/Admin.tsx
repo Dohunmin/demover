@@ -36,6 +36,8 @@ interface UserProfile {
   created_at: string;
   email?: string;
   role?: string;
+  provider?: string;
+  kakao_id?: string;
 }
 
 const Admin = () => {
@@ -304,6 +306,97 @@ const Admin = () => {
     } catch (error) {
       console.error('Error changing role:', error);
       toast.error('권한 변경에 실패했습니다.');
+    }
+  };
+
+  const handleDeleteUser = async (user: UserProfile) => {
+    if (!confirm(`정말 ${user.pet_name || '이 회원'}님을 탈퇴시키겠습니까?\n\n⚠️ 주의: 모든 데이터가 삭제되며 복구할 수 없습니다.`)) {
+      return;
+    }
+
+    try {
+      // Delete user profile
+      const { error: profileError } = await (supabase as any)
+        .from('profiles')
+        .delete()
+        .eq('user_id', user.user_id);
+
+      if (profileError) {
+        console.error('Profile deletion error:', profileError);
+      }
+
+      // Delete user roles
+      const { error: rolesError } = await (supabase as any)
+        .from('user_roles')
+        .delete()
+        .eq('user_id', user.user_id);
+
+      if (rolesError) {
+        console.error('Roles deletion error:', rolesError);
+      }
+
+      // Delete travel records
+      const { error: recordsError } = await (supabase as any)
+        .from('travel_records')
+        .delete()
+        .eq('user_id', user.user_id);
+
+      if (recordsError) {
+        console.error('Travel records deletion error:', recordsError);
+      }
+
+      // Delete bookmarks
+      const { error: bookmarksError } = await (supabase as any)
+        .from('bookmarks')
+        .delete()
+        .eq('user_id', user.user_id);
+
+      if (bookmarksError) {
+        console.error('Bookmarks deletion error:', bookmarksError);
+      }
+
+      // Delete storage files
+      try {
+        const { error: petStorageError } = await (supabase as any).storage
+          .from('pet-profiles')
+          .remove([`${user.user_id}/`]);
+        
+        if (petStorageError) {
+          console.error('Pet storage deletion error:', petStorageError);
+        }
+
+        const { error: travelStorageError } = await (supabase as any).storage
+          .from('travel-records')
+          .remove([`${user.user_id}/`]);
+        
+        if (travelStorageError) {
+          console.error('Travel storage deletion error:', travelStorageError);
+        }
+      } catch (error) {
+        console.error('Storage cleanup error:', error);
+      }
+
+      // Delete the actual user account
+      const { error: deleteUserError } = await supabase.functions.invoke('delete-user', {
+        headers: {
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        },
+        body: { userId: user.user_id }
+      });
+
+      if (deleteUserError) {
+        console.error('User deletion error:', deleteUserError);
+        toast.error("회원 탈퇴 처리 중 오류가 발생했습니다.");
+        return;
+      }
+
+      toast.success(`${user.pet_name || '회원'}님의 탈퇴가 완료되었습니다.`);
+      fetchUsers(); // Refresh users list
+      setIsUserDetailOpen(false);
+      
+    } catch (error) {
+      console.error('Admin delete user error:', error);
+      toast.error("회원 탈퇴 중 오류가 발생했습니다.");
     }
   };
 
@@ -711,25 +804,40 @@ const Admin = () => {
                         </div>
                       </div>
 
-                      {/* Role Management */}
+                      {/* Account Management */}
                       {selectedUser.user_id !== currentUser?.id && (
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-900 mb-2">권한 관리</h4>
-                          <Select
-                            value={selectedUser.role}
-                            onValueChange={(value) => {
-                              handleRoleChange(selectedUser.user_id, value);
-                              setSelectedUser({ ...selectedUser, role: value });
-                            }}
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="user">일반 회원</SelectItem>
-                              <SelectItem value="admin">관리자</SelectItem>
-                            </SelectContent>
-                          </Select>
+                        <div className="space-y-3">
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-900 mb-2">권한 관리</h4>
+                            <Select
+                              value={selectedUser.role}
+                              onValueChange={(value) => {
+                                handleRoleChange(selectedUser.user_id, value);
+                                setSelectedUser({ ...selectedUser, role: value });
+                              }}
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="user">일반 회원</SelectItem>
+                                <SelectItem value="admin">관리자</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-900 mb-2">계정 관리</h4>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeleteUser(selectedUser)}
+                              className="w-full"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              회원 탈퇴 시키기
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </div>
