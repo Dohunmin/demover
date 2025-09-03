@@ -320,14 +320,6 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
     }
   }, []);
 
-  // 지도 초기화 후 반려동물 여행지 마커 로드
-  useEffect(() => {
-    if (isMapLoaded) {
-      // loadPetTourismMarkers() 제거 - 95개 키워드 검색만 사용
-      loadGeneralTourismAsPet(); // 95개 키워드로 모든 반려동물 동반 여행지 표시
-    }
-  }, [isMapLoaded]);
-
   // 95개 키워드로 반려동물 동반 여행지 모든 데이터 로드
   const loadGeneralTourismAsPet = useCallback(async () => {
     try {
@@ -369,6 +361,18 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
       toast.error('95개 키워드 검색에 실패했습니다.');
     }
   }, [petFriendlyKeywords]);
+
+  // 지도 초기화 후 반려동물 여행지 마커 로드
+  useEffect(() => {
+    console.log('useEffect 실행됨 - isMapLoaded:', isMapLoaded);
+    if (isMapLoaded) {
+      console.log('지도 로드 완료! 95개 키워드 검색 함수 호출 시작...');
+      // loadPetTourismMarkers() 제거 - 95개 키워드 검색만 사용
+      loadGeneralTourismAsPet(); // 95개 키워드로 모든 반려동물 동반 여행지 표시
+    } else {
+      console.log('지도가 아직 로드되지 않음...');
+    }
+  }, [isMapLoaded, loadGeneralTourismAsPet]);
 
   // 일반 관광지를 반려동물 동반으로 표시하는 마커 생성
   const createGeneralTourismAsPetMarkers = useCallback((matchedPlaces: any[]) => {
