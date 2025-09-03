@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.kakao-auth]
 verify_jwt = false
+
+[functions.busan-animal-hospital-api]
+verify_jwt = false

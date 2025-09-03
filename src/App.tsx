@@ -15,6 +15,7 @@ import NewsDetail from "./pages/NewsDetail";
 import Travel from "./pages/Travel";
 import Admin from "./pages/Admin";
 import Records from "./pages/Records";
+import AnimalHospitalsPage from "./pages/AnimalHospitals";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -74,6 +75,7 @@ const AppWithNavigation = () => {
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/travel" element={<Travel />} />
+          <Route path="/animal-hospitals" element={<AnimalHospitalsPage />} />
           <Route path="/mbti" element={<MbtiTest />} />
           <Route path="/news" element={<News />} />
           <Route path="/news/:id" element={<NewsDetail />} />

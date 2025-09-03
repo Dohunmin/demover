@@ -1,7 +1,10 @@
 import { Coffee, UtensilsCrossed, Bed, TreePine, MapPin, Stethoscope } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
 
 const CategoryGrid = () => {
+  const navigate = useNavigate();
+  
   const categories = [
     { 
       id: "cafe", 
@@ -53,6 +56,13 @@ const CategoryGrid = () => {
     },
   ];
 
+  const handleCategoryClick = (categoryId: string) => {
+    if (categoryId === 'hospital') {
+      navigate('/animal-hospitals');
+    }
+    // 다른 카테고리들은 나중에 구현
+  };
+
   return (
     <div className="px-5 mb-8">
       <h3 className="text-lg font-semibold text-gray-900 mb-5">카테고리별 둘러보기</h3>
@@ -61,6 +71,7 @@ const CategoryGrid = () => {
           <Card
             key={id}
             className={`p-4 text-center cursor-pointer transition-all duration-200 border-0 shadow-sm ${bgColor} ${hoverColor} hover:shadow-md hover:scale-105`}
+            onClick={() => handleCategoryClick(id)}
           >
             <div className="flex flex-col items-center">
               <div className="mb-3">
