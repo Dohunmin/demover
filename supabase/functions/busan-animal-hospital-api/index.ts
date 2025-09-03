@@ -57,32 +57,26 @@ serve(async (req) => {
 
     let hospitals = [];
     
-    // 다양한 API 응답 구조에 대응
-    if (data) {
-      // 구조 1: data.getTblAnimalHospital.item
-      if (data.getTblAnimalHospital && data.getTblAnimalHospital.item) {
-        hospitals = Array.isArray(data.getTblAnimalHospital.item) 
-          ? data.getTblAnimalHospital.item 
-          : [data.getTblAnimalHospital.item];
-      }
-      // 구조 2: data.response.body.items (일반적인 정부 API 구조)
-      else if (data.response && data.response.body && data.response.body.items) {
-        hospitals = Array.isArray(data.response.body.items) 
-          ? data.response.body.items 
-          : [data.response.body.items];
-      }
-      // 구조 3: data.items
-      else if (data.items) {
-        hospitals = Array.isArray(data.items) ? data.items : [data.items];
-      }
-      // 구조 4: data가 배열인 경우
-      else if (Array.isArray(data)) {
-        hospitals = data;
-      }
-      // 구조 5: data 자체가 단일 객체인 경우
-      else if (typeof data === 'object' && data.animal_hospital) {
-        hospitals = [data];
-      }
+    // 부산 동물병원 API 응답 구조에 맞게 데이터 추출
+    if (data && data.response && data.response.body && data.response.body.items) {
+      const items = data.response.body.items.item;
+      hospitals = Array.isArray(items) ? items : [items];
+      console.log(`Extracted ${hospitals.length} hospitals from response.body.items.item`);
+    }
+    // Fallback: 다른 구조들 확인
+    else if (data.getTblAnimalHospital && data.getTblAnimalHospital.item) {
+      hospitals = Array.isArray(data.getTblAnimalHospital.item) 
+        ? data.getTblAnimalHospital.item 
+        : [data.getTblAnimalHospital.item];
+      console.log(`Extracted ${hospitals.length} hospitals from getTblAnimalHospital.item`);
+    }
+    else if (data.items) {
+      hospitals = Array.isArray(data.items) ? data.items : [data.items];
+      console.log(`Extracted ${hospitals.length} hospitals from items`);
+    }
+    else if (Array.isArray(data)) {
+      hospitals = data;
+      console.log(`Extracted ${hospitals.length} hospitals from root array`);
     }
 
     console.log(`Raw hospitals count: ${hospitals.length}`);
