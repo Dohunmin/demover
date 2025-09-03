@@ -121,7 +121,7 @@ const KakaoLogin = ({ onSuccess, onError }: KakaoLoginProps) => {
         if (authError && authError.message.includes('Invalid login credentials')) {
           // 사용자가 없으면 새로 생성
           console.log('새 카카오 사용자 생성 시작...');
-          const { error: signUpError } = await supabase.auth.signUp({
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
             email: userInfo.email,
             password: tempPassword,
             options: {
@@ -142,16 +142,44 @@ const KakaoLogin = ({ onSuccess, onError }: KakaoLoginProps) => {
           }
           
           console.log('카카오 회원가입 성공');
+          
+          // 회원가입 후 자동 로그인 시도
+          if (signUpData.user) {
+            const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+              email: userInfo.email,
+              password: tempPassword
+            });
+            
+            if (loginError) {
+              console.warn('자동 로그인 실패:', loginError);
+            } else {
+              console.log('자동 로그인 성공');
+            }
+          }
         } else if (authError) {
           throw new Error(`로그인 실패: ${authError.message}`);
+        } else {
+          console.log('기존 카카오 사용자 로그인 성공');
         }
 
-        toast({
-          title: "로그인 성공",
-          description: `${userInfo.nickname}님, 환영합니다!`,
-        });
+        // 세션 확인 후 성공 처리
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        
+        if (currentSession) {
+          console.log('카카오 로그인 세션 확인됨:', currentSession.user.email);
+          
+          toast({
+            title: "로그인 성공",
+            description: `${userInfo.nickname}님, 환영합니다!`,
+          });
 
-        onSuccess?.();
+          // 약간의 지연 후 콜백 실행 (세션이 완전히 설정되도록)
+          setTimeout(() => {
+            onSuccess?.();
+          }, 500);
+        } else {
+          throw new Error('로그인 후 세션을 확인할 수 없습니다.');
+        }
       } else {
         throw new Error('카카오 계정에 인증된 이메일이 등록되어 있지 않습니다. 카카오 계정 설정을 확인해주세요.');
       }

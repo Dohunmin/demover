@@ -23,11 +23,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         // Set up auth state listener FIRST
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          (event, session) => {
-            console.log('Auth state changed:', event, session?.user?.email);
+          async (event, session) => {
+            console.log('Auth state changed:', event, session?.user?.email || 'No user');
+            
+            // 세션 상태 업데이트
             setSession(session);
             setUser(session?.user ?? null);
-            setLoading(false);
+            
+            // 로그인 이벤트 처리
+            if (event === 'SIGNED_IN' && session) {
+              console.log('User signed in successfully:', session.user.email);
+            }
+            
+            // 로딩 상태 해제는 약간 지연
+            setTimeout(() => {
+              setLoading(false);
+            }, 100);
           }
         );
 
@@ -40,6 +51,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             // 에러가 있어도 계속 진행
           }
           console.log('Session found:', session?.user?.email || 'No session');
+          
+          // 초기 세션 설정
           setSession(session);
           setUser(session?.user ?? null);
         } catch (sessionError) {
@@ -48,6 +61,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setSession(null);
           setUser(null);
         }
+        
+        // 초기 로딩 완료
         setLoading(false);
 
         return () => subscription.unsubscribe();
