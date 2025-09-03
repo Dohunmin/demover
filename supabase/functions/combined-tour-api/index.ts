@@ -198,6 +198,9 @@ serve(async (req) => {
     }
 
     if (activeTab === "pet") {
+      console.log('=== 반려동물 탭 처리 시작 ===');
+      console.log('loadAllPetKeywords:', loadAllPetKeywords);
+      
       // 2. 먼저 실제 반려동물 API 호출
       console.log('=== 실제 반려동물 API 호출 시작 ===');  
       try {
@@ -235,7 +238,7 @@ serve(async (req) => {
         console.error('실제 반려동물 API 호출 실패:', error.message);
       }
       
-      // 3. 95개 키워드로 일반 관광지에서 반려동물 동반 가능 장소 검색
+      // 3. 95개 키워드로 일반 관광지에서 반려동물 동반 가능 장소 검색 (loadAllPetKeywords가 true일 때만)
       if (loadAllPetKeywords) {
         console.log('=== 95개 키워드로 일반 관광지 검색 시작 ===');
         console.log('loadAllPetKeywords:', loadAllPetKeywords);
