@@ -356,13 +356,13 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
           console.log(`${index + 1}. ${place.title}`);
         });
         
-        // 키워드 매칭 - 더 유연한 매칭 방식
+        // 키워드 매칭 - 정확한 매칭 방식으로 변경
         const matchedPlaces = generalPlaces.filter((place: any) => {
           if (!place.title) return false;
           
           return petFriendlyKeywords.some(keyword => {
-            // 정확히 일치하거나, 키워드가 제목에 포함되거나, 제목이 키워드에 포함되는 경우
-            const titleMatch = place.title.includes(keyword) || keyword.includes(place.title);
+            // 정확히 일치하는 경우만 매칭
+            const titleMatch = place.title.trim() === keyword.trim();
             if (titleMatch) {
               console.log(`매칭됨: "${place.title}" <-> "${keyword}"`);
             }
