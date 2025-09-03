@@ -80,12 +80,41 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     try {
-      await supabase.auth.signOut();
-    } catch (error) {
-      console.error('Sign out error:', error);
-      // 강제로 상태 초기화
+      console.log('로그아웃 시작...');
+      
+      // Supabase 로그아웃
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Supabase 로그아웃 오류:', error);
+      } else {
+        console.log('Supabase 로그아웃 성공');
+      }
+      
+      // 상태 강제 초기화 (로그아웃 성공/실패 상관없이)
       setSession(null);
       setUser(null);
+      
+      // 로컬 스토리지 정리
+      localStorage.removeItem('supabase.auth.token');
+      localStorage.removeItem('kakaoAuthCode');
+      localStorage.removeItem('kakaoRedirectUri');
+      localStorage.removeItem('forcePasswordReset');
+      
+      console.log('로그아웃 완료 - 상태 초기화됨');
+      
+    } catch (error) {
+      console.error('로그아웃 중 오류:', error);
+      
+      // 오류가 발생해도 상태 강제 초기화
+      setSession(null);
+      setUser(null);
+      
+      // 로컬 스토리지 정리
+      localStorage.removeItem('supabase.auth.token');
+      localStorage.removeItem('kakaoAuthCode');
+      localStorage.removeItem('kakaoRedirectUri');
+      localStorage.removeItem('forcePasswordReset');
     }
   };
 

@@ -54,9 +54,24 @@ const Index = () => {
   // 로그인하지 않은 사용자도 메인 페이지를 볼 수 있도록 리다이렉트 제거
 
   const handleSignOut = async () => {
-    await signOut();
-    toast.success("로그아웃되었습니다.");
-    navigate("/auth");
+    try {
+      console.log('로그아웃 버튼 클릭됨');
+      await signOut();
+      toast.success("로그아웃되었습니다.");
+      
+      // 약간의 지연 후 페이지 새로고침 (상태 완전 초기화)
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 1000);
+    } catch (error) {
+      console.error('로그아웃 처리 오류:', error);
+      toast.error("로그아웃 중 오류가 발생했습니다.");
+      
+      // 오류가 발생해도 페이지 새로고침
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 1000);
+    }
   };
 
   if (loading) {
