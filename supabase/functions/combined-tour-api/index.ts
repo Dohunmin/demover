@@ -214,13 +214,15 @@ serve(async (req) => {
           const allResults = [];
           let totalSearched = 0;
           
-          // 키워드를 청크로 나누어 순차 처리 (API 한도 고려해서 1개씩, 딜레이 추가)
-          const chunkSize = 1;
+          // 키워드를 10개씩 청크로 나누어 병렬 처리 (속도 개선)
+          const chunkSize = 10;
+          const promises = [];
+          
           for (let i = 0; i < petFriendlyKeywords.length; i += chunkSize) {
             const chunk = petFriendlyKeywords.slice(i, i + chunkSize);
             
-            // 순차 처리로 변경 (병렬 처리가 API 한도를 초과함)
-            for (const keywordItem of chunk) {
+            // 각 청크를 병렬 처리
+            const chunkPromise = Promise.all(chunk.map(async (keywordItem) => {
               const searchUrl = `https://apis.data.go.kr/B551011/KorService2/searchKeyword2?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&keyword=${encodeURIComponent(keywordItem)}&areaCode=${areaCode}&numOfRows=20&pageNo=1&_type=xml`;
               
               try {
@@ -240,26 +242,39 @@ serve(async (req) => {
                     
                     const mappedItems = items.map(item => ({
                       ...item,
-                      searchKeyword: keywordItem // 어떤 키워드로 찾았는지 표시
+                      searchKeyword: keywordItem
                     }));
                     
-                    allResults.push(...mappedItems);
                     console.log(`키워드 "${keywordItem}": ${mappedItems.length}개 결과`);
+                    return mappedItems;
                   }
                 } else {
                   console.log(`키워드 "${keywordItem}": HTTP ${response.status}`);
                 }
+                return [];
               } catch (error) {
                 console.log(`키워드 "${keywordItem}" 검색 실패:`, error.message);
+                return [];
               }
-              
-              // 각 키워드마다 2초 딜레이 (API 한도 고려)
-              await new Promise(resolve => setTimeout(resolve, 2000));
-            }
+            }));
             
-            totalSearched += chunk.length;
-            console.log(`처리 완료: ${totalSearched}/${petFriendlyKeywords.length} 키워드, 현재 결과: ${allResults.length}개`);
+            promises.push(chunkPromise);
+            
+            // 청크 간 500ms 딜레이 (API 한도 고려하되 속도 개선)
+            if (i + chunkSize < petFriendlyKeywords.length) {
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
           }
+          
+          // 모든 청크 완료까지 대기
+          const chunkResults = await Promise.all(promises);
+          chunkResults.forEach(chunkResult => {
+            chunkResult.forEach(items => {
+              allResults.push(...items);
+            });
+          });
+          
+          console.log(`처리 완료: ${petFriendlyKeywords.length}/${petFriendlyKeywords.length} 키워드, 총 결과: ${allResults.length}개`);
           
           // 중복 제거 (contentid 기준)
           const uniqueResults = [];
