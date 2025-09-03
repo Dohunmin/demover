@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Phone, Calendar, Building2, Map } from 'lucide-react';
+import { Search, MapPin, Phone, Calendar, Building2, Map, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,6 +23,8 @@ const AnimalHospitals = () => {
   const [searchName, setSearchName] = useState('');
   const [selectedGugun, setSelectedGugun] = useState('all');
   const [currentView, setCurrentView] = useState<'list' | 'map'>('list');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // 부산 구/군 목록
   const busanDistricts = [
@@ -82,13 +84,31 @@ const AnimalHospitals = () => {
     }
 
     setFilteredHospitals(filtered);
+    setCurrentPage(1); // 검색 시 첫 페이지로 이동
   };
 
   const handleReset = () => {
     setSearchName('');
     setSelectedGugun('all');
     setFilteredHospitals(hospitals);
+    setCurrentPage(1); // 리셋 시 첫 페이지로 이동
   };
+
+  // 페이지네이션 계산
+  const totalPages = Math.ceil(filteredHospitals.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentHospitals = filteredHospitals.slice(startIndex, endIndex);
+
+  // 페이지네이션 핸들러
+  const handlePageChange = (page: number) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
+
+  const handleFirstPage = () => setCurrentPage(1);
+  const handleLastPage = () => setCurrentPage(totalPages);
+  const handlePrevPage = () => setCurrentPage(Math.max(1, currentPage - 1));
+  const handleNextPage = () => setCurrentPage(Math.min(totalPages, currentPage + 1));
 
   // 지도용 마커 데이터 변환
   const mapMarkers = filteredHospitals
@@ -224,6 +244,11 @@ const AnimalHospitals = () => {
           
           <p className="text-sm text-muted-foreground mb-4">
             총 {filteredHospitals.length}개의 동물병원이 있습니다.
+            {totalPages > 1 && (
+              <span className="ml-2">
+                ({currentPage}/{totalPages} 페이지)
+              </span>
+            )}
           </p>
         </div>
 
@@ -237,54 +262,126 @@ const AnimalHospitals = () => {
         {/* 병원 리스트 */}
         {!loading && (
           <div className="space-y-4">
-            {filteredHospitals.length === 0 ? (
+            {currentHospitals.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-muted-foreground">검색 조건에 맞는 동물병원이 없습니다.</p>
               </div>
             ) : (
-              filteredHospitals.map((hospital, index) => (
-                <Card key={index} className="hover:shadow-md transition-shadow">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base text-foreground flex items-center gap-2">
-                      <Building2 className="h-4 w-4 text-primary flex-shrink-0" />
-                      <span className="truncate">{hospital.animal_hospital || '병원명 정보 없음'}</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <div className="flex items-start gap-2 text-sm">
-                      <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      <span className="text-muted-foreground text-sm leading-relaxed">
-                        {hospital.road_address || '주소 정보 없음'}
-                      </span>
-                    </div>
-                    
-                    {hospital.tel && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                        <span className="text-muted-foreground">{hospital.tel}</span>
+              <>
+                {currentHospitals.map((hospital, index) => (
+                  <Card key={startIndex + index} className="hover:shadow-md transition-shadow">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base text-foreground flex items-center gap-2">
+                        <Building2 className="h-4 w-4 text-primary flex-shrink-0" />
+                        <span className="truncate">{hospital.animal_hospital || '병원명 정보 없음'}</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div className="flex items-start gap-2 text-sm">
+                        <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        <span className="text-muted-foreground text-sm leading-relaxed">
+                          {hospital.road_address || '주소 정보 없음'}
+                        </span>
                       </div>
-                    )}
-                    
-                    <div className="flex items-center justify-between text-sm">
-                      {hospital.gugun && (
-                        <div className="flex items-center gap-2">
-                          <Building2 className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-muted-foreground">{hospital.gugun}</span>
+                      
+                      {hospital.tel && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                          <span className="text-muted-foreground">{hospital.tel}</span>
                         </div>
                       )}
                       
-                      {hospital.approval && (
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-xs text-muted-foreground">
-                            {hospital.approval.slice(0, 10)}
-                          </span>
-                        </div>
-                      )}
+                      <div className="flex items-center justify-between text-sm">
+                        {hospital.gugun && (
+                          <div className="flex items-center gap-2">
+                            <Building2 className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-muted-foreground">{hospital.gugun}</span>
+                          </div>
+                        )}
+                        
+                        {hospital.approval && (
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-xs text-muted-foreground">
+                              {hospital.approval.slice(0, 10)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+
+                {/* 페이지네이션 */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-1 pt-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleFirstPage}
+                      disabled={currentPage === 1}
+                      className="p-2"
+                    >
+                      <ChevronsLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handlePrevPage}
+                      disabled={currentPage === 1}
+                      className="p-2"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    
+                    <div className="flex items-center gap-1 mx-2">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = currentPage - 2 + i;
+                        }
+                        
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={currentPage === pageNum ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => handlePageChange(pageNum)}
+                            className="w-8 h-8 p-0 text-xs"
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      })}
                     </div>
-                  </CardContent>
-                </Card>
-              ))
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleNextPage}
+                      disabled={currentPage === totalPages}
+                      className="p-2"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleLastPage}
+                      disabled={currentPage === totalPages}
+                      className="p-2"
+                    >
+                      <ChevronsRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}
