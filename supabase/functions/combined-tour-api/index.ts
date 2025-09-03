@@ -318,10 +318,10 @@ serve(async (req) => {
         let petTourismUrl;
         if (keyword && keyword.trim()) {
           // 반려동물 검색 기반 정보 서비스 API 사용
-          petTourismUrl = `https://apis.data.go.kr/B551011/KorPetTourService/searchKeyword?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&keyword=${encodeURIComponent(keyword.trim())}&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}&_type=xml`;
+          petTourismUrl = `https://apis.data.go.kr/B551011/KorPetTourService/searchKeyword?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&keyword=${encodeURIComponent(keyword.trim())}&areaCode=${areaCode}&numOfRows=200&pageNo=${pageNo}&_type=xml`;
         } else {
-          // 반려동물 지역 기반 목록 API 사용
-          petTourismUrl = `https://apis.data.go.kr/B551011/KorPetTourService/areaBasedList?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}&_type=xml`;
+          // 반려동물 지역 기반 목록 API 사용 (더 많은 데이터 요청)
+          petTourismUrl = `https://apis.data.go.kr/B551011/KorPetTourService/areaBasedList?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=200&pageNo=${pageNo}&_type=xml`;
         }
         console.log('Pet Tourism API URL:', petTourismUrl);
         
