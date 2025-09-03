@@ -80,45 +80,57 @@ export type Database = {
         Row: {
           area_code: string | null
           avatar_url: string | null
+          birthyear: number | null
           created_at: string
           email: string | null
           full_name: string | null
+          gender: string | null
           id: string
+          kakao_id: string | null
           pet_age: number | null
           pet_breed: string | null
           pet_gender: string | null
           pet_image_url: string | null
           pet_name: string | null
+          provider: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           area_code?: string | null
           avatar_url?: string | null
+          birthyear?: number | null
           created_at?: string
           email?: string | null
           full_name?: string | null
+          gender?: string | null
           id: string
+          kakao_id?: string | null
           pet_age?: number | null
           pet_breed?: string | null
           pet_gender?: string | null
           pet_image_url?: string | null
           pet_name?: string | null
+          provider?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           area_code?: string | null
           avatar_url?: string | null
+          birthyear?: number | null
           created_at?: string
           email?: string | null
           full_name?: string | null
+          gender?: string | null
           id?: string
+          kakao_id?: string | null
           pet_age?: number | null
           pet_breed?: string | null
           pet_gender?: string | null
           pet_image_url?: string | null
           pet_name?: string | null
+          provider?: string | null
           updated_at?: string
           user_id?: string
         }
