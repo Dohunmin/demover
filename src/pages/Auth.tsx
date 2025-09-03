@@ -317,31 +317,9 @@ const Auth = () => {
 
   // 카카오 로그인 성공 핸들러
   const handleKakaoSuccess = () => {
-    toast.success("카카오 로그인 성공!");
-    navigate("/");
+    console.log('카카오 로그인 성공 콜백 호출됨');
+    // Supabase OAuth는 자동으로 리다이렉트하므로 별도 처리 불필요
   };
-
-  // 카카오 로그인 에러 핸들러
-  const handleKakaoError = (error: string) => {
-    toast.error(`카카오 로그인 실패: ${error}`);
-  };
-
-  // 카카오 콜백 처리 (페이지 로드 시)
-  useEffect(() => {
-    const urlParams = new URLSearchParams(location.search);
-    const code = urlParams.get('code');
-    
-    // 카카오 OAuth 콜백인지 확인
-    if (code && location.pathname.includes('/auth')) {
-      console.log('카카오 OAuth 콜백 감지됨, code:', code);
-      // KakaoLogin 컴포넌트에서 처리할 수 있도록 code를 localStorage에 임시 저장
-      localStorage.setItem('kakaoAuthCode', code);
-      localStorage.setItem('kakaoRedirectUri', `${window.location.origin}/auth`);
-      
-      // URL을 깨끗하게 정리
-      window.history.replaceState({}, document.title, '/auth');
-    }
-  }, [location]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
@@ -648,7 +626,6 @@ const Auth = () => {
                 </div>
                 <KakaoLogin 
                   onSuccess={handleKakaoSuccess}
-                  onError={handleKakaoError}
                 />
               </div>
             )}
