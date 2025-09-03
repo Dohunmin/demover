@@ -115,7 +115,7 @@ serve(async (req) => {
       throw new Error('KOREA_TOUR_API_KEY not found in environment variables');
     }
 
-    console.log('Calling Korean Tourism APIs with params:', { areaCode, numOfRows, pageNo, keyword, activeTab });
+    console.log('Calling Korean Tourism APIs with params:', { areaCode, numOfRows, pageNo, keyword, activeTab, loadAllPetKeywords });
 
     // 응답 데이터 초기화
     let tourismData = null;
