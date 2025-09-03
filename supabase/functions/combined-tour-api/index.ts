@@ -200,8 +200,8 @@ serve(async (req) => {
     if (activeTab === "pet") {
       // 2. 한국관광공사 반려동물 동반 여행지 서비스 호출 (반려동물만)
       if (loadAllPetKeywords) {
-        // 95개 키워드로 모든 반려동물 여행지 검색
-        console.log('Loading all pet-friendly places using', petFriendlyKeywords.length, 'keywords');
+        // 95개 키워드로 모든 반려동물 여행지 검색만 수행 (일반 Pet API 호출 생략)
+        console.log('Loading all pet-friendly places using', petFriendlyKeywords.length, 'keywords (skipping general pet API)');
         
         try {
           let decodedApiKey = apiKey;
@@ -278,8 +278,14 @@ serve(async (req) => {
           }
           
           console.log(`Found ${allResults.length} total results, ${uniqueResults.length} unique results`);
+          console.log(`${petFriendlyKeywords.length}개 키워드로 ${uniqueResults.length}개의 반려동물 여행지 데이터를 가져왔습니다.`);
+          console.log(`가져온 반려동물 여행지들 (처음 10개):`);
+          uniqueResults.slice(0, 10).forEach((place, index) => {
+            console.log(`${index + 1}. ${place.title} (키워드: ${place.searchKeyword})`);
+          });
+          console.log(`${uniqueResults.length}개의 일반->반려동물 동반 마커를 생성했습니다.`);
           
-          // 응답 형태로 구성
+          // 95개 키워드 검색 결과만으로 응답 구성 (일반 Pet API는 호출하지 않음)
           petTourismData = {
             response: {
               header: {
