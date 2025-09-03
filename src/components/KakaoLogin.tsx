@@ -111,73 +111,55 @@ const KakaoLogin = ({ onSuccess, onError }: KakaoLoginProps) => {
 
       // Supabase Auth와 연동 (이메일이 있는 경우)
       if (userInfo.email && userInfo.emailVerified) {
-        // 먼저 profiles 테이블에서 기존 사용자 확인
-        const { data: existingProfile, error: profileCheckError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('email', userInfo.email)
-          .single();
-        
-        if (existingProfile && !profileCheckError) {
-          // 기존 사용자라면 안내 메시지
-          console.log('기존 사용자 발견:', existingProfile.email);
-          
-          toast({
-            title: "이미 가입된 계정",
-            description: "해당 이메일로 이미 가입된 계정이 있습니다. 일반 로그인을 이용해주세요.",
-            variant: "destructive",
-          });
-          
-          onError?.('이미 가입된 계정입니다. 일반 로그인을 이용해주세요.');
-          return;
-        }
-        
-        // 새 사용자인 경우에만 회원가입
-        console.log('새 카카오 사용자 생성 시작...');
-        const tempPassword = `kakao_${userInfo.kakaoId}_${Date.now()}`;
-        
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        // 임시 패스워드로 로그인 시도
+        const tempPassword = `kakao_${userInfo.kakaoId}`;
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
           email: userInfo.email,
-          password: tempPassword,
-          options: {
-            data: {
-              nickname: userInfo.nickname,
-              profile_image: userInfo.profileImage,
-              kakao_id: userInfo.kakaoId,
-              provider: 'kakao',
-              gender: userInfo.gender,
-              birthyear: userInfo.birthyear
-            },
-            emailRedirectTo: `${window.location.origin}/`
-          }
+          password: tempPassword
         });
 
-        if (signUpError) {
-          if (signUpError.message.includes('already registered')) {
-            throw new Error('이미 가입된 이메일입니다. 일반 로그인을 이용해주세요.');
-          }
-          throw new Error(`회원가입 실패: ${signUpError.message}`);
-        }
-        
-        console.log('카카오 회원가입 성공');
-        
-        // 회원가입 후 자동 로그인 시도
-        if (signUpData.user) {
-          const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+        if (authError && authError.message.includes('Invalid login credentials')) {
+          // 사용자가 없으면 새로 생성
+          console.log('새 카카오 사용자 생성 시작...');
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
             email: userInfo.email,
-            password: tempPassword
+            password: tempPassword,
+            options: {
+              data: {
+                nickname: userInfo.nickname,
+                profile_image: userInfo.profileImage,
+                kakao_id: userInfo.kakaoId,
+                provider: 'kakao',
+                gender: userInfo.gender,
+                birthyear: userInfo.birthyear
+              },
+              emailRedirectTo: `${window.location.origin}/`
+            }
           });
-          
-          if (loginError) {
-            console.warn('자동 로그인 실패:', loginError);
-            toast({
-              title: "회원가입 완료",
-              description: "이메일을 확인하여 계정을 활성화해주세요.",
-            });
-            return;
-          } else {
-            console.log('자동 로그인 성공');
+
+          if (signUpError) {
+            throw new Error(`회원가입 실패: ${signUpError.message}`);
           }
+          
+          console.log('카카오 회원가입 성공');
+          
+          // 회원가입 후 자동 로그인 시도
+          if (signUpData.user) {
+            const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+              email: userInfo.email,
+              password: tempPassword
+            });
+            
+            if (loginError) {
+              console.warn('자동 로그인 실패:', loginError);
+            } else {
+              console.log('자동 로그인 성공');
+            }
+          }
+        } else if (authError) {
+          throw new Error(`로그인 실패: ${authError.message}`);
+        } else {
+          console.log('기존 카카오 사용자 로그인 성공');
         }
 
         // 세션 확인 후 성공 처리
