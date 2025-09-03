@@ -198,13 +198,49 @@ serve(async (req) => {
     }
 
     if (activeTab === "pet") {
-      // 2. 한국관광공사 반려동물 동반 여행지 서비스 호출 (반려동물만)
+      // 2. 먼저 실제 반려동물 API 호출
+      console.log('=== 실제 반려동물 API 호출 시작 ===');  
+      try {
+        let decodedApiKey = apiKey;
+        try {
+          decodedApiKey = decodeURIComponent(apiKey);
+        } catch (e) {
+          decodedApiKey = apiKey;
+        }
+        
+        let actualPetUrl = `https://apis.data.go.kr/B551011/KorPetTourService/areaBasedList?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=200&pageNo=${pageNo}&_type=xml`;
+        console.log('실제 반려동물 API URL:', actualPetUrl);
+        
+        const actualPetResponse = await fetch(actualPetUrl).catch(async (httpsError) => {
+          console.log('실제 반려동물 API HTTPS 실패, HTTP로 재시도:', httpsError.message);
+          const httpUrl = actualPetUrl.replace('https://', 'http://');
+          return await fetch(httpUrl);
+        });
+        
+        console.log('실제 반려동물 API 응답 상태:', actualPetResponse.status);
+        
+        if (actualPetResponse.ok) {
+          const responseText = await actualPetResponse.text();
+          console.log('실제 반려동물 API 응답 길이:', responseText.length);
+          const parsedData = parseXmlToJson(responseText);
+          
+          if (parsedData && !parsedData.error && parsedData.response?.body?.items?.item) {
+            console.log('실제 반려동물 API에서', parsedData.response.body.items.item.length, '개 결과 발견');
+            petTourismData = parsedData;
+          } else {
+            console.log('실제 반려동물 API에서 유효한 결과 없음');
+          }
+        }
+      } catch (error) {
+        console.error('실제 반려동물 API 호출 실패:', error.message);
+      }
+      
+      // 3. 95개 키워드로 일반 관광지에서 반려동물 동반 가능 장소 검색
       if (loadAllPetKeywords) {
-        // 95개 키워드로 모든 반려동물 여행지 검색만 수행 (일반 Pet API 호출 생략)
-        console.log('=== 95개 키워드 검색 시작 ===');
+        console.log('=== 95개 키워드로 일반 관광지 검색 시작 ===');
         console.log('loadAllPetKeywords:', loadAllPetKeywords);
         console.log('petFriendlyKeywords 길이:', petFriendlyKeywords.length);
-        console.log('Loading all pet-friendly places using', petFriendlyKeywords.length, 'keywords (skipping general pet API)');
+        console.log('Loading pet-friendly places from general tourism using', petFriendlyKeywords.length, 'keywords');
         
         try {
           let decodedApiKey = apiKey;
@@ -228,8 +264,9 @@ serve(async (req) => {
             console.log(`청크 ${Math.floor(i/chunkSize) + 1} 처리 중:`, chunk);
             
             const promises = chunk.map(async (keywordItem) => {
-              const searchUrl = `https://apis.data.go.kr/B551011/KorPetTourService/searchKeyword?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&keyword=${encodeURIComponent(keywordItem)}&areaCode=${areaCode}&numOfRows=20&pageNo=1&_type=xml`;
-              console.log(`키워드 "${keywordItem}" 검색 URL:`, searchUrl);
+              // 95개 키워드로 일반 관광지 API에서 검색 (KorService2 사용)
+              const searchUrl = `https://apis.data.go.kr/B551011/KorService2/searchKeyword2?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&keyword=${encodeURIComponent(keywordItem)}&areaCode=${areaCode}&numOfRows=20&pageNo=1&_type=xml`;
+              console.log(`키워드 "${keywordItem}" 일반 관광지 검색 URL:`, searchUrl);
               
               try {
                 const response = await fetch(searchUrl).catch(async (httpsError) => {
@@ -309,9 +346,38 @@ serve(async (req) => {
           });
           console.log(`${uniqueResults.length}개의 일반->반려동물 동반 마커를 생성했습니다.`);
           
-          // 95개 키워드 검색 결과만으로 응답 구성 (일반 Pet API는 호출하지 않음)
-          // 순환 참조 방지를 위해 필요한 필드만 추출
-          const cleanResults = uniqueResults.map(item => ({
+          // 실제 반려동물 API 결과와 95개 키워드 검색 결과 합치기
+          console.log('=== 실제 반려동물 API와 95개 키워드 검색 결과 합치기 ===');
+          let combinedResults = [];
+          
+          // 1. 실제 반려동물 API 결과 추가
+          if (petTourismData?.response?.body?.items?.item) {
+            const actualPetItems = Array.isArray(petTourismData.response.body.items.item) 
+              ? petTourismData.response.body.items.item 
+              : [petTourismData.response.body.items.item];
+            console.log('실제 반려동물 API에서', actualPetItems.length, '개 결과 추가');
+            combinedResults.push(...actualPetItems.map(item => ({ ...item, source: 'actual_pet_api' })));
+          }
+          
+          // 2. 95개 키워드 검색 결과 추가
+          console.log('95개 키워드에서', uniqueResults.length, '개 결과 추가');
+          combinedResults.push(...uniqueResults.map(item => ({ ...item, source: 'keyword_search' })));
+          
+          // 3. 중복 제거 (contentid 기준으로 다시 중복 제거)
+          const finalUniqueResults = [];
+          const finalSeenIds = new Set();
+          
+          for (const item of combinedResults) {
+            if (!finalSeenIds.has(item.contentid)) {
+              finalSeenIds.add(item.contentid);
+              finalUniqueResults.push(item);
+            }
+          }
+          
+          console.log(`최종 결과: 실제 반려동물 API + 95개 키워드 검색 = ${finalUniqueResults.length}개`);
+          
+          // 최종 petTourismData 구성
+          const cleanResults = finalUniqueResults.map(item => ({
             addr1: item.addr1 || '',
             addr2: item.addr2 || '',
             zipcode: item.zipcode || '',
@@ -337,7 +403,8 @@ serve(async (req) => {
             lclsSystm1: item.lclsSystm1 || '',
             lclsSystm2: item.lclsSystm2 || '',
             lclsSystm3: item.lclsSystm3 || '',
-            searchKeyword: item.searchKeyword || ''
+            searchKeyword: item.searchKeyword || '',
+            source: item.source || 'unknown'
           }));
           
           petTourismData = {

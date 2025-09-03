@@ -332,33 +332,33 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
           numOfRows: '10', // 사용되지 않음
           pageNo: '1', // 사용되지 않음
           keyword: '',
-          activeTab: 'pet',
+          activeTab: 'pet', // 중요: pet 탭 사용
           loadAllPetKeywords: true // 95개 키워드 모두 검색
         }
       });
 
-      console.log('95개 키워드 검색 API 응답:', response);
+      console.log('반려동물 + 95개 키워드 검색 API 응답:', response);
 
       if (response.data?.petTourismData?.response?.body?.items?.item) {
         const allPetPlaces = response.data.petTourismData.response.body.items.item;
-        console.log(`95개 키워드로 ${allPetPlaces.length}개의 반려동물 여행지 데이터를 가져왔습니다.`);
+        console.log(`실제 반려동물 API + 95개 키워드로 ${allPetPlaces.length}개의 반려동물 여행지 데이터를 가져왔습니다.`);
         
         // 처음 10개의 여행지 제목을 콘솔에 출력
         console.log('가져온 반려동물 여행지들 (처음 10개):');
         allPetPlaces.slice(0, 10).forEach((place: any, index: number) => {
-          console.log(`${index + 1}. ${place.title} (키워드: ${place.searchKeyword || '알 수 없음'})`);
+          console.log(`${index + 1}. ${place.title} (출처: ${place.source || '알 수 없음'}, 키워드: ${place.searchKeyword || 'N/A'})`);
         });
         
         createGeneralTourismAsPetMarkers(allPetPlaces);
-        toast.success(`95개 키워드로 ${allPetPlaces.length}개의 반려동물 동반 여행지를 지도에 표시했습니다!`);
+        toast.success(`실제 반려동물 API + 95개 키워드로 ${allPetPlaces.length}개의 반려동물 동반 여행지를 지도에 표시했습니다!`);
       } else {
-        console.log('95개 키워드 검색 결과가 없습니다.');
+        console.log('반려동물 + 95개 키워드 검색 결과가 없습니다.');
         console.log('Response structure:', JSON.stringify(response.data, null, 2));
-        toast.warning('95개 키워드 검색 결과가 없습니다.');
+        toast.warning('반려동물 동반 여행지 검색 결과가 없습니다.');
       }
     } catch (error) {
-      console.error('95개 키워드로 반려동물 여행지 로드 오류:', error);
-      toast.error('95개 키워드 검색에 실패했습니다.');
+      console.error('반려동물 + 95개 키워드로 여행지 로드 오류:', error);
+      toast.error('반려동물 동반 여행지 검색에 실패했습니다.');
     }
   }, [petFriendlyKeywords]);
 
