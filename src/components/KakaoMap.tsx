@@ -323,8 +323,8 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
   // 지도 초기화 후 반려동물 여행지 마커 로드
   useEffect(() => {
     if (isMapLoaded) {
-      loadPetTourismMarkers();
-      loadGeneralTourismAsPet(); // 일반 관광지를 반려동물 동반으로 표시
+      // loadPetTourismMarkers() 제거 - 95개 키워드 검색만 사용
+      loadGeneralTourismAsPet(); // 95개 키워드로 모든 반려동물 동반 여행지 표시
     }
   }, [isMapLoaded]);
 
