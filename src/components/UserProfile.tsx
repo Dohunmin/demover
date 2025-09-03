@@ -19,6 +19,7 @@ interface Profile {
   pet_gender?: string;
   pet_breed?: string;
   pet_image_url?: string;
+  provider?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -156,6 +157,7 @@ const UserProfile = () => {
         pet_image_url: imageUrl || null,
         email: user.email,
         full_name: user.user_metadata?.full_name || null,
+        provider: profile?.provider || 'email', // Preserve provider info
         updated_at: new Date().toISOString()
       };
 
@@ -203,7 +205,10 @@ const UserProfile = () => {
   };
 
   const handleDeleteAccount = async () => {
-    if (!deletePassword.trim()) {
+    const isKakaoUser = profile?.provider === 'kakao';
+    
+    // 카카오 사용자가 아닌 경우 비밀번호 확인
+    if (!isKakaoUser && !deletePassword.trim()) {
       toast.error("비밀번호를 입력해주세요.");
       return;
     }
@@ -211,16 +216,18 @@ const UserProfile = () => {
     setIsDeleting(true);
     
     try {
-      // First verify the password
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: user?.email || "",
-        password: deletePassword
-      });
+      // 카카오 사용자가 아닌 경우에만 비밀번호 확인
+      if (!isKakaoUser) {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: user?.email || "",
+          password: deletePassword
+        });
 
-      if (signInError) {
-        toast.error("비밀번호가 올바르지 않습니다.");
-        setIsDeleting(false);
-        return;
+        if (signInError) {
+          toast.error("비밀번호가 올바르지 않습니다.");
+          setIsDeleting(false);
+          return;
+        }
       }
 
       // Delete profile first
@@ -245,6 +252,26 @@ const UserProfile = () => {
         console.error('Roles deletion error:', rolesError);
       }
 
+      // Delete travel records
+      const { error: recordsError } = await (supabase as any)
+        .from('travel_records')
+        .delete()
+        .eq('user_id', user?.id);
+
+      if (recordsError) {
+        console.error('Travel records deletion error:', recordsError);
+      }
+
+      // Delete bookmarks
+      const { error: bookmarksError } = await (supabase as any)
+        .from('bookmarks')
+        .delete()
+        .eq('user_id', user?.id);
+
+      if (bookmarksError) {
+        console.error('Bookmarks deletion error:', bookmarksError);
+      }
+
       // Delete storage files
       if (profile?.pet_image_url) {
         try {
@@ -258,6 +285,19 @@ const UserProfile = () => {
         } catch (error) {
           console.error('Storage cleanup error:', error);
         }
+      }
+
+      // Delete travel records storage files
+      try {
+        const { error: travelStorageError } = await (supabase as any).storage
+          .from('travel-records')
+          .remove([`${user?.id}/`]);
+        
+        if (travelStorageError) {
+          console.error('Travel storage deletion error:', travelStorageError);
+        }
+      } catch (error) {
+        console.error('Travel storage cleanup error:', error);
       }
 
       // Delete the actual user account
@@ -527,21 +567,31 @@ const UserProfile = () => {
                       <ul className="text-sm text-gray-600 space-y-1 mb-4">
                         <li>• 모든 프로필 정보가 삭제됩니다</li>
                         <li>• 업로드한 사진들이 모두 삭제됩니다</li>
+                        <li>• 여행 기록이 모두 삭제됩니다</li>
                         <li>• 이 작업은 되돌릴 수 없습니다</li>
                       </ul>
-                      <div className="space-y-2">
-                        <Label htmlFor="deletePassword" className="text-sm font-medium">
-                          비밀번호를 한번 더 입력해주세요
-                        </Label>
-                        <Input
-                          id="deletePassword"
-                          type="password"
-                          placeholder="현재 비밀번호"
-                          value={deletePassword}
-                          onChange={(e) => setDeletePassword(e.target.value)}
-                          className="w-full"
-                        />
-                      </div>
+                      {profile?.provider !== 'kakao' && (
+                        <div className="space-y-2">
+                          <Label htmlFor="deletePassword" className="text-sm font-medium">
+                            비밀번호를 한번 더 입력해주세요
+                          </Label>
+                          <Input
+                            id="deletePassword"
+                            type="password"
+                            placeholder="현재 비밀번호"
+                            value={deletePassword}
+                            onChange={(e) => setDeletePassword(e.target.value)}
+                            className="w-full"
+                          />
+                        </div>
+                      )}
+                      {profile?.provider === 'kakao' && (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                          <p className="text-sm text-yellow-800 font-medium">
+                            위 내용을 모두 이해했으며, 탈퇴에 동의합니다.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </AlertDialogDescription>
                 </AlertDialogHeader>
@@ -554,10 +604,10 @@ const UserProfile = () => {
                   </AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleDeleteAccount}
-                    disabled={isDeleting || !deletePassword.trim()}
+                    disabled={isDeleting || (profile?.provider !== 'kakao' && !deletePassword.trim())}
                     className="bg-red-600 hover:bg-red-700 text-white"
                   >
-                    {isDeleting ? "탈퇴 처리 중..." : "회원 탈퇴"}
+                    {isDeleting ? "탈퇴 처리 중..." : profile?.provider === 'kakao' ? "이해했습니다" : "회원 탈퇴"}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
