@@ -1,4 +1,4 @@
-import { Coffee, UtensilsCrossed, Bed, TreePine, MapPin } from "lucide-react";
+import { Coffee, UtensilsCrossed, Bed, TreePine, MapPin, Stethoscope } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 const CategoryGrid = () => {
@@ -43,12 +43,20 @@ const CategoryGrid = () => {
       iconColor: "text-orange-600",
       hoverColor: "hover:bg-orange-100"
     },
+    { 
+      id: "hospital", 
+      label: "동물병원", 
+      icon: Stethoscope, 
+      bgColor: "bg-red-50", 
+      iconColor: "text-red-600",
+      hoverColor: "hover:bg-red-100"
+    },
   ];
 
   return (
     <div className="px-5 mb-8">
       <h3 className="text-lg font-semibold text-gray-900 mb-5">카테고리별 둘러보기</h3>
-      <div className="grid grid-cols-5 gap-3">
+      <div className="grid grid-cols-6 gap-3">
         {categories.map(({ id, label, icon: Icon, bgColor, iconColor, hoverColor }) => (
           <Card
             key={id}
