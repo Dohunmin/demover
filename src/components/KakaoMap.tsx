@@ -476,7 +476,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
     infoWindow.current.open(mapInstance.current, marker);
   }, []);
 
-  // 반려동물 여행지 마커들 로드
+  // 반려동물 여행지 마커들 로드 (101개 모든 반려동물 동반 여행지)
   const loadPetTourismMarkers = useCallback(async () => {
     try {
       console.log('반려동물 여행지 마커 로드 시작...');
@@ -484,10 +484,11 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
       const response = await supabase.functions.invoke('combined-tour-api', {
         body: {
           areaCode: '6', // 부산
-          numOfRows: '50', // 43개 모두 가져오기 위해 여유있게
+          numOfRows: '200', // 101개 모두 가져오기 위해 여유있게
           pageNo: '1',
           keyword: '', // 키워드 없이 전체 목록
-          activeTab: 'pet'
+          activeTab: 'pet',
+          loadAllPetKeywords: true // TourPlaces와 동일하게 101개 반려동물 동반 여행지 모두 로드
         }
       });
 
