@@ -6,7 +6,7 @@ import { PawPrint, MapPin, Search, Heart, Sparkles, ArrowLeft } from "lucide-rea
 import TourPlaces from "@/components/TourPlaces";
 import KakaoMap from "@/components/KakaoMap";
 import AdBanner from "@/components/AdBanner";
-import Footer from "@/components/Footer";
+
 import { useAuth } from "@/hooks/useAuth";
 
 const Travel = () => {
@@ -63,8 +63,6 @@ const Travel = () => {
       {/* Ad Banner */}
       <AdBanner />
       
-      {/* Footer */}
-      <Footer />
       </div>
     );
   }
@@ -101,8 +99,6 @@ const Travel = () => {
       {/* Ad Banner */}
       <AdBanner />
       
-      {/* Footer */}
-      <Footer />
     </div>
   );
 };
