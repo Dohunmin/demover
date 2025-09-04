@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.busan-animal-hospital-api]
 verify_jwt = false
+
+[functions.beach-weather-api]
+verify_jwt = false
