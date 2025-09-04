@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft, MapPin, Navigation, Search, Phone, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import CategoryGrid from '@/components/CategoryGrid';
 
 declare global {
   interface Window {
@@ -869,6 +870,9 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
           </Button>
         </form>
       </div>
+
+      {/* 카테고리별 둘러보기 */}
+      <CategoryGrid />
 
       {/* 메인 콘텐츠 */}
       <div className="flex-1 flex relative">
