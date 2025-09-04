@@ -47,13 +47,13 @@ const HeroCarousel = () => {
     },
     {
       src: "/lovable-uploads/b479024a-6645-41aa-8a73-be5addc314c5.png",
-      alt: "맛집 탐험가 - 파스타를 먹는 강아지",
-      title: "맛집 탐험가"
+      alt: "로컬맛집감별사 - 파스타를 먹는 강아지",
+      title: "로컬맛집감별사"
     },
     {
       src: "/lovable-uploads/cdcaabb4-6424-4992-ac2b-5a7a664e596e.png",
-      alt: "꿈나라 여행자 - 잠자는 강아지",
-      title: "꿈나라 여행자"
+      alt: "포근한담요속탐험가 - 잠자는 강아지",
+      title: "포근한담요속탐험가"
     },
     {
       src: "/lovable-uploads/197027de-ff76-4b56-8b3d-8ab975a7e279.png",
