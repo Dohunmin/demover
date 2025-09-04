@@ -162,7 +162,7 @@ const News = () => {
             </div>
           ) : events.length > 0 ? (
             <div className="space-y-3">
-              {events.map((event) => (
+              {events.slice(0, 3).map((event) => (
                 <div 
                   key={event.id}
                   onClick={() => navigate(`/news/${event.id}`)}
@@ -226,7 +226,7 @@ const News = () => {
             </div>
           ) : sales.length > 0 ? (
             <div className="space-y-3">
-              {sales.map((sale) => (
+              {sales.slice(0, 3).map((sale) => (
                 <div 
                   key={sale.id}
                   onClick={() => navigate(`/news/${sale.id}`)}
