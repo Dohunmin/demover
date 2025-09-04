@@ -109,8 +109,32 @@ serve(async (req) => {
       throw new Error(`기상청 API 호출 실패: ${response.status} ${response.statusText}`);
     }
 
-    const data = await response.json();
-    console.log("KMA API response received successfully");
+    // 먼저 텍스트로 응답을 받아서 확인
+    const responseText = await response.text();
+    console.log("KMA API Raw Response:", responseText.substring(0, 500)); // 처음 500자만 로그
+
+    let data;
+    try {
+      // JSON 파싱 시도
+      data = JSON.parse(responseText);
+      console.log("Successfully parsed as JSON");
+    } catch (jsonError) {
+      console.log("Failed to parse as JSON, checking for XML error response");
+      
+      // XML 오류 응답인지 확인
+      if (responseText.includes("OpenAPI_ServiceResponse") || responseText.includes("<result>")) {
+        console.log("Detected OpenAPI error response");
+        // XML에서 에러 메시지 추출
+        const errorMatch = responseText.match(/<errMsg>(.*?)<\/errMsg>/);
+        const errorMsg = errorMatch ? errorMatch[1] : "알 수 없는 API 오류";
+        throw new Error(`기상청 API 오류: ${errorMsg}`);
+      }
+      
+      // JSON도 아니고 알려진 XML 오류도 아닌 경우
+      throw new Error(`예상하지 못한 응답 형식: ${responseText.substring(0, 100)}`);
+    }
+
+    console.log("KMA API response processed successfully");
 
     // 해수욕장명 붙여주기
     const beachNameFromMap = Object.keys(beachMap).find(k => beachMap[k] == Number(beach_num));
