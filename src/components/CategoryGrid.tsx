@@ -64,18 +64,18 @@ const CategoryGrid = () => {
   };
 
   return (
-    <div className="px-5 mb-8">
-      <h3 className="text-lg font-semibold text-gray-900 mb-5">카테고리별 둘러보기</h3>
-      <div className="grid grid-cols-6 gap-3">
+    <div className="px-5 mb-4">
+      <h3 className="text-sm font-medium text-gray-700 mb-3">카테고리별 둘러보기</h3>
+      <div className="grid grid-cols-6 gap-2">
         {categories.map(({ id, label, icon: Icon, bgColor, iconColor, hoverColor }) => (
           <Card
             key={id}
-            className={`p-4 text-center cursor-pointer transition-all duration-200 border-0 shadow-sm ${bgColor} ${hoverColor} hover:shadow-md hover:scale-105`}
+            className={`p-2 text-center cursor-pointer transition-all duration-200 border-0 shadow-sm ${bgColor} ${hoverColor} hover:shadow-md hover:scale-105`}
             onClick={() => handleCategoryClick(id)}
           >
             <div className="flex flex-col items-center">
-              <div className="mb-3">
-                <Icon className={`h-6 w-6 ${iconColor}`} strokeWidth={1.5} />
+              <div className="mb-1">
+                <Icon className={`h-4 w-4 ${iconColor}`} strokeWidth={1.5} />
               </div>
               <span className="text-xs font-medium text-gray-700 leading-tight">{label}</span>
             </div>
