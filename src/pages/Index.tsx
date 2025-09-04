@@ -392,6 +392,13 @@ const Index = () => {
           </div>
         </div>
 
+        {/* Hero Section Title */}
+        <div className="px-5 mb-4">
+          <h2 className="text-2xl font-bold text-center text-foreground">
+            우리 멍멍이는 어떤 여행러일까?
+          </h2>
+        </div>
+
         {/* Hero Carousel */}
         <HeroCarousel />
 
