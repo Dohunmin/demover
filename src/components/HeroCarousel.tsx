@@ -18,87 +18,47 @@ const HeroCarousel = () => {
   const [count, setCount] = useState(0);
   const navigate = useNavigate();
 
-  // 16개의 MBTI 캐릭터 이미지
+  // 8개의 새로운 MBTI 캐릭터 이미지
   const carouselImages = [
     {
-      src: "/lovable-uploads/03b729d9-f143-4a40-9a42-4f54e04a9361.png",
+      src: "/lovable-uploads/f39b7efb-a574-49a4-86f8-dfa127daa3e4.png",
       alt: "힐링 파트너 - 천사 날개를 가진 평온한 강아지",
       title: "힐링 파트너"
     },
     {
-      src: "/lovable-uploads/b41f2fd5-8313-479d-8839-742408395a67.png",
+      src: "/lovable-uploads/e8ca226a-618d-4bb0-b3cd-eac205d98834.png",
       alt: "캠핑장 사장님 - 캠핑을 즐기는 활발한 강아지",
       title: "캠핑장 사장님"
     },
     {
-      src: "/lovable-uploads/9f1e3228-48c8-46f5-b2e9-f92a07d246a5.png",
+      src: "/lovable-uploads/af4489e1-e047-4d27-baa3-e6c1ca85bbb3.png",
       alt: "전속 모델 - 사진 찍기를 좋아하는 강아지",
       title: "전속 모델"
     },
     {
-      src: "/lovable-uploads/053c625b-da0b-490a-86c2-5c4ae4c71fe1.png",
-      alt: "패션 리더 - 스타일리시한 강아지",
-      title: "패션 리더"
+      src: "/lovable-uploads/7045ed78-2529-4e4f-8c6b-ad3477c967f8.png",
+      alt: "셀피 마스터 - 셀카봉을 든 강아지",
+      title: "셀피 마스터"
     },
     {
-      src: "/lovable-uploads/06ff5d07-2090-44bb-a8ac-51a242eafbb3.png",
-      alt: "활동적인 탐험가 - 에너지 넘치는 강아지",
-      title: "활동적인 탐험가"
+      src: "/lovable-uploads/abacd237-2eb4-4143-84d1-c9b03948c4d8.png",
+      alt: "리더십 강아지 - 연단에 서 있는 강아지",
+      title: "리더십 강아지"
     },
     {
-      src: "/lovable-uploads/13aa0338-6e00-4fe2-a46c-8f0bcf6c50dc.png",
-      alt: "차분한 동반자 - 온화한 성격의 강아지",
-      title: "차분한 동반자"
+      src: "/lovable-uploads/b479024a-6645-41aa-8a73-be5addc314c5.png",
+      alt: "맛집 탐험가 - 파스타를 먹는 강아지",
+      title: "맛집 탐험가"
     },
     {
-      src: "/lovable-uploads/28b87428-54bd-4a64-bd4e-6a42b7a1799b.png",
-      alt: "기본에 충실한 - 클래식한 강아지",
-      title: "기본에 충실한"
+      src: "/lovable-uploads/cdcaabb4-6424-4992-ac2b-5a7a664e596e.png",
+      alt: "꿈나라 여행자 - 잠자는 강아지",
+      title: "꿈나라 여행자"
     },
     {
-      src: "/lovable-uploads/32bcdc3a-cc67-4912-a010-9fafabb7f736.png",
-      alt: "코로 이끄는 - 후각이 뛰어난 강아지",
-      title: "코로 이끄는"
-    },
-    {
-      src: "/lovable-uploads/596aef9c-00b0-4916-87bd-acce0e9cb626.png",
-      alt: "눈으로 이끄는 - 시각적 감각이 뛰어난 강아지",
-      title: "눈으로 이끄는"
-    },
-    {
-      src: "/lovable-uploads/652b14b3-76db-4dc4-a058-74a645b2936b.png",
-      alt: "주인만 바라보는 - 충성심 깊은 강아지",
-      title: "주인만 바라보는"
-    },
-    {
-      src: "/lovable-uploads/653be78a-fc51-4b6c-8528-9c7b9625be0d.png",
-      alt: "사교적인 스타 - 인기 많은 강아지",
-      title: "사교적인 스타"
-    },
-    {
-      src: "/lovable-uploads/6f0a82a5-520c-4690-ad10-b7a956fe794c.png",
-      alt: "해변의 개들 - 바다를 좋아하는 강아지들",
-      title: "해변의 개들"
-    },
-    {
-      src: "/lovable-uploads/8e8852b6-3098-4496-bbe1-93b235fc4e6a.png",
-      alt: "질문하는 개 - 호기심 많은 강아지",
-      title: "질문하는 개"
-    },
-    {
-      src: "/lovable-uploads/8e94178e-a6d0-495e-a51e-2db8f9649ad0.png",
-      alt: "모험가 정신 - 탐험을 좋아하는 강아지",
-      title: "모험가 정신"
-    },
-    {
-      src: "/lovable-uploads/a59b7728-dcb9-4fd5-b34c-ba874cff8499.png",
-      alt: "편안한 동반자 - 안정감을 주는 강아지",
-      title: "편안한 동반자"
-    },
-    {
-      src: "/lovable-uploads/ce1fcfb5-0d9d-4376-a99f-eaf28ec9709d.png",
-      alt: "독립적인 성격 - 자유로운 영혼의 강아지",
-      title: "독립적인 성격"
+      src: "/lovable-uploads/197027de-ff76-4b56-8b3d-8ab975a7e279.png",
+      alt: "행운의 강아지 - 클로버를 든 강아지",
+      title: "행운의 강아지"
     }
   ];
 
@@ -163,6 +123,13 @@ const HeroCarousel = () => {
                         멍BTI 테스트 하러가기
                       </Button>
                     </div>
+                  </div>
+
+                  {/* Image title in bottom left */}
+                  <div className="absolute bottom-4 left-4 text-white">
+                    <h3 className="text-lg font-semibold drop-shadow-lg">
+                      {image.title}
+                    </h3>
                   </div>
                 </div>
               </CarouselItem>
