@@ -192,10 +192,10 @@ const Index = () => {
       <main className="pb-20 -mt-4">
         {/* Hero Section Title */}
         <div className="px-5 mb-4">
-          <h2 className="text-2xl font-bold text-center text-foreground mb-2">
+          <h2 className="text-xl font-bold text-center text-foreground mb-2">
             우리 강아지는 어떤 여행 스타일?
           </h2>
-          <p className="text-center text-muted-foreground">
+          <p className="text-center text-muted-foreground text-sm">
             반려견의 성격에 맞는 완벽한 여행지를 추천해드려요
           </p>
         </div>
