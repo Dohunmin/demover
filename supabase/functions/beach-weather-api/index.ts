@@ -102,58 +102,122 @@ serve(async (req) => {
 
     console.log(`Calling KMA API: ${apiUrl}`);
 
-    const response = await fetch(apiUrl);
-    
-    if (!response.ok) {
-      console.log(`KMA API response not ok: ${response.status} ${response.statusText}`);
-      throw new Error(`기상청 API 호출 실패: ${response.status} ${response.statusText}`);
-    }
-
-    // 먼저 텍스트로 응답을 받아서 확인
-    const responseText = await response.text();
-    console.log("KMA API Raw Response:", responseText.substring(0, 500)); // 처음 500자만 로그
-
-    let data;
     try {
-      // JSON 파싱 시도
-      data = JSON.parse(responseText);
-      console.log("Successfully parsed as JSON");
-    } catch (jsonError) {
-      console.log("Failed to parse as JSON, checking for XML error response");
+      const response = await fetch(apiUrl);
       
-      // XML 오류 응답인지 확인
-      if (responseText.includes("OpenAPI_ServiceResponse") || responseText.includes("<result>")) {
-        console.log("Detected OpenAPI error response");
-        // XML에서 에러 메시지 추출
-        const errorMatch = responseText.match(/<errMsg>(.*?)<\/errMsg>/);
-        const errorMsg = errorMatch ? errorMatch[1] : "알 수 없는 API 오류";
-        throw new Error(`기상청 API 오류: ${errorMsg}`);
+      console.log(`KMA API Response Status: ${response.status} ${response.statusText}`);
+      
+      if (!response.ok) {
+        console.log(`KMA API request failed with status: ${response.status}`);
+        return new Response(JSON.stringify({ 
+          error: "KMA API request failed", 
+          status: response.status,
+          statusText: response.statusText,
+          url: apiUrl
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 500,
+        });
       }
-      
-      // JSON도 아니고 알려진 XML 오류도 아닌 경우
-      throw new Error(`예상하지 못한 응답 형식: ${responseText.substring(0, 100)}`);
+
+      // 먼저 텍스트로 응답을 받아서 확인
+      const responseText = await response.text();
+      console.log("KMA API Raw Response:", responseText.substring(0, 500)); // 처음 500자만 로그
+
+      let data;
+      try {
+        // JSON 파싱 시도
+        data = JSON.parse(responseText);
+        console.log("Successfully parsed as JSON");
+        
+        // API 응답에서 에러 체크
+        if (data.response && data.response.header) {
+          const resultCode = data.response.header.resultCode;
+          const resultMsg = data.response.header.resultMsg;
+          console.log(`API Result Code: ${resultCode}, Message: ${resultMsg}`);
+          
+          if (resultCode !== "00") {
+            return new Response(JSON.stringify({ 
+              error: "KMA API returned error",
+              resultCode,
+              resultMsg,
+              apiResponse: data
+            }), {
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+              status: 400,
+            });
+          }
+        }
+        
+      } catch (jsonError) {
+        console.log("Failed to parse as JSON:", jsonError.message);
+        console.log("Checking for XML error response");
+        
+        // XML 오류 응답인지 확인
+        if (responseText.includes("OpenAPI_ServiceResponse") || responseText.includes("<result>")) {
+          console.log("Detected OpenAPI error response");
+          
+          // XML에서 에러 메시지 추출
+          const errorMatch = responseText.match(/<errMsg>(.*?)<\/errMsg>/);
+          const codeMatch = responseText.match(/<returnReasonCode>(.*?)<\/returnReasonCode>/);
+          
+          const errorMsg = errorMatch ? errorMatch[1] : "알 수 없는 API 오류";
+          const errorCode = codeMatch ? codeMatch[1] : "UNKNOWN";
+          
+          return new Response(JSON.stringify({ 
+            error: "KMA API XML Error Response",
+            errorCode,
+            errorMessage: errorMsg,
+            rawResponse: responseText.substring(0, 1000)
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400,
+          });
+        }
+        
+        // JSON도 아니고 알려진 XML 오류도 아닌 경우
+        return new Response(JSON.stringify({ 
+          error: "Unexpected response format",
+          responsePreview: responseText.substring(0, 200),
+          parseError: jsonError.message
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 500,
+        });
+      }
+
+      console.log("KMA API response processed successfully");
+
+      // 해수욕장명 붙여주기
+      const beachNameFromMap = Object.keys(beachMap).find(k => beachMap[k] == Number(beach_num));
+      if (beachNameFromMap) {
+        data["해수욕장명"] = beachNameFromMap;
+        data["beach_name"] = beachNameFromMap;
+      }
+
+      // 요청 정보도 추가
+      data["request_info"] = {
+        beach_num: beach_num,
+        beach_name: beachNameFromMap || beach_name,
+        base_date: baseDate,
+        base_time: baseTime
+      };
+
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+
+    } catch (fetchError) {
+      console.log("Fetch error:", fetchError.message);
+      return new Response(JSON.stringify({ 
+        error: "Network error calling KMA API",
+        details: fetchError.message,
+        url: apiUrl
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
+      });
     }
-
-    console.log("KMA API response processed successfully");
-
-    // 해수욕장명 붙여주기
-    const beachNameFromMap = Object.keys(beachMap).find(k => beachMap[k] == Number(beach_num));
-    if (beachNameFromMap) {
-      data["해수욕장명"] = beachNameFromMap;
-      data["beach_name"] = beachNameFromMap;
-    }
-
-    // 요청 정보도 추가
-    data["request_info"] = {
-      beach_num: beach_num,
-      beach_name: beachNameFromMap || beach_name,
-      base_date: baseDate,
-      base_time: baseTime
-    };
-
-    return new Response(JSON.stringify(data), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
 
   } catch (error) {
     console.error("Error in beach-weather-api:", error);
