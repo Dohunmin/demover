@@ -3,15 +3,90 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 
 const Footer = () => {
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
 
   return (
     <footer className="bg-background px-4 py-6 text-xs text-muted-foreground mt-auto mb-20">
       <div className="space-y-4">
         {/* Footer Links */}
         <div className="flex justify-center gap-3 pb-4">
-          <button className="hover:text-foreground transition-colors text-xs">
-            이용약관
-          </button>
+          <Dialog open={isTermsOpen} onOpenChange={setIsTermsOpen}>
+            <DialogTrigger asChild>
+              <button className="hover:text-foreground transition-colors text-xs">
+                이용약관
+              </button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>서비스 이용약관</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 text-sm">
+                <p>
+                  <strong>챗메이드랩스</strong>(이하 "회사")가 제공하는 반려동물 여행 플랫폼 서비스(이하 "서비스")의 이용약관은 다음과 같습니다.
+                </p>
+                
+                <div>
+                  <h3 className="font-semibold mb-2">제1조 (목적)</h3>
+                  <p>본 약관은 회사가 제공하는 반려동물 여행 정보 서비스의 이용조건 및 절차, 회원과 회사 간의 권리, 의무 및 책임사항을 규정함을 목적으로 합니다.</p>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold mb-2">제2조 (정의)</h3>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>"서비스"란 회사가 제공하는 반려동물 동반 여행지 정보, 동물병원 정보, 해수욕장 정보 등을 말합니다.</li>
+                    <li>"회원"이란 본 약관에 동의하고 회사와 서비스 이용계약을 체결한 개인을 말합니다.</li>
+                    <li>"콘텐츠"란 서비스를 통해 제공되는 모든 정보, 데이터, 이미지 등을 말합니다.</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold mb-2">제3조 (약관의 효력 및 변경)</h3>
+                  <p className="mb-2">본 약관은 서비스 화면에 게시하거나 기타의 방법으로 회원에게 공지함으로써 효력이 발생합니다.</p>
+                  <p>회사는 필요한 경우 본 약관을 변경할 수 있으며, 변경된 약관은 공지와 함께 효력이 발생합니다.</p>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold mb-2">제4조 (서비스의 제공)</h3>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>반려동물 동반 가능 여행지 정보 제공</li>
+                    <li>동물병원 위치 및 정보 제공</li>
+                    <li>반려동물 동반 해수욕장 정보 제공</li>
+                    <li>여행 기록 및 북마크 기능</li>
+                    <li>기타 회사가 정하는 서비스</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold mb-2">제5조 (회원의 의무)</h3>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>회원은 서비스 이용 시 관련 법령 및 본 약관을 준수해야 합니다.</li>
+                    <li>타인의 개인정보를 도용하거나 허위정보를 등록해서는 안 됩니다.</li>
+                    <li>서비스를 통해 얻은 정보를 상업적 목적으로 무단 사용해서는 안 됩니다.</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold mb-2">제6조 (서비스 이용의 제한)</h3>
+                  <p>회사는 회원이 본 약관을 위반하거나 서비스의 정상적인 운영을 방해한 경우, 서비스 이용을 제한하거나 중단할 수 있습니다.</p>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold mb-2">제7조 (면책조항)</h3>
+                  <p className="mb-2">회사는 천재지변 또는 이에 준하는 불가항력으로 인하여 서비스를 제공할 수 없는 경우에는 서비스 제공에 관한 책임이 면제됩니다.</p>
+                  <p>회사는 서비스에 표시된 정보의 정확성에 대해 최선을 다하나, 모든 정보의 정확성을 보장하지는 않습니다.</p>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold mb-2">제8조 (분쟁 해결)</h3>
+                  <p>본 약관과 관련하여 발생한 분쟁은 대한민국 법률에 따라 해결하며, 관할법원은 회사의 본점 소재지를 관할하는 법원으로 합니다.</p>
+                </div>
+
+                <div className="pt-4 border-t">
+                  <p className="text-xs text-muted-foreground">시행일: 2024년 1월 1일</p>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
           <span className="text-border">•</span>
           <Dialog open={isPrivacyOpen} onOpenChange={setIsPrivacyOpen}>
             <DialogTrigger asChild>
