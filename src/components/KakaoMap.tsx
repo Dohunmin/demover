@@ -31,9 +31,10 @@ interface Place {
 interface KakaoMapProps {
   onBack: () => void;
   hideCategoryGrid?: boolean;
+  hideSearchBar?: boolean;
 }
 
-const KakaoMap: React.FC<KakaoMapProps> = ({ onBack, hideCategoryGrid = false }) => {
+const KakaoMap: React.FC<KakaoMapProps> = ({ onBack, hideCategoryGrid = false, hideSearchBar = false }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<any>(null);
   const clusterer = useRef<any>(null);
@@ -833,44 +834,46 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack, hideCategoryGrid = false })
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* 헤더 */}
-      <div className="bg-white shadow-sm border-b p-4">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={onBack}>
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
-          <h1 className="text-lg font-semibold">지도 검색</h1>
-        </div>
-        
-        {/* 검색 바 */}
-        <form onSubmit={handleSearch} className="mt-4 flex gap-2">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              placeholder="장소를 입력하세요"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+      {!hideSearchBar && (
+        <div className="bg-white shadow-sm border-b p-4">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" onClick={onBack}>
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+            <h1 className="text-lg font-semibold">지도 검색</h1>
           </div>
-          <Select value={radius} onValueChange={setRadius}>
-            <SelectTrigger className="w-24">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="500">500m</SelectItem>
-              <SelectItem value="1000">1km</SelectItem>
-              <SelectItem value="2000">2km</SelectItem>
-              <SelectItem value="5000">5km</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button type="submit" disabled={loading || !isMapLoaded}>
-            {loading ? '검색중...' : '검색'}
-          </Button>
-          <Button type="button" variant="outline" onClick={getCurrentLocation}>
-            <Navigation className="w-4 h-4" />
-          </Button>
-        </form>
-      </div>
+          
+          {/* 검색 바 */}
+          <form onSubmit={handleSearch} className="mt-4 flex gap-2">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder="장소를 입력하세요"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={radius} onValueChange={setRadius}>
+              <SelectTrigger className="w-24">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="500">500m</SelectItem>
+                <SelectItem value="1000">1km</SelectItem>
+                <SelectItem value="2000">2km</SelectItem>
+                <SelectItem value="5000">5km</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button type="submit" disabled={loading || !isMapLoaded}>
+              {loading ? '검색중...' : '검색'}
+            </Button>
+            <Button type="button" variant="outline" onClick={getCurrentLocation}>
+              <Navigation className="w-4 h-4" />
+            </Button>
+          </form>
+        </div>
+      )}
 
       {/* 카테고리별 둘러보기 */}
       {!hideCategoryGrid && <CategoryGrid />}
@@ -878,77 +881,81 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack, hideCategoryGrid = false })
       {/* 메인 콘텐츠 */}
       <div className="flex-1 flex relative">
         {/* 데스크톱: 좌측 리스트 */}
-        <div className={`w-80 bg-white border-r overflow-hidden md:flex flex-col ${showMobileList ? 'absolute inset-0 z-10' : 'hidden'}`}>
-          <div className="p-4 border-b">
-            <h2 className="font-semibold">검색 결과 ({places.length})</h2>
-            {/* 모바일 닫기 버튼 */}
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="md:hidden absolute top-2 right-2"
-              onClick={() => setShowMobileList(false)}
-            >
-              ✕
-            </Button>
-          </div>
-          <div className="flex-1 overflow-y-auto">
-            {places.map((place, index) => (
-              <Card 
-                key={place.id}
-                className={`m-2 p-3 cursor-pointer hover:shadow-md transition-shadow ${
-                  selectedPlace?.id === place.id ? 'ring-2 ring-blue-500' : ''
-                }`}
-                onClick={() => selectPlace(place)}
+        {!hideSearchBar && (
+          <div className={`w-80 bg-white border-r overflow-hidden md:flex flex-col ${showMobileList ? 'absolute inset-0 z-10' : 'hidden'}`}>
+            <div className="p-4 border-b">
+              <h2 className="font-semibold">검색 결과 ({places.length})</h2>
+              {/* 모바일 닫기 버튼 */}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="md:hidden absolute top-2 right-2"
+                onClick={() => setShowMobileList(false)}
               >
-                <h3 className="font-medium text-sm mb-1">{place.place_name}</h3>
-                <p className="text-xs text-gray-600 mb-1">{place.category_name}</p>
-                <p className="text-xs text-gray-500 mb-2">{place.address_name}</p>
-                {place.phone && (
-                  <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
-                    <Phone className="w-3 h-3" />
-                    {place.phone}
+                ✕
+              </Button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              {places.map((place, index) => (
+                <Card 
+                  key={place.id}
+                  className={`m-2 p-3 cursor-pointer hover:shadow-md transition-shadow ${
+                    selectedPlace?.id === place.id ? 'ring-2 ring-blue-500' : ''
+                  }`}
+                  onClick={() => selectPlace(place)}
+                >
+                  <h3 className="font-medium text-sm mb-1">{place.place_name}</h3>
+                  <p className="text-xs text-gray-600 mb-1">{place.category_name}</p>
+                  <p className="text-xs text-gray-500 mb-2">{place.address_name}</p>
+                  {place.phone && (
+                    <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
+                      <Phone className="w-3 h-3" />
+                      {place.phone}
+                    </div>
+                  )}
+                  {place.distance && (
+                    <div className="flex items-center gap-1 text-xs text-blue-600">
+                      <MapPin className="w-3 h-3" />
+                      {Math.round(Number(place.distance))}m
+                    </div>
+                  )}
+                  <div className="flex justify-end mt-2">
+                    <a 
+                      href={place.place_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      상세보기 <ExternalLink className="w-3 h-3" />
+                    </a>
                   </div>
-                )}
-                {place.distance && (
-                  <div className="flex items-center gap-1 text-xs text-blue-600">
-                    <MapPin className="w-3 h-3" />
-                    {Math.round(Number(place.distance))}m
-                  </div>
-                )}
-                <div className="flex justify-end mt-2">
-                  <a 
-                    href={place.place_url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    상세보기 <ExternalLink className="w-3 h-3" />
-                  </a>
+                </Card>
+              ))}
+              {places.length === 0 && (
+                <div className="text-center text-gray-500 p-8">
+                  <MapPin className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <p>검색 결과가 없습니다.</p>
+                  <p className="text-sm">다른 키워드로 검색해보세요.</p>
                 </div>
-              </Card>
-            ))}
-            {places.length === 0 && (
-              <div className="text-center text-gray-500 p-8">
-                <MapPin className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <p>검색 결과가 없습니다.</p>
-                <p className="text-sm">다른 키워드로 검색해보세요.</p>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* 지도 */}
         <div className="flex-1 relative">
           <div ref={mapRef} className="w-full h-full"></div>
           
           {/* 모바일 리스트 토글 버튼 */}
-          <Button
-            className="md:hidden absolute top-4 left-4 z-10"
-            onClick={() => setShowMobileList(true)}
-          >
-            결과 목록 ({places.length})
-          </Button>
+          {!hideSearchBar && (
+            <Button
+              className="md:hidden absolute top-4 left-4 z-10"
+              onClick={() => setShowMobileList(true)}
+            >
+              결과 목록 ({places.length})
+            </Button>
+          )}
           
           {!isMapLoaded && (
             <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">

@@ -441,7 +441,7 @@ const Records = () => {
             <div className="mt-8">
               <h2 className="card-title text-lg mb-4">지도에서 찾기</h2>
               <div className="h-96 rounded-lg overflow-hidden">
-                <KakaoMap onBack={() => {}} hideCategoryGrid={true} />
+                <KakaoMap onBack={() => {}} hideCategoryGrid={true} hideSearchBar={true} />
               </div>
             </div>
           </TabsContent>
