@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ArrowLeft, PawPrint, Heart, MapPin, Compass, Mountain } from "lucide-react";
 import AdBanner from "@/components/AdBanner";
-import Footer from "@/components/Footer";
+
 
 // 4가지 평가차원 데이터
 const dimensions = [
@@ -618,8 +618,6 @@ const MbtiTest = () => {
         {/* Ad Banner */}
         <AdBanner />
         
-        {/* Footer */}
-        <Footer />
 
         {/* 여행 성향 설명 다이얼로그 */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -708,8 +706,6 @@ const MbtiTest = () => {
         {/* Ad Banner */}
         <AdBanner />
         
-        {/* Footer */}
-        <Footer />
       </div>
     );
   }
@@ -784,8 +780,6 @@ const MbtiTest = () => {
         {/* Ad Banner */}
         <AdBanner />
         
-        {/* Footer */}
-        <Footer />
       </div>
     );
   }
