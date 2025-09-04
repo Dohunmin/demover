@@ -9,8 +9,8 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* Design System Variables - Exact CSS Implementation */
-    --primary-color: #5EE8E8;       /* 포인트 컬러 */
-    --primary-hover: #4BD3D3;
+    --primary-color: #000000;       /* 포인트 컬러 */
+    --primary-hover: #333333;
     --background-color: #FFFFFF;    /* 전체 배경 */
     --card-background: #FFFFFF;     /* 카드형 컨텐츠 배경 */
     --border-color: #F0F0F0;        /* 경계선 컬러 */
@@ -25,19 +25,19 @@ All colors MUST be HSL.
     --card-foreground: 0 0% 13%; /* #222222 */
     --popover: 0 0% 100%; /* #FFFFFF */
     --popover-foreground: 0 0% 13%; /* #222222 */
-    --primary: 180 79% 64%; /* #5EE8E8 */
+    --primary: 0 0% 0%; /* #000000 */
     --primary-foreground: 0 0% 100%; /* #FFFFFF */
     --secondary: 0 0% 94%; /* #F0F0F0 */
     --secondary-foreground: 0 0% 33%; /* #555555 */
     --muted: 0 0% 94%; /* #F0F0F0 */
     --muted-foreground: 0 0% 33%; /* #555555 */
-    --accent: 180 79% 64%; /* #5EE8E8 */
+    --accent: 0 0% 0%; /* #000000 */
     --accent-foreground: 0 0% 100%; /* #FFFFFF */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
     --border: 0 0% 94%; /* #F0F0F0 */
     --input: 0 0% 100%; /* #FFFFFF */
-    --ring: 180 79% 64%; /* #5EE8E8 */
+    --ring: 0 0% 0%; /* #000000 */
     --radius: 0.75rem; /* 12px */
   }
 
@@ -48,19 +48,19 @@ All colors MUST be HSL.
     --card-foreground: 0 0% 95%;
     --popover: 0 0% 9%;
     --popover-foreground: 0 0% 95%;
-    --primary: 180 79% 64%;
-    --primary-foreground: 0 0% 13%;
+    --primary: 0 0% 0%;
+    --primary-foreground: 0 0% 100%;
     --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 95%;
     --muted: 0 0% 15%;
     --muted-foreground: 0 0% 64%;
-    --accent: 180 79% 64%;
-    --accent-foreground: 0 0% 13%;
+    --accent: 0 0% 0%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 95%;
     --border: 0 0% 15%;
     --input: 0 0% 15%;
-    --ring: 180 79% 64%;
+    --ring: 0 0% 0%;
   }
 }
 

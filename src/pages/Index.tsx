@@ -212,7 +212,7 @@ const Index = () => {
             <div className="text-center">
               <Button 
                 onClick={() => navigate('/mbti')}
-                className="bg-[#4CD2C7] hover:bg-[#3bb5aa] text-white font-semibold px-8 py-3 rounded-xl transition-colors w-full"
+                className="button-primary w-full"
               >
                 멍BTI 테스트 하러가기
               </Button>
