@@ -324,7 +324,6 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
   useEffect(() => {
     if (isMapLoaded) {
       loadPetTourismMarkers();
-      loadGeneralTourismAsPet(); // 일반 관광지를 반려동물 동반으로 표시
     }
   }, [isMapLoaded]);
 
