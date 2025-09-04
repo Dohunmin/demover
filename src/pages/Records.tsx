@@ -398,18 +398,14 @@ const Records = () => {
       {/* Main Content */}
       <main className="p-5">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
             <TabsTrigger value="bookmarks" className="flex items-center gap-2">
               <Heart className="w-4 h-4" />
               북마크
             </TabsTrigger>
-            <TabsTrigger value="travel-bookmarks" className="flex items-center gap-2">
-              <MapPin className="w-4 h-4" />
-              여행지
-            </TabsTrigger>
             <TabsTrigger value="travel" className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              기록
+              여행 기록
             </TabsTrigger>
           </TabsList>
 
@@ -419,73 +415,199 @@ const Records = () => {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                 <p className="text-muted-foreground mt-2">로딩 중...</p>
               </div>
-            ) : bookmarks.length > 0 ? (
-              <div className="space-y-4">
-                {bookmarks.map((bookmark) => {
-                  const categoryInfo = getCategoryInfo(bookmark.news_posts.category);
-                  const IconComponent = categoryInfo.icon;
-
-                  return (
-                    <div key={bookmark.id} className="card">
-                      <div className="flex gap-4">
-                        {bookmark.news_posts.image_url && (
-                          <div className="w-20 h-20 bg-muted rounded-lg overflow-hidden flex-shrink-0">
-                            <img 
-                              src={bookmark.news_posts.image_url} 
-                              alt={bookmark.news_posts.title}
-                              className="w-full h-full object-cover cursor-pointer"
-                              onClick={() => navigate(`/news/${bookmark.news_posts.id}`)}
-                            />
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className={`flex items-center px-2 py-1 rounded-lg ${categoryInfo.bgColor} ${categoryInfo.borderColor} border`}>
-                              <IconComponent className={`w-3 h-3 mr-1 ${categoryInfo.color}`} />
-                              <span className={`text-xs font-medium ${categoryInfo.color}`}>
-                                {categoryInfo.label}
-                              </span>
+            ) : bookmarks.length > 0 || travelBookmarks.length > 0 ? (
+              <div className="space-y-6">
+                {/* 축제/이벤트 북마크 섹션 */}
+                {bookmarks.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-4">
+                      <Tag className="w-5 h-5 text-primary" />
+                      <h3 className="font-semibold text-lg">축제 · 이벤트</h3>
+                      <span className="bg-primary/10 text-primary px-2 py-1 rounded-full text-xs">
+                        {bookmarks.length}
+                      </span>
+                    </div>
+                    <div className="space-y-4">
+                      {bookmarks.map((bookmark) => (
+                        <div key={bookmark.id} className="card">
+                          <div className="flex gap-4">
+                            {bookmark.news_posts.image_url && (
+                              <div className="w-20 h-20 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+                                <img 
+                                  src={bookmark.news_posts.image_url} 
+                                  alt={bookmark.news_posts.title}
+                                  className="w-full h-full object-cover cursor-pointer"
+                                  onClick={() => navigate(`/news/${bookmark.news_posts.id}`)}
+                                />
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className={`flex items-center px-2 py-1 rounded-lg ${
+                                  bookmark.news_posts.category === 'event' 
+                                    ? 'bg-purple-50 border-purple-200 border text-purple-600' 
+                                    : 'bg-orange-50 border-orange-200 border text-orange-600'
+                                }`}>
+                                  <Tag className="w-3 h-3 mr-1" />
+                                  <span className="text-xs font-medium">
+                                    {bookmark.news_posts.category === 'event' ? '이벤트' : '특가'}
+                                  </span>
+                                </div>
+                              </div>
+                              <h4 
+                                className="card-title font-semibold mb-1 line-clamp-1 cursor-pointer hover:text-primary"
+                                onClick={() => navigate(`/news/${bookmark.news_posts.id}`)}
+                              >
+                                {bookmark.news_posts.title}
+                              </h4>
+                              {bookmark.news_posts.content && (
+                                <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+                                  {bookmark.news_posts.content}
+                                </p>
+                              )}
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-muted-foreground">
+                                  북마크: {new Date(bookmark.created_at).toLocaleDateString('ko-KR')}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="p-2 h-auto text-primary hover:text-primary/80 hover:bg-primary/10"
+                                onClick={() => navigate(`/news/${bookmark.news_posts.id}`)}
+                              >
+                                <BookOpen className="w-4 h-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="p-2 h-auto text-red-600 hover:text-red-700 hover:bg-red-50"
+                                onClick={() => removeBookmark(bookmark.id)}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
                             </div>
                           </div>
-                          <h4 
-                            className="card-title font-semibold mb-1 line-clamp-1 cursor-pointer hover:text-primary"
-                            onClick={() => navigate(`/news/${bookmark.news_posts.id}`)}
-                          >
-                            {bookmark.news_posts.title}
-                          </h4>
-                          {bookmark.news_posts.content && (
-                            <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
-                              {bookmark.news_posts.content}
-                            </p>
-                          )}
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-muted-foreground">
-                              북마크: {new Date(bookmark.created_at).toLocaleDateString('ko-KR')}
-                            </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 여행지 즐겨찾기 섹션 */}
+                {travelBookmarks.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-4">
+                      <MapPin className="w-5 h-5 text-primary" />
+                      <h3 className="font-semibold text-lg">여행지</h3>
+                      <span className="bg-primary/10 text-primary px-2 py-1 rounded-full text-xs">
+                        {travelBookmarks.length}
+                      </span>
+                    </div>
+                    <div className="space-y-4">
+                      {travelBookmarks.map((bookmark) => (
+                        <div key={bookmark.id} className="card">
+                          <div className="flex gap-4">
+                            {bookmark.image_url && (
+                              <div className="w-20 h-20 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+                                <img 
+                                  src={bookmark.image_url} 
+                                  alt={bookmark.title}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                  }}
+                                />
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className={`flex items-center px-2 py-1 rounded-lg ${
+                                  bookmark.bookmark_type === 'pet' 
+                                    ? 'bg-green-50 border-green-200 border text-green-600' 
+                                    : 'bg-blue-50 border-blue-200 border text-blue-600'
+                                }`}>
+                                  {bookmark.bookmark_type === 'pet' ? (
+                                    <Heart className="w-3 h-3 mr-1" />
+                                  ) : (
+                                    <MapPin className="w-3 h-3 mr-1" />
+                                  )}
+                                  <span className="text-xs font-medium">
+                                    {bookmark.bookmark_type === 'pet' ? '반려동물 동반' : '일반 관광지'}
+                                  </span>
+                                </div>
+                              </div>
+                              <h4 className="card-title font-semibold mb-1 line-clamp-1">
+                                {bookmark.title}
+                              </h4>
+                              {bookmark.addr1 && (
+                                <div className="flex items-start gap-1 mb-2">
+                                  <MapPin className="w-3 h-3 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                  <p className="text-xs text-muted-foreground line-clamp-2">
+                                    {bookmark.addr1} {bookmark.addr2}
+                                  </p>
+                                </div>
+                              )}
+                              {bookmark.tel && (
+                                <div className="flex items-center gap-1 mb-2">
+                                  <span className="text-xs text-muted-foreground">📞 {bookmark.tel}</span>
+                                </div>
+                              )}
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-muted-foreground">
+                                  즐겨찾기: {new Date(bookmark.created_at).toLocaleDateString('ko-KR')}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="p-2 h-auto text-red-600 hover:text-red-700 hover:bg-red-50"
+                                onClick={() => removeTravelBookmark(bookmark.id)}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
-                        <div className="flex flex-col gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="p-2 h-auto text-primary hover:text-primary/80 hover:bg-primary/10"
-                            onClick={() => navigate(`/news/${bookmark.news_posts.id}`)}
-                          >
-                            <BookOpen className="w-4 h-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="p-2 h-auto text-red-600 hover:text-red-700 hover:bg-red-50"
-                            onClick={() => removeBookmark(bookmark.id)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
+                      ))}
                     </div>
-                  );
-                })}
+                  </div>
+                )}
+
+                {/* 빈 상태 메시지 */}
+                {bookmarks.length === 0 && travelBookmarks.length === 0 && (
+                  <div className="card text-center">
+                    <div className="w-16 h-16 bg-muted rounded-full mx-auto mb-4 flex items-center justify-center">
+                      <Heart className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                    <h2 className="card-title text-lg mb-2">
+                      북마크가 없습니다
+                    </h2>
+                    <p className="card-subtitle text-sm mb-5 leading-relaxed">
+                      관심 있는 축제, 이벤트나 여행지를<br />북마크하여 저장해보세요!
+                    </p>
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={() => navigate("/news")}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        축제 · 이벤트 보기
+                      </Button>
+                      <Button 
+                        onClick={() => navigate("/travel")}
+                        className="button-primary flex-1"
+                      >
+                        여행지 찾기
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="card text-center">
@@ -493,20 +615,29 @@ const Records = () => {
                   <Heart className="w-8 h-8 text-muted-foreground" />
                 </div>
                 <h2 className="card-title text-lg mb-2">
-                  북마크한 소식이 없습니다
+                  북마크가 없습니다
                 </h2>
                 <p className="card-subtitle text-sm mb-5 leading-relaxed">
-                  소식 페이지에서 하트 버튼을 눌러<br />관심 있는 소식을 저장해보세요!
+                  관심 있는 축제, 이벤트나 여행지를<br />북마크하여 저장해보세요!
                 </p>
-                <Button 
-                  onClick={() => navigate("/news")}
-                  className="button-primary w-full"
-                >
-                  소식 보러가기
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => navigate("/news")}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    축제 · 이벤트 보기
+                  </Button>
+                  <Button 
+                    onClick={() => navigate("/travel")}
+                    className="button-primary flex-1"
+                  >
+                    여행지 찾기
+                  </Button>
+                </div>
               </div>
             )}
-            
+
             {/* Kakao Map Section */}
             <div className="mt-8">
               <h2 className="card-title text-lg mb-4">지도에서 찾기</h2>
@@ -516,103 +647,6 @@ const Records = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="travel-bookmarks">
-            {loading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                <p className="text-muted-foreground mt-2">로딩 중...</p>
-              </div>
-            ) : travelBookmarks.length > 0 ? (
-              <div className="space-y-4">
-                {travelBookmarks.map((bookmark) => (
-                  <div key={bookmark.id} className="card">
-                    <div className="flex gap-4">
-                      {bookmark.image_url && (
-                        <div className="w-20 h-20 bg-muted rounded-lg overflow-hidden flex-shrink-0">
-                          <img 
-                            src={bookmark.image_url} 
-                            alt={bookmark.title}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                            }}
-                          />
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className={`flex items-center px-2 py-1 rounded-lg ${
-                            bookmark.bookmark_type === 'pet' 
-                              ? 'bg-green-50 border-green-200 border text-green-600' 
-                              : 'bg-blue-50 border-blue-200 border text-blue-600'
-                          }`}>
-                            {bookmark.bookmark_type === 'pet' ? (
-                              <Heart className="w-3 h-3 mr-1" />
-                            ) : (
-                              <MapPin className="w-3 h-3 mr-1" />
-                            )}
-                            <span className="text-xs font-medium">
-                              {bookmark.bookmark_type === 'pet' ? '반려동물 동반' : '일반 관광지'}
-                            </span>
-                          </div>
-                        </div>
-                        <h4 className="card-title font-semibold mb-1 line-clamp-1">
-                          {bookmark.title}
-                        </h4>
-                        {bookmark.addr1 && (
-                          <div className="flex items-start gap-1 mb-2">
-                            <MapPin className="w-3 h-3 text-muted-foreground mt-0.5 flex-shrink-0" />
-                            <p className="text-xs text-muted-foreground line-clamp-2">
-                              {bookmark.addr1} {bookmark.addr2}
-                            </p>
-                          </div>
-                        )}
-                        {bookmark.tel && (
-                          <div className="flex items-center gap-1 mb-2">
-                            <span className="text-xs text-muted-foreground">📞 {bookmark.tel}</span>
-                          </div>
-                        )}
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground">
-                            즐겨찾기: {new Date(bookmark.created_at).toLocaleDateString('ko-KR')}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="p-2 h-auto text-red-600 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => removeTravelBookmark(bookmark.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="card text-center">
-                <div className="w-16 h-16 bg-muted rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <MapPin className="w-8 h-8 text-muted-foreground" />
-                </div>
-                <h2 className="card-title text-lg mb-2">
-                  즐겨찾기한 여행지가 없습니다
-                </h2>
-                <p className="card-subtitle text-sm mb-5 leading-relaxed">
-                  여행지 추천 페이지에서 하트 버튼을 눌러<br />관심 있는 여행지를 저장해보세요!
-                </p>
-                <Button 
-                  onClick={() => navigate("/travel")}
-                  className="button-primary w-full"
-                >
-                  여행지 찾으러 가기
-                </Button>
-              </div>
-            )}
-          </TabsContent>
 
           <TabsContent value="travel">
             <div className="mb-4 flex justify-between items-center">
