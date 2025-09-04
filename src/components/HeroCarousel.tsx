@@ -152,18 +152,6 @@ const HeroCarousel = () => {
                   />
                   {/* Gradient overlay for better text readability */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-                  
-                  {/* Central overlay card with button only */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="bg-background/80 backdrop-blur-sm rounded-2xl p-6 text-center max-w-xs mx-4 shadow-lg">
-                      <Button 
-                        onClick={() => navigate('/mbti')}
-                        className="bg-[#4CD2C7] hover:bg-[#3bb5aa] text-white font-semibold px-8 py-3 rounded-xl transition-colors"
-                      >
-                        멍BTI 테스트 하러가기
-                      </Button>
-                    </div>
-                  </div>
 
                   {/* Image title in bottom left */}
                   <div className="absolute bottom-4 left-4 text-white">

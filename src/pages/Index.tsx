@@ -402,6 +402,16 @@ const Index = () => {
         {/* Hero Carousel */}
         <HeroCarousel />
 
+        {/* MBTI Test Button */}
+        <div className="px-5 mb-6">
+          <Button 
+            onClick={() => navigate('/mbti')}
+            className="bg-[#4CD2C7] hover:bg-[#3bb5aa] text-white font-semibold px-8 py-3 rounded-xl transition-colors w-full"
+          >
+            멍BTI 테스트 하러가기
+          </Button>
+        </div>
+
         {/* Category Section */}
         <CategoryGrid />
 
