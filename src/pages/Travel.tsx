@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { PawPrint, MapPin, Search, Heart, Sparkles, ArrowLeft } from "lucide-react";
 import TourPlaces from "@/components/TourPlaces";
 import KakaoMap from "@/components/KakaoMap";
+import AdBanner from "@/components/AdBanner";
+import Footer from "@/components/Footer";
 import { useAuth } from "@/hooks/useAuth";
 
 const Travel = () => {
@@ -57,6 +59,12 @@ const Travel = () => {
             </Button>
           </div>
         </main>
+
+      {/* Ad Banner */}
+      <AdBanner />
+      
+      {/* Footer */}
+      <Footer />
       </div>
     );
   }
@@ -89,6 +97,12 @@ const Travel = () => {
       <main className="pt-4">
         <TourPlaces onShowMap={showMap} />
       </main>
+
+      {/* Ad Banner */}
+      <AdBanner />
+      
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

@@ -4,6 +4,8 @@ import { ArrowLeft, Calendar, Tag, Plus, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import BottomNavigation from "@/components/BottomNavigation";
+import AdBanner from "@/components/AdBanner";
+import Footer from "@/components/Footer";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -361,6 +363,12 @@ const News = () => {
           </div>
         )}
       </main>
+
+      {/* Ad Banner */}
+      <AdBanner />
+      
+      {/* Footer */}
+      <Footer />
 
     </div>
   );

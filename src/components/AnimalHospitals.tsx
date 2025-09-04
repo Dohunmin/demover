@@ -4,6 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import AdBanner from '@/components/AdBanner';
+import Footer from '@/components/Footer';
 import { supabase } from '@/integrations/supabase/client';
 
 interface AnimalHospital {
@@ -190,6 +192,12 @@ const AnimalHospitals = () => {
             </div>
           </div>
         </div>
+
+        {/* Ad Banner */}
+        <AdBanner />
+        
+        {/* Footer */}
+        <Footer />
       </div>
     );
   }
@@ -386,6 +394,12 @@ const AnimalHospitals = () => {
           </div>
         )}
       </div>
+
+      {/* Ad Banner */}
+      <AdBanner />
+      
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

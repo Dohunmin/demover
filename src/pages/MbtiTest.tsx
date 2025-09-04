@@ -5,6 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ArrowLeft, PawPrint, Heart, MapPin, Compass, Mountain } from "lucide-react";
+import AdBanner from "@/components/AdBanner";
+import Footer from "@/components/Footer";
 
 // 4가지 평가차원 데이터
 const dimensions = [
@@ -613,34 +615,15 @@ const MbtiTest = () => {
           </div>
         </main>
 
+        {/* Ad Banner */}
+        <AdBanner />
+        
+        {/* Footer */}
+        <Footer />
+
         {/* 여행 성향 설명 다이얼로그 */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="max-w-sm mx-auto">
-            <DialogHeader>
-              <DialogTitle className="text-center text-lg font-bold" style={{ color: "var(--text-primary)" }}>
-                {selectedTypeData?.title}
-              </DialogTitle>
-              <p className="text-center text-sm" style={{ color: "var(--text-secondary)" }}>
-                {selectedType}
-              </p>
-            </DialogHeader>
-            <div className="py-4">
-              {/* 캐릭터 이미지 */}
-              {mbtiImages[selectedType || ""] && (
-                <div className="flex justify-center mb-4">
-                  <img 
-                    src={mbtiImages[selectedType || ""]} 
-                    alt={`${selectedType} 캐릭터`}
-                    className="w-24 h-24 object-contain"
-                  />
-                </div>
-              )}
-              
-              <p style={{ color: "var(--text-secondary)" }} className="text-sm leading-relaxed">
-                {selectedTypeData?.description}
-              </p>
-            </div>
-          </DialogContent>
+...
         </Dialog>
       </div>
     );
@@ -721,6 +704,12 @@ const MbtiTest = () => {
             </Button>
           </div>
         </div>
+
+        {/* Ad Banner */}
+        <AdBanner />
+        
+        {/* Footer */}
+        <Footer />
       </div>
     );
   }
@@ -791,6 +780,12 @@ const MbtiTest = () => {
             </Button>
           </div>
         </div>
+
+        {/* Ad Banner */}
+        <AdBanner />
+        
+        {/* Footer */}
+        <Footer />
       </div>
     );
   }
