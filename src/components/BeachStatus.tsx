@@ -23,7 +23,7 @@ const BeachStatus = () => {
   const fetchBeachData = async () => {
     try {
       setLoading(true);
-      const beachNames = ["해운대", "광안리", "송정"];
+      const beachNames = ["송도", "해운대", "송정", "광안리", "임랑", "다대포", "일광"];
       
       // 모든 해수욕장 데이터를 동시에 요청
       const promises = beachNames.map(async (beachName) => {
@@ -63,9 +63,13 @@ const BeachStatus = () => {
       console.error('Error fetching beach data:', error);
       // 오류 시 기본 데이터 표시
       setBeaches([
+        { name: "송도 해수욕장", status: "정보없음", temperature: "-", crowd: "-", statusColor: "bg-gray-500" },
         { name: "해운대 해수욕장", status: "정보없음", temperature: "-", crowd: "-", statusColor: "bg-gray-500" },
-        { name: "광안리 해수욕장", status: "정보없음", temperature: "-", crowd: "-", statusColor: "bg-gray-500" },
         { name: "송정 해수욕장", status: "정보없음", temperature: "-", crowd: "-", statusColor: "bg-gray-500" },
+        { name: "광안리 해수욕장", status: "정보없음", temperature: "-", crowd: "-", statusColor: "bg-gray-500" },
+        { name: "임랑 해수욕장", status: "정보없음", temperature: "-", crowd: "-", statusColor: "bg-gray-500" },
+        { name: "다대포 해수욕장", status: "정보없음", temperature: "-", crowd: "-", statusColor: "bg-gray-500" },
+        { name: "일광 해수욕장", status: "정보없음", temperature: "-", crowd: "-", statusColor: "bg-gray-500" },
       ]);
     } finally {
       setLoading(false);
@@ -138,32 +142,30 @@ const BeachStatus = () => {
           <span className="ml-2 text-gray-600">해수욕장 정보를 불러오는 중...</span>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {beaches.map((beach, index) => (
-            <Card key={index} className="p-4 bg-white border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
-                    <Waves className="w-6 h-6 text-blue-600" strokeWidth={1.5} />
+            <Card key={index} className="p-3 bg-white border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+                    <Waves className="w-4 h-4 text-blue-600" strokeWidth={1.5} />
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 text-sm">{beach.name}</h4>
-                    <div className="flex items-center space-x-3 mt-2">
-                      <Badge 
-                        className={`${beach.statusColor} text-white text-xs px-2 py-1 border-0`}
-                      >
-                        {beach.status}
-                      </Badge>
-                      <div className="flex items-center space-x-1 text-gray-600">
-                        <Thermometer className="w-3 h-3" />
-                        <span className="text-xs">{beach.temperature}</span>
-                      </div>
-                      <div className="flex items-center space-x-1 text-gray-600">
-                        <Users className="w-3 h-3" />
-                        <span className="text-xs">{beach.crowd}</span>
-                      </div>
-                    </div>
-                  </div>
+                  <h4 className="font-semibold text-gray-900 text-sm">{beach.name}</h4>
+                </div>
+                <Badge 
+                  className={`${beach.statusColor} text-white text-xs px-2 py-1 border-0`}
+                >
+                  {beach.status}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between text-xs text-gray-600">
+                <div className="flex items-center space-x-1">
+                  <Thermometer className="w-3 h-3" />
+                  <span>{beach.temperature}</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Users className="w-3 h-3" />
+                  <span>{beach.crowd}</span>
                 </div>
               </div>
             </Card>
