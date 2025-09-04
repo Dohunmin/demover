@@ -464,10 +464,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
         <div style="font-size: 11px; color: #888; margin-bottom: 3px; line-height: 1.4;">${place.addr1 || ''}</div>
         ${place.tel ? `<div style="font-size: 11px; color: #888; margin-bottom: 8px;"><span style="color: #3B82F6;">📞</span> ${place.tel}</div>` : ''}
         ${place.firstimage ? `<div style="margin-bottom: 8px;"><img src="${place.firstimage}" alt="${place.title}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 6px;"/></div>` : ''}
-        <div style="font-size: 10px; color: #999; margin-bottom: 8px; line-height: 1.3;">※ 반려동물 동반 가능 여부는 현장 확인 필요</div>
-        <div style="text-align: center; margin-top: 8px;">
-          <a href="https://korean.visitkorea.or.kr/detail/detail.do?cotid=${place.contentid}" target="_blank" style="color: #3B82F6; font-size: 11px; text-decoration: none; font-weight: bold;">🔗 상세보기</a>
-        </div>
+        <div style="font-size: 10px; color: #999; margin-top: 8px; line-height: 1.3;">※ 반려동물 동반 가능 여부는 현장 확인 필요</div>
       </div>
     `;
     
@@ -577,9 +574,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
         <div style="font-size: 11px; color: #888; margin-bottom: 3px; line-height: 1.4;">${place.addr1 || ''}</div>
         ${place.tel ? `<div style="font-size: 11px; color: #888; margin-bottom: 8px;"><span style="color: #FF6B6B;">📞</span> ${place.tel}</div>` : ''}
         ${place.firstimage ? `<div style="margin-bottom: 8px;"><img src="${place.firstimage}" alt="${place.title}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 6px;"/></div>` : ''}
-        <div style="text-align: center; margin-top: 8px;">
-          <a href="https://korean.visitkorea.or.kr/detail/detail.do?cotid=${place.contentid}" target="_blank" style="color: #FF6B6B; font-size: 11px; text-decoration: none; font-weight: bold;">🔗 상세보기</a>
-        </div>
+        <div style="font-size: 10px; color: #999; margin-top: 8px; line-height: 1.3;">※ 반려동물 동반 가능 여부는 현장 확인 필요</div>
       </div>
     `;
     
