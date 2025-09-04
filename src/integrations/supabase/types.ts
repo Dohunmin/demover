@@ -136,6 +136,63 @@ export type Database = {
         }
         Relationships: []
       }
+      travel_bookmarks: {
+        Row: {
+          addr1: string | null
+          addr2: string | null
+          areacode: string | null
+          bookmark_type: string
+          content_id: string
+          content_type_id: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          mapx: string | null
+          mapy: string | null
+          sigungucode: string | null
+          tel: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          addr1?: string | null
+          addr2?: string | null
+          areacode?: string | null
+          bookmark_type?: string
+          content_id: string
+          content_type_id?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          mapx?: string | null
+          mapy?: string | null
+          sigungucode?: string | null
+          tel?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          addr1?: string | null
+          addr2?: string | null
+          areacode?: string | null
+          bookmark_type?: string
+          content_id?: string
+          content_type_id?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          mapx?: string | null
+          mapy?: string | null
+          sigungucode?: string | null
+          tel?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       travel_records: {
         Row: {
           created_at: string

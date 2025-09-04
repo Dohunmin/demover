@@ -51,16 +51,18 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
   const [activeTab, setActiveTab] = useState<"general" | "pet">("general");
   const [userAreaCode, setUserAreaCode] = useState<string>('');
   const [selectedPlace, setSelectedPlace] = useState<TourPlace | null>(null);
+  const [bookmarkedPlaces, setBookmarkedPlaces] = useState<Set<string>>(new Set());
   
   // 반려동물 키워드 검색 결과 캐시
   const [allPetPlacesCache, setAllPetPlacesCache] = useState<any[]>([]);
   const [petCacheLoaded, setPetCacheLoaded] = useState(false);
   const [initialPetLoading, setInitialPetLoading] = useState(false);
 
-  // 사용자 프로필에서 지역 코드 가져오기
+  // 사용자 프로필에서 지역 코드 가져오기 및 즐겨찾기 로드
   useEffect(() => {
-    const getUserAreaCode = async () => {
+    const getUserDataAndBookmarks = async () => {
       if (user) {
+        // 사용자 프로필에서 지역 코드 가져오기
         const { data: profile } = await supabase
           .from('profiles')
           .select('area_code')
@@ -70,10 +72,13 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
         if (profile?.area_code) {
           setUserAreaCode(profile.area_code);
         }
+
+        // 사용자의 즐겨찾기 목록 로드
+        await loadUserBookmarks();
       }
     };
     
-    getUserAreaCode();
+    getUserDataAndBookmarks();
   }, [user]);
 
   useEffect(() => {
@@ -319,8 +324,98 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
     }
   };
 
+  // 사용자 즐겨찾기 목록 로드
+  const loadUserBookmarks = async () => {
+    if (!user) return;
+
+    try {
+      const { data: bookmarks, error } = await supabase
+        .from('travel_bookmarks')
+        .select('content_id')
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('즐겨찾기 로드 오류:', error);
+        return;
+      }
+
+      const bookmarkSet = new Set(bookmarks?.map(b => b.content_id) || []);
+      setBookmarkedPlaces(bookmarkSet);
+    } catch (error) {
+      console.error('즐겨찾기 로드 실패:', error);
+    }
+  };
+
+  // 즐겨찾기 추가/제거
+  const toggleBookmark = async (place: any, bookmarkType: 'general' | 'pet') => {
+    if (!user) {
+      toast.error('로그인이 필요합니다.');
+      return;
+    }
+
+    const contentId = place.contentid || place.contentId;
+    const isBookmarked = bookmarkedPlaces.has(contentId);
+
+    try {
+      if (isBookmarked) {
+        // 즐겨찾기 제거
+        const { error } = await supabase
+          .from('travel_bookmarks')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('content_id', contentId);
+
+        if (error) throw error;
+
+        const newBookmarks = new Set(bookmarkedPlaces);
+        newBookmarks.delete(contentId);
+        setBookmarkedPlaces(newBookmarks);
+        toast.success('즐겨찾기에서 제거되었습니다.');
+      } else {
+        // 즐겨찾기 추가
+        const bookmarkData = {
+          user_id: user.id,
+          content_id: contentId,
+          title: place.title,
+          addr1: place.addr1 || '',
+          addr2: place.addr2 || '',
+          image_url: place.firstimage || place.image || '',
+          tel: place.tel || '',
+          mapx: place.mapx || '',
+          mapy: place.mapy || '',
+          areacode: place.areacode || '',
+          sigungucode: place.sigungucode || '',
+          content_type_id: place.contenttypeid || place.contentTypeId || '',
+          bookmark_type: bookmarkType
+        };
+
+        const { error } = await supabase
+          .from('travel_bookmarks')
+          .insert(bookmarkData);
+
+        if (error) throw error;
+
+        const newBookmarks = new Set(bookmarkedPlaces);
+        newBookmarks.add(contentId);
+        setBookmarkedPlaces(newBookmarks);
+        toast.success('즐겨찾기에 추가되었습니다.');
+      }
+    } catch (error) {
+      console.error('즐겨찾기 토글 오류:', error);
+      toast.error(isBookmarked ? '즐겨찾기 제거에 실패했습니다.' : '즐겨찾기 추가에 실패했습니다.');
+    }
+  };
+
   const renderTourPlace = (place: any, index: number) => {
-    const handlePlaceClick = () => {
+    const contentId = place.contentid || place.contentId;
+    const isBookmarked = bookmarkedPlaces.has(contentId);
+    
+    const handlePlaceClick = (e: React.MouseEvent) => {
+      // 즐겨찾기 버튼 클릭 시 모달이 열리지 않도록 방지
+      if ((e.target as HTMLElement).closest('.bookmark-button')) {
+        return;
+      }
+      
       const tourPlace: TourPlace = {
         contentId: place.contentid || place.contentId,
         contentTypeId: place.contenttypeid || place.contentTypeId,
@@ -382,6 +477,17 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
               <Badge variant="secondary" className="text-xs">
                 {activeTab === "pet" ? "반려동물 동반" : "일반 관광지"}
               </Badge>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`bookmark-button p-2 ${isBookmarked ? 'text-red-500 hover:text-red-600' : 'text-gray-400 hover:text-red-500'}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleBookmark(place, activeTab);
+                }}
+              >
+                <Heart className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
+              </Button>
             </div>
           </div>
         </div>

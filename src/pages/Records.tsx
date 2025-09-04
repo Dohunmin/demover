@@ -44,10 +44,25 @@ interface BookmarkedPost {
   };
 }
 
+interface TravelBookmark {
+  id: string;
+  content_id: string;
+  title: string;
+  addr1?: string;
+  addr2?: string;
+  image_url?: string;
+  tel?: string;
+  mapx?: string;
+  mapy?: string;
+  bookmark_type: 'general' | 'pet';
+  created_at: string;
+}
+
 const Records = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [bookmarks, setBookmarks] = useState<BookmarkedPost[]>([]);
+  const [travelBookmarks, setTravelBookmarks] = useState<TravelBookmark[]>([]);
   const [travelRecords, setTravelRecords] = useState<TravelRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("bookmarks");
@@ -64,6 +79,7 @@ const Records = () => {
   useEffect(() => {
     if (user) {
       fetchBookmarks();
+      fetchTravelBookmarks();
       fetchTravelRecords();
     }
   }, [user]);
@@ -125,6 +141,35 @@ const Records = () => {
       toast.error('북마크 목록을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTravelBookmarks = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('travel_bookmarks')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching travel bookmarks:', error);
+        toast.error('여행지 즐겨찾기 목록을 불러오는데 실패했습니다.');
+        return;
+      }
+
+      // 타입 변환하여 설정
+      const typedBookmarks: TravelBookmark[] = (data || []).map(bookmark => ({
+        ...bookmark,
+        bookmark_type: bookmark.bookmark_type as 'general' | 'pet'
+      }));
+
+      setTravelBookmarks(typedBookmarks);
+    } catch (error) {
+      console.error('Error fetching travel bookmarks:', error);
+      toast.error('여행지 즐겨찾기 목록을 불러오는데 실패했습니다.');
     }
   };
 
@@ -246,6 +291,27 @@ const Records = () => {
     }
   };
 
+  const removeTravelBookmark = async (bookmarkId: string) => {
+    try {
+      const { error } = await supabase
+        .from('travel_bookmarks')
+        .delete()
+        .eq('id', bookmarkId);
+
+      if (error) {
+        console.error('Error removing travel bookmark:', error);
+        toast.error('여행지 즐겨찾기 삭제에 실패했습니다.');
+        return;
+      }
+
+      setTravelBookmarks(travelBookmarks.filter(bookmark => bookmark.id !== bookmarkId));
+      toast.success('여행지 즐겨찾기가 삭제되었습니다.');
+    } catch (error) {
+      console.error('Error removing travel bookmark:', error);
+      toast.error('여행지 즐겨찾기 삭제에 실패했습니다.');
+    }
+  };
+
   const getCategoryInfo = (category: 'event' | 'sale') => {
     if (category === 'event') {
       return {
@@ -332,14 +398,18 @@ const Records = () => {
       {/* Main Content */}
       <main className="p-5">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsList className="grid w-full grid-cols-3 mb-6">
             <TabsTrigger value="bookmarks" className="flex items-center gap-2">
               <Heart className="w-4 h-4" />
               북마크
             </TabsTrigger>
-            <TabsTrigger value="travel" className="flex items-center gap-2">
+            <TabsTrigger value="travel-bookmarks" className="flex items-center gap-2">
               <MapPin className="w-4 h-4" />
-              여행 기록
+              여행지
+            </TabsTrigger>
+            <TabsTrigger value="travel" className="flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              기록
             </TabsTrigger>
           </TabsList>
 
@@ -444,6 +514,104 @@ const Records = () => {
                 <KakaoMap onBack={() => {}} hideCategoryGrid={true} hideSearchBar={true} />
               </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="travel-bookmarks">
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="text-muted-foreground mt-2">로딩 중...</p>
+              </div>
+            ) : travelBookmarks.length > 0 ? (
+              <div className="space-y-4">
+                {travelBookmarks.map((bookmark) => (
+                  <div key={bookmark.id} className="card">
+                    <div className="flex gap-4">
+                      {bookmark.image_url && (
+                        <div className="w-20 h-20 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+                          <img 
+                            src={bookmark.image_url} 
+                            alt={bookmark.title}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className={`flex items-center px-2 py-1 rounded-lg ${
+                            bookmark.bookmark_type === 'pet' 
+                              ? 'bg-green-50 border-green-200 border text-green-600' 
+                              : 'bg-blue-50 border-blue-200 border text-blue-600'
+                          }`}>
+                            {bookmark.bookmark_type === 'pet' ? (
+                              <Heart className="w-3 h-3 mr-1" />
+                            ) : (
+                              <MapPin className="w-3 h-3 mr-1" />
+                            )}
+                            <span className="text-xs font-medium">
+                              {bookmark.bookmark_type === 'pet' ? '반려동물 동반' : '일반 관광지'}
+                            </span>
+                          </div>
+                        </div>
+                        <h4 className="card-title font-semibold mb-1 line-clamp-1">
+                          {bookmark.title}
+                        </h4>
+                        {bookmark.addr1 && (
+                          <div className="flex items-start gap-1 mb-2">
+                            <MapPin className="w-3 h-3 text-muted-foreground mt-0.5 flex-shrink-0" />
+                            <p className="text-xs text-muted-foreground line-clamp-2">
+                              {bookmark.addr1} {bookmark.addr2}
+                            </p>
+                          </div>
+                        )}
+                        {bookmark.tel && (
+                          <div className="flex items-center gap-1 mb-2">
+                            <span className="text-xs text-muted-foreground">📞 {bookmark.tel}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">
+                            즐겨찾기: {new Date(bookmark.created_at).toLocaleDateString('ko-KR')}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="p-2 h-auto text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => removeTravelBookmark(bookmark.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="card text-center">
+                <div className="w-16 h-16 bg-muted rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <MapPin className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <h2 className="card-title text-lg mb-2">
+                  즐겨찾기한 여행지가 없습니다
+                </h2>
+                <p className="card-subtitle text-sm mb-5 leading-relaxed">
+                  여행지 추천 페이지에서 하트 버튼을 눌러<br />관심 있는 여행지를 저장해보세요!
+                </p>
+                <Button 
+                  onClick={() => navigate("/travel")}
+                  className="button-primary w-full"
+                >
+                  여행지 찾으러 가기
+                </Button>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="travel">
