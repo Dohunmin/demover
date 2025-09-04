@@ -30,9 +30,10 @@ interface Place {
 
 interface KakaoMapProps {
   onBack: () => void;
+  hideCategoryGrid?: boolean;
 }
 
-const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
+const KakaoMap: React.FC<KakaoMapProps> = ({ onBack, hideCategoryGrid = false }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<any>(null);
   const clusterer = useRef<any>(null);
@@ -872,7 +873,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack }) => {
       </div>
 
       {/* 카테고리별 둘러보기 */}
-      <CategoryGrid />
+      {!hideCategoryGrid && <CategoryGrid />}
 
       {/* 메인 콘텐츠 */}
       <div className="flex-1 flex relative">
