@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, MapPin, Navigation, Search, Phone, ExternalLink } from 'lucide-react';
+import { ArrowLeft, MapPin, Navigation, Search, Phone, ExternalLink, PawPrint } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import CategoryGrid from '@/components/CategoryGrid';
@@ -32,9 +32,23 @@ interface KakaoMapProps {
   onBack: () => void;
   hideCategoryGrid?: boolean;
   hideSearchBar?: boolean;
+  showPetFilter?: boolean;
+  bookmarkedPlaces?: Array<{
+    content_id: string;
+    title: string;
+    mapx: string;
+    mapy: string;
+    bookmark_type: 'general' | 'pet';
+  }>;
 }
 
-const KakaoMap: React.FC<KakaoMapProps> = ({ onBack, hideCategoryGrid = false, hideSearchBar = false }) => {
+const KakaoMap: React.FC<KakaoMapProps> = ({ 
+  onBack, 
+  hideCategoryGrid = false, 
+  hideSearchBar = false, 
+  showPetFilter = false,
+  bookmarkedPlaces = []
+}) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<any>(null);
   const clusterer = useRef<any>(null);
@@ -50,6 +64,8 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack, hideCategoryGrid = false, h
   const [showMobileList, setShowMobileList] = useState(false);
   const [petTourismMarkers, setPetTourismMarkers] = useState<any[]>([]); // 반려동물 여행지 전용 마커들
   const [generalAsPetMarkers, setGeneralAsPetMarkers] = useState<any[]>([]); // 일반 관광지를 반려동물 동반으로 표시하는 마커들
+  const [showPetMarkers, setShowPetMarkers] = useState(true); // 반려동물 마커 표시 여부
+  const [bookmarkMarkers, setBookmarkMarkers] = useState<any[]>([]); // 북마크 마커들
 
   // 반려동물 동반 가능한 일반 관광지 키워드 목록
   const petFriendlyKeywords = [
@@ -266,6 +282,99 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack, hideCategoryGrid = false, h
 
   }, []);
 
+  // 북마크 마커 생성
+  const createBookmarkMarkers = useCallback(() => {
+    if (!mapInstance.current || !window.kakao || bookmarkedPlaces.length === 0) return;
+
+    // 기존 북마크 마커들 제거
+    bookmarkMarkers.forEach(marker => {
+      marker.setMap(null);
+    });
+
+    const newBookmarkMarkers: any[] = [];
+
+    bookmarkedPlaces.forEach((place) => {
+      if (!place.mapx || !place.mapy || place.mapx === '0' || place.mapy === '0') {
+        return; // 좌표가 없는 경우 스킵
+      }
+
+      const position = new window.kakao.maps.LatLng(place.mapy, place.mapx);
+      
+      // 북마크 전용 마커 이미지 생성 (별 모양 아이콘)
+      const imageSize = new window.kakao.maps.Size(35, 35);
+      const imageOption = { offset: new window.kakao.maps.Point(17, 35) };
+      
+      // 북마크 별 아이콘 (타입에 따라 색상 다르게)
+      const bookmarkColor = place.bookmark_type === 'pet' ? '#10B981' : '#3B82F6'; // 초록색(펫) 또는 파란색(일반)
+      const starIconSvg = `data:image/svg+xml;base64,${btoa(`
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${bookmarkColor}" width="35" height="35">
+          <circle cx="12" cy="12" r="11" fill="white" stroke="${bookmarkColor}" stroke-width="2"/>
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="${bookmarkColor}"/>
+        </svg>
+      `)}`;
+      
+      const markerImage = new window.kakao.maps.MarkerImage(
+        starIconSvg,
+        imageSize,
+        imageOption
+      );
+
+      const marker = new window.kakao.maps.Marker({
+        position: position,
+        image: markerImage,
+        clickable: true
+      });
+
+      marker.setMap(mapInstance.current);
+
+      // 마커 클릭 이벤트 - 북마크 상세 정보 표시
+      window.kakao.maps.event.addListener(marker, 'click', () => {
+        showBookmarkDetail(marker, place);
+      });
+
+      newBookmarkMarkers.push(marker);
+    });
+
+    setBookmarkMarkers(newBookmarkMarkers);
+    console.log(`${newBookmarkMarkers.length}개의 북마크 마커를 생성했습니다.`);
+  }, [bookmarkedPlaces, bookmarkMarkers]);
+
+  // 북마크 상세 정보 표시
+  const showBookmarkDetail = useCallback((marker: any, place: any) => {
+    const content = `
+      <div style="padding: 15px; min-width: 250px; max-width: 300px; font-family: 'Malgun Gothic', sans-serif;">
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+          <span style="font-size: 20px; margin-right: 8px;">⭐</span>
+          <div style="font-weight: bold; font-size: 14px; color: ${place.bookmark_type === 'pet' ? '#10B981' : '#3B82F6'};">${place.title}</div>
+        </div>
+        <div style="font-size: 12px; color: #666; margin-bottom: 8px; background: ${place.bookmark_type === 'pet' ? '#DCFCE7' : '#DBEAFE'}; padding: 2px 6px; border-radius: 10px; display: inline-block;">
+          ${place.bookmark_type === 'pet' ? '⭐ 즐겨찾기 (반려동물 동반)' : '⭐ 즐겨찾기 (일반 관광지)'}
+        </div>
+      </div>
+    `;
+    
+    infoWindow.current.setContent(content);
+    infoWindow.current.open(mapInstance.current, marker);
+  }, []);
+
+  // 반려동물 마커 표시/숨김 토글
+  const togglePetMarkers = useCallback(() => {
+    const shouldShow = !showPetMarkers;
+    setShowPetMarkers(shouldShow);
+
+    // 반려동물 여행지 마커들 표시/숨김
+    petTourismMarkers.forEach(marker => {
+      marker.setMap(shouldShow ? mapInstance.current : null);
+    });
+
+    // 일반->반려동물 마커들 표시/숨김
+    generalAsPetMarkers.forEach(marker => {
+      marker.setMap(shouldShow ? mapInstance.current : null);
+    });
+
+    toast.success(shouldShow ? '반려동물 동반 여행지를 표시합니다.' : '반려동물 동반 여행지를 숨깁니다.');
+  }, [showPetMarkers, petTourismMarkers, generalAsPetMarkers]);
+
   // 지도 초기화
   const initializeMap = useCallback(() => {
     if (!mapRef.current) {
@@ -323,12 +432,15 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack, hideCategoryGrid = false, h
     }
   }, []);
 
-  // 지도 초기화 후 반려동물 여행지 마커 로드
+  // 지도 초기화 후 반려동물 여행지 마커 로드 및 북마크 마커 생성
   useEffect(() => {
     if (isMapLoaded) {
       loadPetTourismMarkers();
+      if (bookmarkedPlaces.length > 0) {
+        createBookmarkMarkers();
+      }
     }
-  }, [isMapLoaded]);
+  }, [isMapLoaded, bookmarkedPlaces]);
 
   // 일반 관광지 중 반려동물 동반 가능한 곳들 로드
   const loadGeneralTourismAsPet = useCallback(async () => {
@@ -872,6 +984,26 @@ const KakaoMap: React.FC<KakaoMapProps> = ({ onBack, hideCategoryGrid = false, h
               <Navigation className="w-4 h-4" />
             </Button>
           </form>
+        </div>
+      )}
+
+      {/* 반려동물 필터 (Records 페이지용) */}
+      {showPetFilter && (
+        <div className="bg-white border-b p-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <PawPrint className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium">반려동물 동반 여행지</span>
+            </div>
+            <Button
+              variant={showPetMarkers ? "default" : "outline"}
+              size="sm"
+              onClick={togglePetMarkers}
+              className="text-xs px-3 py-1"
+            >
+              {showPetMarkers ? "숨기기" : "보이기"}
+            </Button>
+          </div>
         </div>
       )}
 

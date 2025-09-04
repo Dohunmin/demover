@@ -642,7 +642,19 @@ const Records = () => {
             <div className="mt-8">
               <h2 className="card-title text-lg mb-4">지도에서 찾기</h2>
               <div className="h-96 rounded-lg overflow-hidden">
-                <KakaoMap onBack={() => {}} hideCategoryGrid={true} hideSearchBar={true} />
+                <KakaoMap 
+                  onBack={() => {}} 
+                  hideCategoryGrid={true} 
+                  hideSearchBar={true}
+                  showPetFilter={true}
+                  bookmarkedPlaces={travelBookmarks.map(bookmark => ({
+                    content_id: bookmark.content_id,
+                    title: bookmark.title,
+                    mapx: bookmark.mapx || '',
+                    mapy: bookmark.mapy || '',
+                    bookmark_type: bookmark.bookmark_type
+                  }))}
+                />
               </div>
             </div>
           </TabsContent>
