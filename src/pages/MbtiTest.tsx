@@ -621,7 +621,49 @@ const MbtiTest = () => {
 
         {/* 여행 성향 설명 다이얼로그 */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-...
+          <DialogContent className="max-w-sm mx-auto">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-bold text-center">
+                {selectedTypeData?.code} - {selectedTypeData?.title}
+              </DialogTitle>
+            </DialogHeader>
+            {selectedTypeData && (
+              <div className="space-y-4">
+                {/* 캐릭터 이미지 */}
+                {mbtiImages[selectedTypeData.code] && (
+                  <div className="flex justify-center">
+                    <img 
+                      src={mbtiImages[selectedTypeData.code]} 
+                      alt={`${selectedTypeData.code} 캐릭터`}
+                      className="w-24 h-24 object-contain"
+                    />
+                  </div>
+                )}
+                
+                {/* 성향 설명 */}
+                <div className={`p-4 rounded-xl bg-gradient-to-br ${mbtiBackgrounds[selectedTypeData.code] || "from-orange-400 to-orange-500"} text-gray-800`}>
+                  <div className="text-center mb-3">
+                    <span className="text-2xl">{selectedTypeData.icon}</span>
+                  </div>
+                  <p className="text-sm leading-relaxed text-center">
+                    {selectedTypeData.description}
+                  </p>
+                </div>
+                
+                {/* 태그 */}
+                <div className="flex flex-wrap gap-1 justify-center">
+                  {selectedTypeData.tags.map((tag, index) => (
+                    <span
+                      key={index}
+                      className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </DialogContent>
         </Dialog>
       </div>
     );
