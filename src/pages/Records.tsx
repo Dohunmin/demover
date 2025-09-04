@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import TravelRecordsMap from "@/components/TravelRecordsMap";
+import KakaoMap from "@/components/KakaoMap";
 
 interface TravelRecord {
   id: string;
@@ -435,6 +436,14 @@ const Records = () => {
                 </Button>
               </div>
             )}
+            
+            {/* Kakao Map Section */}
+            <div className="mt-8">
+              <h2 className="card-title text-lg mb-4">지도에서 찾기</h2>
+              <div className="h-96 rounded-lg overflow-hidden">
+                <KakaoMap onBack={() => {}} />
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="travel">
