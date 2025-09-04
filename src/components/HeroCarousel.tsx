@@ -131,7 +131,7 @@ const HeroCarousel = () => {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-5 mb-6">
+    <div className="w-full mx-auto mb-6">
       <div className="relative">
         <Carousel
           setApi={setApi}

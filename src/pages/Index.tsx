@@ -190,27 +190,34 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="pb-20 -mt-4">
-        {/* Hero Section Title */}
-        <div className="px-5 mb-4">
-          <h2 className="text-xl font-bold text-center text-foreground mb-2">
-            우리 강아지는 어떤 여행 스타일?
-          </h2>
-          <p className="text-center text-muted-foreground text-sm">
-            반려견의 성격에 맞는 완벽한 여행지를 추천해드려요
-          </p>
-        </div>
+        {/* MBTI Test Section */}
+        <div className="px-5 py-6 mb-6">
+          <div className="card">
+            {/* Section Title */}
+            <div className="text-center mb-6">
+              <h2 className="text-xl font-bold text-foreground mb-2">
+                우리 강아지는 어떤 여행 스타일?
+              </h2>
+              <p className="text-muted-foreground text-sm">
+                반려견의 성격에 맞는 완벽한 여행지를 추천해드려요
+              </p>
+            </div>
 
-        {/* Hero Carousel */}
-        <HeroCarousel />
+            {/* Hero Carousel */}
+            <div className="mb-6">
+              <HeroCarousel />
+            </div>
 
-        {/* MBTI Test Button */}
-        <div className="px-5 mb-6">
-          <Button 
-            onClick={() => navigate('/mbti')}
-            className="bg-[#4CD2C7] hover:bg-[#3bb5aa] text-white font-semibold px-8 py-3 rounded-xl transition-colors w-full"
-          >
-            멍BTI 테스트 하러가기
-          </Button>
+            {/* MBTI Test Button */}
+            <div className="text-center">
+              <Button 
+                onClick={() => navigate('/mbti')}
+                className="bg-[#4CD2C7] hover:bg-[#3bb5aa] text-white font-semibold px-8 py-3 rounded-xl transition-colors w-full"
+              >
+                멍BTI 테스트 하러가기
+              </Button>
+            </div>
+          </div>
         </div>
 
         {/* Category Section */}
