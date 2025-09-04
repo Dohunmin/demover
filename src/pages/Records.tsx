@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, BookOpen, Calendar, Tag, Trash2, Heart, Plus, Camera, MapPin, Edit } from "lucide-react";
+import { ArrowLeft, BookOpen, Calendar, Tag, Trash2, Heart, Plus, Camera, MapPin, Edit, Map } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import TravelRecordsMap from "@/components/TravelRecordsMap";
 
 interface TravelRecord {
   id: string;
@@ -47,6 +48,7 @@ const Records = () => {
   const [travelRecords, setTravelRecords] = useState<TravelRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("bookmarks");
+  const [travelViewMode, setTravelViewMode] = useState<"list" | "map">("list");
   const [isAddingRecord, setIsAddingRecord] = useState(false);
   const [newRecord, setNewRecord] = useState({
     location_name: "",
@@ -436,110 +438,132 @@ const Records = () => {
           <TabsContent value="travel">
             <div className="mb-4 flex justify-between items-center">
               <h2 className="card-title text-lg">여행 기록</h2>
-              <Dialog open={isAddingRecord} onOpenChange={setIsAddingRecord}>
-                <DialogTrigger asChild>
-                  <Button className="button-primary">
-                    <Plus className="w-4 h-4 mr-2" />
-                    새 기록 추가
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>새 여행 기록 추가</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="location">위치명 *</Label>
-                      <Input
-                        id="location"
-                        placeholder="방문한 장소를 입력해주세요"
-                        value={newRecord.location_name}
-                        onChange={(e) => setNewRecord({ ...newRecord, location_name: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="address">주소</Label>
-                      <Input
-                        id="address"
-                        placeholder="상세 주소 (선택사항)"
-                        value={newRecord.location_address}
-                        onChange={(e) => setNewRecord({ ...newRecord, location_address: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="date">방문 날짜 *</Label>
-                      <Input
-                        id="date"
-                        type="date"
-                        value={newRecord.visit_date}
-                        onChange={(e) => setNewRecord({ ...newRecord, visit_date: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="memo">메모</Label>
-                      <Textarea
-                        id="memo"
-                        placeholder="이 장소에서의 추억을 남겨보세요..."
-                        value={newRecord.memo}
-                        onChange={(e) => setNewRecord({ ...newRecord, memo: e.target.value })}
-                        rows={3}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="images">사진</Label>
-                      <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
+                {travelRecords.length > 0 && (
+                  <div className="flex rounded-lg border border-border">
+                    <Button 
+                      size="sm"
+                      variant={travelViewMode === "list" ? "default" : "ghost"}
+                      onClick={() => setTravelViewMode("list")}
+                      className="rounded-r-none h-8 px-3"
+                    >
+                      <MapPin className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      size="sm"
+                      variant={travelViewMode === "map" ? "default" : "ghost"}
+                      onClick={() => setTravelViewMode("map")}
+                      className="rounded-l-none h-8 px-3"
+                    >
+                      <Map className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+                <Dialog open={isAddingRecord} onOpenChange={setIsAddingRecord}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="button-primary">
+                      <Plus className="w-4 h-4 mr-2" />
+                      새 기록 추가
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>새 여행 기록 추가</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="location">위치명 *</Label>
                         <Input
-                          id="images"
-                          type="file"
-                          accept="image/*"
-                          multiple
-                          onChange={handleImageSelect}
-                          className="hidden"
+                          id="location"
+                          placeholder="방문한 장소를 입력해주세요"
+                          value={newRecord.location_name}
+                          onChange={(e) => setNewRecord({ ...newRecord, location_name: e.target.value })}
                         />
+                      </div>
+                      <div>
+                        <Label htmlFor="address">주소</Label>
+                        <Input
+                          id="address"
+                          placeholder="상세 주소 (선택사항)"
+                          value={newRecord.location_address}
+                          onChange={(e) => setNewRecord({ ...newRecord, location_address: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="date">방문 날짜 *</Label>
+                        <Input
+                          id="date"
+                          type="date"
+                          value={newRecord.visit_date}
+                          onChange={(e) => setNewRecord({ ...newRecord, visit_date: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="memo">메모</Label>
+                        <Textarea
+                          id="memo"
+                          placeholder="이 장소에서의 추억을 남겨보세요..."
+                          value={newRecord.memo}
+                          onChange={(e) => setNewRecord({ ...newRecord, memo: e.target.value })}
+                          rows={3}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="images">사진</Label>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            id="images"
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={handleImageSelect}
+                            className="hidden"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => document.getElementById('images')?.click()}
+                            className="flex items-center gap-2"
+                          >
+                            <Camera className="w-4 h-4" />
+                            사진 선택 ({newRecord.images.length})
+                          </Button>
+                        </div>
+                        {newRecord.images.length > 0 && (
+                          <div className="mt-2 grid grid-cols-3 gap-2">
+                            {newRecord.images.map((file, index) => (
+                              <div key={index} className="relative">
+                                <img
+                                  src={URL.createObjectURL(file)}
+                                  alt={`Preview ${index + 1}`}
+                                  className="w-full h-16 object-cover rounded-lg"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
                         <Button
                           type="button"
                           variant="outline"
-                          onClick={() => document.getElementById('images')?.click()}
-                          className="flex items-center gap-2"
+                          onClick={() => setIsAddingRecord(false)}
+                          className="flex-1"
                         >
-                          <Camera className="w-4 h-4" />
-                          사진 선택 ({newRecord.images.length})
+                          취소
+                        </Button>
+                        <Button
+                          type="button"
+                          onClick={addTravelRecord}
+                          className="button-primary flex-1"
+                        >
+                          저장
                         </Button>
                       </div>
-                      {newRecord.images.length > 0 && (
-                        <div className="mt-2 grid grid-cols-3 gap-2">
-                          {newRecord.images.map((file, index) => (
-                            <div key={index} className="relative">
-                              <img
-                                src={URL.createObjectURL(file)}
-                                alt={`Preview ${index + 1}`}
-                                className="w-full h-16 object-cover rounded-lg"
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      )}
                     </div>
-                    <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setIsAddingRecord(false)}
-                        className="flex-1"
-                      >
-                        취소
-                      </Button>
-                      <Button
-                        type="button"
-                        onClick={addTravelRecord}
-                        className="button-primary flex-1"
-                      >
-                        저장
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
 
             {loading ? (
@@ -548,67 +572,82 @@ const Records = () => {
                 <p className="text-muted-foreground mt-2">로딩 중...</p>
               </div>
             ) : travelRecords.length > 0 ? (
-              <div className="space-y-4">
-                {travelRecords.map((record) => (
-                  <div key={record.id} className="card">
-                    <div className="flex gap-4">
-                      {record.images.length > 0 && (
-                        <div className="w-20 h-20 bg-muted rounded-lg overflow-hidden flex-shrink-0">
-                          <img 
-                            src={record.images[0]} 
-                            alt={record.location_name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                          <MapPin className="w-4 h-4 text-primary" />
-                          <h4 className="card-title font-semibold line-clamp-1">
-                            {record.location_name}
-                          </h4>
-                        </div>
-                        {record.location_address && (
-                          <p className="text-xs text-muted-foreground mb-1">
-                            {record.location_address}
-                          </p>
-                        )}
-                        {record.memo && (
-                          <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
-                            {record.memo}
-                          </p>
-                        )}
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground">
-                            방문: {new Date(record.visit_date).toLocaleDateString('ko-KR')}
-                          </span>
-                          {record.images.length > 1 && (
-                            <span className="text-xs text-primary">
-                              +{record.images.length - 1}장
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="p-2 h-auto text-primary hover:text-primary/80 hover:bg-primary/10"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="p-2 h-auto text-red-600 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => removeTravelRecord(record.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
+              <div>
+                {travelViewMode === "map" ? (
+                  <div className="mb-4">
+                    <TravelRecordsMap 
+                      records={travelRecords}
+                      onRecordClick={(record) => {
+                        console.log('Clicked record:', record);
+                      }}
+                    />
                   </div>
-                ))}
+                ) : null}
+                
+                {travelViewMode === "list" ? (
+                  <div className="space-y-4">
+                    {travelRecords.map((record) => (
+                      <div key={record.id} className="card">
+                        <div className="flex gap-4">
+                          {record.images.length > 0 && (
+                            <div className="w-20 h-20 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+                              <img 
+                                src={record.images[0]} 
+                                alt={record.location_name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2">
+                              <MapPin className="w-4 h-4 text-primary" />
+                              <h4 className="card-title font-semibold line-clamp-1">
+                                {record.location_name}
+                              </h4>
+                            </div>
+                            {record.location_address && (
+                              <p className="text-xs text-muted-foreground mb-1">
+                                {record.location_address}
+                              </p>
+                            )}
+                            {record.memo && (
+                              <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+                                {record.memo}
+                              </p>
+                            )}
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground">
+                                방문: {new Date(record.visit_date).toLocaleDateString('ko-KR')}
+                              </span>
+                              {record.images.length > 1 && (
+                                <span className="text-xs text-primary">
+                                  +{record.images.length - 1}장
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="p-2 h-auto text-primary hover:text-primary/80 hover:bg-primary/10"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="p-2 h-auto text-red-600 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => removeTravelRecord(record.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
               </div>
             ) : (
               <div className="card text-center">
