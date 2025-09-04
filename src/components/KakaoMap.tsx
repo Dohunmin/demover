@@ -33,6 +33,7 @@ interface KakaoMapProps {
   hideCategoryGrid?: boolean;
   hideSearchBar?: boolean;
   showPetFilter?: boolean;
+  userProfileImage?: string;
   bookmarkedPlaces?: Array<{
     content_id: string;
     title: string;
@@ -42,11 +43,12 @@ interface KakaoMapProps {
   }>;
 }
 
-const KakaoMap: React.FC<KakaoMapProps> = ({ 
-  onBack, 
-  hideCategoryGrid = false, 
-  hideSearchBar = false, 
+const KakaoMap: React.FC<KakaoMapProps> = ({
+  onBack,
+  hideCategoryGrid = false,
+  hideSearchBar = false,
   showPetFilter = false,
+  userProfileImage,
   bookmarkedPlaces = []
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -337,7 +339,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
     setBookmarkMarkers(newBookmarkMarkers);
     console.log(`${newBookmarkMarkers.length}개의 북마크 마커를 생성했습니다.`);
-  }, [bookmarkedPlaces, bookmarkMarkers]);
+  }, [bookmarkedPlaces, userProfileImage]);
 
   // 북마크 상세 정보 표시
   const showBookmarkDetail = useCallback((marker: any, place: any) => {
@@ -440,7 +442,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         createBookmarkMarkers();
       }
     }
-  }, [isMapLoaded, bookmarkedPlaces]);
+  }, [isMapLoaded, bookmarkedPlaces, createBookmarkMarkers]);
 
   // 일반 관광지 중 반려동물 동반 가능한 곳들 로드
   const loadGeneralTourismAsPet = useCallback(async () => {

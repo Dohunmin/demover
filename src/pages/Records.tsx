@@ -64,6 +64,7 @@ const Records = () => {
   const [bookmarks, setBookmarks] = useState<BookmarkedPost[]>([]);
   const [travelBookmarks, setTravelBookmarks] = useState<TravelBookmark[]>([]);
   const [travelRecords, setTravelRecords] = useState<TravelRecord[]>([]);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("bookmarks");
   const [travelViewMode, setTravelViewMode] = useState<"list" | "map">("list");
@@ -81,8 +82,30 @@ const Records = () => {
       fetchBookmarks();
       fetchTravelBookmarks();
       fetchTravelRecords();
+      fetchUserProfile();
     }
   }, [user]);
+
+  const fetchUserProfile = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user profile:', error);
+        return;
+      }
+
+      setUserProfile(data);
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
 
   const fetchTravelRecords = async () => {
     if (!user) return;
@@ -647,6 +670,7 @@ const Records = () => {
                   hideCategoryGrid={true} 
                   hideSearchBar={true}
                   showPetFilter={true}
+                  userProfileImage={userProfile?.avatar_url || userProfile?.pet_image_url}
                   bookmarkedPlaces={travelBookmarks.map(bookmark => ({
                     content_id: bookmark.content_id,
                     title: bookmark.title,
