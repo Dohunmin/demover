@@ -598,19 +598,19 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
   // 지도와 데이터 모두 로드된 후 자동으로 전체 마커 표시
   useEffect(() => {
-    if (isMapLoaded && showPetFilter && isPetDataLoaded && allPetData.length > 0) {
+    if (isMapLoaded && showPetFilter && isPetDataLoaded && allPetData.length > 0 && selectedCategory !== 'all') {
       console.log('🎯 자동으로 전체 마커 표시 시작');
       setSelectedCategory('all');
       handleCategorySelect('all');
     }
-  }, [isMapLoaded, showPetFilter, isPetDataLoaded, allPetData.length, handleCategorySelect]);
+  }, [isMapLoaded, showPetFilter, isPetDataLoaded, allPetData.length, selectedCategory, handleCategorySelect]);
 
   const searchPlaces = useCallback(async () => {
     if (!searchQuery.trim()) {
       toast.warning('검색어를 입력해주세요.');
       return;
     }
-    
+
     if (!mapInstance.current) {
       toast.error('지도가 로드되지 않았습니다.');
       return;
@@ -620,6 +620,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     
     try {
       if (showPetFilter && allPetData.length > 0) {
+        // 반려동물 데이터에서 검색
         const filteredPlaces = allPetData.filter(place => 
           place.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           place.addr1?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -657,45 +658,93 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         return;
       }
 
-      // 일반 검색 로직
-      const center = mapInstance.current.getCenter();
-      const lat = center.getLat();
-      const lng = center.getLng();
-
-      const response = await fetch(
-        `https://fffcagbbbikhfcydncjb.supabase.co/functions/v1/kakao-proxy?op=/v2/local/search/keyword.json&query=${encodeURIComponent(searchQuery)}&x=${lng}&y=${lat}&radius=${radius}&size=15`,
-        {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZmNhZ2JiYmlraGZjeWRuY2piIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwNzA2MzMsImV4cCI6MjA3MDY0NjYzM30.2ROotnYyQsgReZwOeBun76dOGPOFyOlwwEnDV3JMn28`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      
-      const data = await response.json();
-      const places = data.documents?.map((place: any) => ({ ...place, source: 'kakao' })) || [];
-
-      if (places.length > 0) {
-        setPlaces(places);
-        displayMarkers(places);
+      // 카카오맵 장소 검색 서비스 사용
+      if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
+        const ps = new window.kakao.maps.services.Places();
         
-        const firstPlace = places[0];
-        const moveLatLng = new window.kakao.maps.LatLng(firstPlace.y, firstPlace.x);
-        mapInstance.current.panTo(moveLatLng);
-        
-        toast.success('장소를 찾았습니다.');
+        // 현재 지도 중심 좌표
+        const center = mapInstance.current.getCenter();
+        const searchOptions = {
+          location: center,
+          radius: parseInt(radius),
+          size: 15,
+        };
+
+        ps.keywordSearch(searchQuery, (data: any[], status: any) => {
+          if (status === window.kakao.maps.services.Status.OK) {
+            const places = data.map((place: any) => ({
+              id: place.id,
+              place_name: place.place_name,
+              category_name: place.category_name,
+              address_name: place.address_name,
+              road_address_name: place.road_address_name,
+              phone: place.phone,
+              place_url: place.place_url,
+              x: place.x,
+              y: place.y,
+              distance: place.distance,
+              source: 'kakao' as const
+            }));
+
+            setPlaces(places);
+            displayMarkers(places);
+            
+            if (places.length > 0) {
+              const firstPlace = places[0];
+              const moveLatLng = new window.kakao.maps.LatLng(firstPlace.y, firstPlace.x);
+              mapInstance.current.panTo(moveLatLng);
+              toast.success(`${places.length}개의 장소를 찾았습니다.`);
+            }
+          } else if (status === window.kakao.maps.services.Status.ZERO_RESULT) {
+            setPlaces([]);
+            clearMarkers();
+            toast.warning('검색 결과가 없습니다.');
+          } else {
+            console.error('카카오맵 검색 오류:', status);
+            toast.error('장소 검색에 실패했습니다.');
+          }
+          setLoading(false);
+        }, searchOptions);
       } else {
-        setPlaces([]);
-        clearMarkers();
-        toast.warning('검색 결과가 없습니다.');
+        // 카카오맵 서비스를 사용할 수 없는 경우 프록시 사용
+        const center = mapInstance.current.getCenter();
+        const lat = center.getLat();
+        const lng = center.getLng();
+
+        const { data, error } = await supabase.functions.invoke('kakao-proxy', {
+          body: {
+            op: '/v2/local/search/keyword.json',
+            query: searchQuery,
+            x: lng.toString(),
+            y: lat.toString(),
+            radius: radius,
+            size: '15'
+          }
+        });
+
+        if (error) throw error;
+
+        const places = data.documents?.map((place: any) => ({ ...place, source: 'kakao' })) || [];
+
+        if (places.length > 0) {
+          setPlaces(places);
+          displayMarkers(places);
+          
+          const firstPlace = places[0];
+          const moveLatLng = new window.kakao.maps.LatLng(firstPlace.y, firstPlace.x);
+          mapInstance.current.panTo(moveLatLng);
+          
+          toast.success(`${places.length}개의 장소를 찾았습니다.`);
+        } else {
+          setPlaces([]);
+          clearMarkers();
+          toast.warning('검색 결과가 없습니다.');
+        }
+        setLoading(false);
       }
     } catch (error) {
       console.error('장소 검색 실패:', error);
       toast.error('장소 검색에 실패했습니다.');
-    } finally {
       setLoading(false);
     }
   }, [searchQuery, radius, showPetFilter, allPetData, petTourismMarkers]);
