@@ -273,8 +273,9 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         
         await new Promise<void>((resolve, reject) => {
           const timeout = setTimeout(() => {
-            reject(new Error('스크립트 로드 타임아웃 (10초)'));
-          }, 10000);
+            script.remove();
+            reject(new Error('스크립트 로드 타임아웃 (15초)'));
+          }, 15000);
 
           script.onload = () => {
             clearTimeout(timeout);
@@ -283,13 +284,18 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
             const checkKakao = () => {
               if (window.kakao && window.kakao.maps) {
                 console.log('카카오 지도 초기화 시작');
-                window.kakao.maps.load(() => {
-                  if (isMounted) {
-                    initializeMap();
-                    setIsMapLoaded(true);
-                    resolve();
-                  }
-                });
+                try {
+                  window.kakao.maps.load(() => {
+                    if (isMounted) {
+                      initializeMap();
+                      setIsMapLoaded(true);
+                      resolve();
+                    }
+                  });
+                } catch (error) {
+                  console.error('카카오 지도 초기화 오류:', error);
+                  reject(error);
+                }
               } else {
                 setTimeout(checkKakao, 100);
               }
@@ -298,9 +304,55 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
             checkKakao();
           };
 
-          script.onerror = () => {
+          script.onerror = (event) => {
             clearTimeout(timeout);
-            reject(new Error('스크립트 로드 실패'));
+            script.remove();
+            console.error('스크립트 로드 오류:', event);
+            
+            // HTTP로 재시도
+            const retryScript = document.createElement('script');
+            retryScript.type = 'text/javascript';
+            retryScript.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JS_KEY}&autoload=false&libraries=services,clusterer`;
+            
+            const retryTimeout = setTimeout(() => {
+              retryScript.remove();
+              reject(new Error('재시도 스크립트 로드 타임아웃'));
+            }, 10000);
+            
+            retryScript.onload = () => {
+              clearTimeout(retryTimeout);
+              console.log('카카오 스크립트 재시도 성공');
+              
+              const checkKakaoRetry = () => {
+                if (window.kakao && window.kakao.maps) {
+                  console.log('카카오 지도 재시도 초기화 시작');
+                  try {
+                    window.kakao.maps.load(() => {
+                      if (isMounted) {
+                        initializeMap();
+                        setIsMapLoaded(true);
+                        resolve();
+                      }
+                    });
+                  } catch (error) {
+                    console.error('카카오 지도 재시도 초기화 오류:', error);
+                    reject(error);
+                  }
+                } else {
+                  setTimeout(checkKakaoRetry, 100);
+                }
+              };
+              
+              checkKakaoRetry();
+            };
+            
+            retryScript.onerror = () => {
+              clearTimeout(retryTimeout);
+              retryScript.remove();
+              reject(new Error('재시도 스크립트 로드 실패'));
+            };
+            
+            document.head.appendChild(retryScript);
           };
 
           document.head.appendChild(script);
