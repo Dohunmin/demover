@@ -384,7 +384,7 @@ serve(async (req) => {
             console.log(`   - ${category}: ${count}개`);
           });
           
-           // 응답 형태로 구성 - 필요한 필드만 추출하여 단순화
+           // 응답 형태로 구성 - 모든 필드 포함하여 완전한 데이터 제공
            const simplifiedResults = uniqueResults.map(item => ({
              contentid: item.contentid || '',
              contenttypeid: item.contenttypeid || '',
@@ -405,7 +405,14 @@ serve(async (req) => {
              createdtime: item.createdtime || '',
              modifiedtime: item.modifiedtime || '',
              mlevel: item.mlevel || '',
-             searchKeyword: item.searchKeyword || ''
+             searchKeyword: item.searchKeyword || '',
+             // 빠진 필드들 추가
+             cpyrhtDivCd: item.cpyrhtDivCd || '',
+             lDongRegnCd: item.lDongRegnCd || '',
+             lDongSignguCd: item.lDongSignguCd || '',
+             lclsSystm1: item.lclsSystm1 || '',
+             lclsSystm2: item.lclsSystm2 || '',
+             lclsSystm3: item.lclsSystm3 || ''
            }));
            
            petTourismData = {

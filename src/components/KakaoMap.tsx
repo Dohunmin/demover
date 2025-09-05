@@ -217,6 +217,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     
     if (showPetFilter && allPetData.length > 0) {
       console.log(`=== 카테고리 선택: ${categoryId} ===`);
+      console.log('전체 데이터 개수:', allPetData.length);
       
       // 🔥 핵심: 모든 기존 마커들 완전히 제거
       setPetTourismMarkers(prevMarkers => {
@@ -231,11 +232,23 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         console.log(`전체 데이터: ${allPetData.length}개`);
       } else if (categoryKeywords[categoryId as keyof typeof categoryKeywords]) {
         const keywords = categoryKeywords[categoryId as keyof typeof categoryKeywords];
+        console.log(`${categoryId} 카테고리 키워드:`, keywords);
+        
         filteredPlaces = allPetData.filter(place => 
           keywords.some(keyword => 
             place.title?.trim() === keyword.trim()
           )
         );
+        
+        console.log(`키워드 매칭 결과: ${filteredPlaces.length}개`);
+        
+        // 매칭되지 않은 데이터 확인
+        if (filteredPlaces.length === 0) {
+          console.log('매칭되지 않은 데이터들의 title:');
+          allPetData.slice(0, 10).forEach(place => {
+            console.log(`- "${place.title}"`);
+          });
+        }
       }
       
       console.log(`필터링된 장소 ${filteredPlaces.length}개`);
@@ -603,12 +616,12 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
   // 지도와 데이터 모두 로드된 후 자동으로 전체 마커 표시
   useEffect(() => {
-    if (isMapLoaded && showPetFilter && isPetDataLoaded && allPetData.length > 0 && selectedCategory !== 'all') {
-      console.log('🎯 자동으로 전체 마커 표시 시작');
+    if (isMapLoaded && showPetFilter && isPetDataLoaded && allPetData.length > 0) {
+      console.log('🎯 자동으로 전체 마커 표시 시작 - 데이터 개수:', allPetData.length);
       setSelectedCategory('all');
       handleCategorySelect('all');
     }
-  }, [isMapLoaded, showPetFilter, isPetDataLoaded, allPetData.length, selectedCategory, handleCategorySelect]);
+  }, [isMapLoaded, showPetFilter, isPetDataLoaded, allPetData.length, handleCategorySelect]);
 
   const searchPlaces = useCallback(async () => {
     if (!searchQuery.trim()) {
