@@ -147,7 +147,55 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       '알로이삥삥',
       '형제가든'
     ],
-    market: ['구포시장']
+    market: ['구포시장'],
+    cafe: [
+      '오르디',
+      '카페 만디',
+      '대보름',
+      '덕미',
+      '무명일기',
+      '브리타니',
+      '비아조',
+      '빅토리아 베이커리 가든',
+      '스노잉클라우드',
+      '원시학',
+      '웨스턴챔버',
+      '웨이브온 커피',
+      '유정1995 기장 본점',
+      '카페베이스',
+      '카페윤',
+      'EL16.52'
+    ],
+    'theme-street': [
+      '광안리해변 테마거리',
+      '밀락더마켓',
+      '부산 감천문화마을',
+      '죽성드림세트장',
+      '해운대 블루라인파크'
+    ],
+    trekking: [
+      '문탠로드',
+      '절영해안산책로',
+      '태종대',
+      '해운대 달맞이길',
+      '해운대 동백섬',
+      '해월전망대',
+      '황령산',
+      '황령산 전망대',
+      '황령산레포츠공원',
+      '회동수원지 둘레길'
+    ],
+    port: ['장림포구'],
+    beach: [
+      '광안리해수욕장',
+      '다대포 꿈의 낙조분수',
+      '다대포해수욕장',
+      '부산 송도해상케이블카',
+      '부산 송도해수욕장',
+      '송도 구름산책로',
+      '송정해수욕장',
+      '해운대해수욕장'
+    ]
   };
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -259,7 +307,12 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         shopping: '쇼핑',
         accommodation: '숙소',
         restaurant: '식당',
-        market: '재래시장'
+        market: '재래시장',
+        cafe: '카페',
+        'theme-street': '테마거리',
+        trekking: '트레킹',
+        port: '항구',
+        beach: '해수욕장'
       };
       
       toast.success(`${categoryLabels[categoryId as keyof typeof categoryLabels] || categoryId} ${filteredPlaces.length}개를 지도에 표시했습니다.`);
