@@ -83,22 +83,14 @@ function parseXmlToJson(xmlText: string) {
   }
 }
 
-// 반려동물 동반 가능한 키워드 목록
+// 반려동물 동반 가능한 핵심 키워드 목록 (속도 최적화를 위해 20개로 축소)
 const petFriendlyKeywords = [
-  '롯데프리미엄아울렛 동부산점', '몽작', '부산시민공원', '센텀 APEC나루공원', '신호공원', '오르디', '온천천시민공원', '칠암만장',
-  '카페 만디', '포레스트3002', '홍법사(부산)', '감나무집', '광안리해변 테마거리', '광안리해수욕장', '구덕포끝집고기',
-  '구포시장', '국립부산과학관', '그림하우스', '금강사(부산)', '다대포 꿈의 낙조분수', '다대포해수욕장', '대보름',
-  '대저생태공원', '대저수문 생태공원', '더웨이브', '더펫텔프리미엄스위트', '덕미', '듀스포레', '드림서프라운지', '만달리',
-  '맥도생태공원', '모닝듀 게스트 하우스(모닝듀)', '무명일기', '문탠로드', '민락수변공원', '밀락더마켓', '부산 감천문화마을',
-  '부산 송도해상케이블카', '부산 송도해수욕장', '부산 암남공원', '부산북항 친수공원', '부산어린이대공원', '불란서그로서리',
-  '브리타니', '비아조', '빅토리아 베이커리 가든', '삼락생태공원', '성안집', '송도 구름산책로', '송정물총칼국수',
-  '송정해수욕장', '스노잉클라우드', '스포원파크', '신세계사이먼 부산 프리미엄 아울렛', '아르반호텔[한국관광 품질인증/Korea Quality]',
-  '아미르공원', '알로이삥삥', '옐로우라이트하우스', '오구카페', '용소웰빙공원', '원시학', '웨스턴챔버', '웨이브온 커피',
-  '윙민박', '유정1995 기장 본점', '을숙도 공원', '이바구캠프', '장림포구', '절영해안산책로', '죽성드림세트장',
-  '카페베이스', '카페윤', '캐빈스위트광안', '캔버스', '캔버스 블랙', '태종대', '팝콘 호스텔 해운대점', '프루터리포레스트',
-  '해동용궁사', '해운대 달맞이길', '해운대 동백섬', '해운대 블루라인파크', '해운대 영무파라드호텔', '해운대해수욕장',
-  '해월전망대', '형제가든', '황령산', '황령산 전망대', '황령산레포츠공원', '회동수원지', '회동수원지 둘레길',
-  'AJ하우스(AJ House)', 'EL16.52', 'JSTAY', 'The Park Guest House'
+  // 핵심 관광지 (해수욕장, 공원, 카페 등 반려동물이 실제로 많이 가는 곳)
+  '광안리해수욕장', '해운대해수욕장', '송정해수욕장', '다대포해수욕장', '태종대',
+  '부산시민공원', '온천천시민공원', '센텀 APEC나루공원', '을숙도 공원', '대저생태공원',
+  '해동용궁사', '감천문화마을', '송도해상케이블카', '해운대 블루라인파크', '황령산',
+  // 핵심 카페 & 식당 (실제 반려동물 동반 가능한 곳)
+  '구덕포끝집고기', '감나무집', '칠암만장', '프루터리포레스트', '카페윤'
 ];
 
 serve(async (req) => {
@@ -214,64 +206,50 @@ serve(async (req) => {
           const allResults = [];
           let totalSearched = 0;
           
-          // 키워드를 10개씩 청크로 나누어 병렬 처리 (속도 개선)
-          const chunkSize = 10;
-          const promises = [];
+          // 키워드를 한 번에 병렬 처리 (20개니까 모두 동시에)
+          const chunkSize = petFriendlyKeywords.length; // 모든 키워드를 한 번에 처리
           
-          for (let i = 0; i < petFriendlyKeywords.length; i += chunkSize) {
-            const chunk = petFriendlyKeywords.slice(i, i + chunkSize);
+          // 모든 키워드를 병렬로 동시 처리
+          const promises = petFriendlyKeywords.map(async (keywordItem) => {
+            const searchUrl = `https://apis.data.go.kr/B551011/KorService2/searchKeyword2?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&keyword=${encodeURIComponent(keywordItem)}&areaCode=${areaCode}&numOfRows=20&pageNo=1&_type=xml`;
             
-            // 각 청크를 병렬 처리
-            const chunkPromise = Promise.all(chunk.map(async (keywordItem) => {
-              const searchUrl = `https://apis.data.go.kr/B551011/KorService2/searchKeyword2?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&keyword=${encodeURIComponent(keywordItem)}&areaCode=${areaCode}&numOfRows=20&pageNo=1&_type=xml`;
+            try {
+              const response = await fetch(searchUrl).catch(async (httpsError) => {
+                const httpUrl = searchUrl.replace('https://', 'http://');
+                return await fetch(httpUrl);
+              });
               
-              try {
-                const response = await fetch(searchUrl).catch(async (httpsError) => {
-                  const httpUrl = searchUrl.replace('https://', 'http://');
-                  return await fetch(httpUrl);
-                });
+              if (response.ok) {
+                const responseText = await response.text();
+                const parsedData = parseXmlToJson(responseText);
                 
-                if (response.ok) {
-                  const responseText = await response.text();
-                  const parsedData = parseXmlToJson(responseText);
+                if (parsedData?.response?.body?.items?.item) {
+                  const items = Array.isArray(parsedData.response.body.items.item) 
+                    ? parsedData.response.body.items.item 
+                    : [parsedData.response.body.items.item];
                   
-                  if (parsedData?.response?.body?.items?.item) {
-                    const items = Array.isArray(parsedData.response.body.items.item) 
-                      ? parsedData.response.body.items.item 
-                      : [parsedData.response.body.items.item];
-                    
-                    const mappedItems = items.map(item => ({
-                      ...item,
-                      searchKeyword: keywordItem
-                    }));
-                    
-                    console.log(`키워드 "${keywordItem}": ${mappedItems.length}개 결과`);
-                    return mappedItems;
-                  }
-                } else {
-                  console.log(`키워드 "${keywordItem}": HTTP ${response.status}`);
+                  const mappedItems = items.map(item => ({
+                    ...item,
+                    searchKeyword: keywordItem
+                  }));
+                  
+                  console.log(`키워드 "${keywordItem}": ${mappedItems.length}개 결과`);
+                  return mappedItems;
                 }
-                return [];
-              } catch (error) {
-                console.log(`키워드 "${keywordItem}" 검색 실패:`, error.message);
-                return [];
+              } else {
+                console.log(`키워드 "${keywordItem}": HTTP ${response.status}`);
               }
-            }));
-            
-            promises.push(chunkPromise);
-            
-            // 청크 간 500ms 딜레이 (API 한도 고려하되 속도 개선)
-            if (i + chunkSize < petFriendlyKeywords.length) {
-              await new Promise(resolve => setTimeout(resolve, 500));
+              return [];
+            } catch (error) {
+              console.log(`키워드 "${keywordItem}" 검색 실패:`, error.message);
+              return [];
             }
-          }
+          });
           
-          // 모든 청크 완료까지 대기
-          const chunkResults = await Promise.all(promises);
-          chunkResults.forEach(chunkResult => {
-            chunkResult.forEach(items => {
-              allResults.push(...items);
-            });
+          // 모든 키워드 검색 결과를 병렬로 대기
+          const results = await Promise.all(promises);
+          results.forEach(items => {
+            allResults.push(...items);
           });
           
           console.log(`처리 완료: ${petFriendlyKeywords.length}/${petFriendlyKeywords.length} 키워드, 총 결과: ${allResults.length}개`);
