@@ -25,7 +25,7 @@ interface Place {
   x: string;
   y: string;
   distance: string;
-  source?: 'kakao' | 'tourism' | 'pet_tourism'; // 데이터 소스 구분
+  source?: 'kakao' | 'tourism' | 'pet_tourism';
 }
 
 interface KakaoMapProps {
@@ -79,39 +79,42 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     { id: 'hospital', label: '동물병원', icon: Stethoscope },
   ];
 
-  const handleCategorySelect = (categoryId: string) => {
-    setSelectedCategory(categoryId);
-    
-    if (showPetFilter) {
-      // 비동기적으로 처리하여 함수 정의 후 실행
-      setTimeout(() => {
-        if (categoryId === 'all') {
-          // 전체 마커 표시 로직
-          console.log('전체 카테고리 선택');
-          showAllPetMarkers();
-        } else if (categoryId === 'park') {
-          // 공원 필터 적용
-          console.log('공원 카테고리 선택');
-          filterParkMarkers();
-        } else if (categoryId === 'leisure') {
-          // 레저 필터 적용
-          console.log('레저 카테고리 선택');
-          filterLeisureMarkers();
-        } else if (categoryId === 'culture') {
-          // 문화시설 필터 적용
-          console.log('문화시설 카테고리 선택');
-          filterCultureMarkers();
-        } else if (categoryId === 'brunch') {
-          // 브런치 필터 적용
-          console.log('브런치 카테고리 선택');
-          filterBrunchMarkers();
-        } else if (categoryId === 'temple') {
-          // 사찰 필터 적용
-          console.log('사찰 카테고리 선택');
-          filterTempleMarkers();
-        }
-      }, 0);
-    }
+  // 카테고리별 키워드 목록
+  const categoryKeywords = {
+    park: [
+      '부산시민공원',
+      '센텀 APEC나루공원', 
+      '신호공원',
+      '온천천시민공원',
+      '대저생태공원',
+      '대저수문 생태공원',
+      '맥도생태공원',
+      '민락수변공원',
+      '부산 암남공원',
+      '부산북항 친수공원',
+      '부산 어린이대공원',
+      '삼락생태공원',
+      '스포원파크',
+      '아미르공원',
+      '용소웰빙공원',
+      '을숙도 공원',
+      '회동수원지'
+    ],
+    leisure: ['드림서프라운지'],
+    culture: ['국립부산과학관'],
+    brunch: [
+      '포레스트3002',
+      '듀스포레',
+      '만달리',
+      '불란서그로서리',
+      '오구카페',
+      '프루터리포레스트'
+    ],
+    temple: [
+      '홍법사(부산)',
+      '금강사(부산)',
+      '해동용궁사'
+    ]
   };
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -121,185 +124,117 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
   const [loading, setLoading] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [showMobileList, setShowMobileList] = useState(false);
-  const [petTourismMarkers, setPetTourismMarkers] = useState<any[]>([]); // 반려동물 여행지 전용 마커들
-  const [generalAsPetMarkers, setGeneralAsPetMarkers] = useState<any[]>([]); // 일반 관광지를 반려동물 동반으로 표시하는 마커들
-  const [showPetMarkers, setShowPetMarkers] = useState(true); // 반려동물 마커 표시 여부
-  const [bookmarkMarkers, setBookmarkMarkers] = useState<any[]>([]); // 북마크 마커들
-  const [isPetDataLoaded, setIsPetDataLoaded] = useState(false); // 반려동물 데이터 로딩 상태
-  const [parkFilter, setParkFilter] = useState(false); // 공원 필터 상태
-  const [allPetData, setAllPetData] = useState<any[]>([]); // 전체 반려동물 데이터 저장
+  const [petTourismMarkers, setPetTourismMarkers] = useState<any[]>([]);
+  const [generalAsPetMarkers, setGeneralAsPetMarkers] = useState<any[]>([]);
+  const [showPetMarkers, setShowPetMarkers] = useState(true);
+  const [bookmarkMarkers, setBookmarkMarkers] = useState<any[]>([]);
+  const [isPetDataLoaded, setIsPetDataLoaded] = useState(false);
+  const [allPetData, setAllPetData] = useState<any[]>([]);
 
-  // 공원 키워드 목록 (17개)
-  const parkKeywords = [
-    '부산시민공원',
-    '센텀 APEC나루공원', 
-    '신호공원',
-    '온천천시민공원',
-    '대저생태공원',
-    '대저수문 생태공원',
-    '맥도생태공원',
-    '민락수변공원',
-    '부산 암남공원',
-    '부산북항 친수공원',
-    '부산 어린이대공원',
-    '삼락생태공원',
-    '스포원파크',
-    '아미르공원',
-    '용소웰빙공원',
-    '을숙도 공원',
-    '회동수원지'
-  ];
-
-  // 레저 키워드 목록
-  const leisureKeywords = [
-    '드림서프라운지'
-  ];
-
-  // 문화시설 키워드 목록
-  const cultureKeywords = [
-    '국립부산과학관'
-  ];
-
-  // 브런치 키워드 목록
-  const brunchKeywords = [
-    '포레스트3002',
-    '듀스포레',
-    '만달리',
-    '불란서그로서리',
-    '오구카페',
-    '프루터리포레스트'
-  ];
-
-  // 사찰 키워드 목록
-  const templeKeywords = [
-    '홍법사(부산)',
-    '금강사(부산)',
-    '해동용궁사'
-  ];
-
-  // 모든 펫 마커를 완전히 제거하는 함수 (필터 함수들보다 먼저 정의)
-  const clearAllPetMarkers = useCallback(() => {
-    // 반려동물 여행지 마커들 제거
-    petTourismMarkers.forEach(marker => {
-      marker.setMap(null);
-    });
-    setPetTourismMarkers([]);
+  // 카테고리 선택 핸들러 (마커 중복 문제 해결)
+  const handleCategorySelect = useCallback((categoryId: string) => {
+    setSelectedCategory(categoryId);
     
-    // 일반->반려동물 마커들도 제거
-    generalAsPetMarkers.forEach(marker => {
-      marker.setMap(null);
-    });
-    setGeneralAsPetMarkers([]);
-    
-    console.log('모든 반려동물 마커가 제거되었습니다.');
-  }, [petTourismMarkers, generalAsPetMarkers]);
+    if (showPetFilter && allPetData.length > 0) {
+      console.log(`=== 카테고리 선택: ${categoryId} ===`);
+      
+      // 🔥 핵심: 모든 기존 마커들 완전히 제거
+      petTourismMarkers.forEach(marker => marker.setMap(null));
+      
+      let filteredPlaces = [];
+      
+      if (categoryId === 'all') {
+        filteredPlaces = allPetData;
+      } else if (categoryKeywords[categoryId as keyof typeof categoryKeywords]) {
+        const keywords = categoryKeywords[categoryId as keyof typeof categoryKeywords];
+        filteredPlaces = allPetData.filter(place => 
+          keywords.some(keyword => 
+            place.title?.trim() === keyword.trim()
+          )
+        );
+      }
+      
+      console.log(`필터링된 장소 ${filteredPlaces.length}개`);
+      
+      // 🔥 핵심: 새로운 마커들만 생성
+      const newMarkers: any[] = [];
+      
+      filteredPlaces.forEach((place) => {
+        if (!place.mapx || !place.mapy || place.mapx === '0' || place.mapy === '0') return;
 
-  // 반려동물 동반 가능한 일반 관광지 키워드 목록
-  const petFriendlyKeywords = [
-    '롯데프리미엄아울렛 동부산점',
-    '몽작',
-    '부산시민공원',
-    '센텀 APEC나루공원',
-    '신호공원',
-    '오르디',
-    '온천천시민공원',
-    '칠암만장',
-    '카페 만디',
-    '포레스트3002',
-    '홍법사(부산)',
-    '감나무집',
-    '광안리해변 테마거리',
-    '광안리해수욕장',
-    '구덕포끝집고기',
-    '구포시장',
-    '국립부산과학관',
-    '그림하우스',
-    '금강사(부산)',
-    '다대포 꿈의 낙조분수',
-    '다대포해수욕장',
-    '대보름',
-    '대저생태공원',
-    '대저수문 생태공원',
-    '더웨이브',
-    '더펫텔프리미엄스위트',
-    '덕미',
-    '듀스포레',
-    '드림서프라운지',
-    '만달리',
-    '맥도생태공원',
-    '모닝듀 게스트 하우스(모닝듀)',
-    '무명일기',
-    '문탠로드',
-    '민락수변공원',
-    '밀락더마켓',
-    '부산 감천문화마을',
-    '부산 송도해상케이블카',
-    '부산 송도해수욕장',
-    '부산 암남공원',
-    '부산북항 친수공원',
-    '부산 어린이대공원',
-    '불란서그로서리',
-    '브리타니',
-    '비아조',
-    '빅토리아 베이커리 가든',
-    '삼락생태공원',
-    '성안집',
-    '송도 구름산책로',
-    '송정물총칼국수',
-    '송정해수욕장',
-    '스노잉클라우드',
-    '스포원파크',
-    '신세계사이먼 부산 프리미엄 아울렛',
-    '아르반호텔[한국관광 품질인증/Korea Quality]',
-    '아미르공원',
-    '알로이삥삥',
-    '옐로우라이트하우스',
-    '오구카페',
-    '용소웰빙공원',
-    '원시학',
-    '웨스턴챔버',
-    '웨이브온 커피',
-    '윙민박',
-    '유정1995 기장 본점',
-    '을숙도 공원',
-    '이바구캠프',
-    '장림포구',
-    '절영해안산책로',
-    '죽성드림세트장',
-    '카페베이스',
-    '카페윤',
-    '캐빈스위트광안',
-    '캔버스',
-    '캔버스 블랙',
-    '태종대',
-    '팝콘 호스텔 해운대점',
-    '프루터리포레스트',
-    '해동용궁사',
-    '해운대 달맞이길',
-    '해운대 동백섬',
-    '해운대 블루라인파크',
-    '해운대 영무파라드호텔',
-    '해운대해수욕장',
-    '해월전망대',
-    '형제가든',
-    '황령산',
-    '황령산 전망대',
-    '황령산레포츠공원',
-    '회동수원지',
-    '회동수원지 둘레길',
-    'AJ하우스(AJ House)',
-    'EL16.52',
-    'JSTAY',
-    'The Park Guest House'
-  ];
+        const position = new window.kakao.maps.LatLng(place.mapy, place.mapx);
+        
+        const imageSize = new window.kakao.maps.Size(30, 30);
+        const imageOption = { offset: new window.kakao.maps.Point(15, 30) };
+        
+        const redMarkerSvg = `data:image/svg+xml;base64,${btoa(`
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#DC2626" width="30" height="30">
+            <circle cx="12" cy="12" r="11" fill="white" stroke="#DC2626" stroke-width="2"/>
+            <path d="M8 10c0-1.1.9-2 2-2s2 .9 2 2-2 3-2 3-2-1.9-2-3zm6 0c0-1.1.9-2 2-2s2 .9 2 2-2 3-2 3-2-1.9-2-3z" fill="#FFFFFF"/>
+            <circle cx="10" cy="10" r="1.5" fill="#000"/>
+            <circle cx="14" cy="10" r="1.5" fill="#000"/>
+            <path d="M12 13c-1 0-2 .5-2 1s1 1 2 1 2-.5 2-1-.5-1-2-1z" fill="#000"/>
+          </svg>
+        `)}`;
+        
+        const markerImage = new window.kakao.maps.MarkerImage(redMarkerSvg, imageSize, imageOption);
 
-  // 카카오 지도 SDK 로드 (간소화된 안정적인 로직)
+        const marker = new window.kakao.maps.Marker({
+          position: position,
+          image: markerImage,
+          clickable: true
+        });
+
+        marker.setMap(mapInstance.current);
+        
+        // 마커 클릭 이벤트
+        window.kakao.maps.event.addListener(marker, 'click', () => {
+          const content = `
+            <div style="padding: 15px; min-width: 250px; max-width: 300px; font-family: 'Malgun Gothic', sans-serif;">
+              <div style="font-weight: bold; font-size: 16px; margin-bottom: 8px; color: #DC2626;">${place.title}</div>
+              <div style="font-size: 12px; color: #666; margin-bottom: 8px; background: #FEF2F2; padding: 4px 8px; border-radius: 12px; display: inline-block;">
+                🐾 반려동물 동반 가능
+              </div>
+              <div style="font-size: 13px; color: #333; margin-bottom: 6px;">${place.addr1}</div>
+              ${place.addr2 ? `<div style="font-size: 12px; color: #666; margin-bottom: 6px;">${place.addr2}</div>` : ''}
+              ${place.tel ? `<div style="font-size: 12px; color: #666; margin-bottom: 8px;">📞 ${place.tel}</div>` : ''}
+              <div style="text-align: center;">
+                <a href="https://korean.visitkorea.or.kr/detail/detail.do?cotid=${place.contentid}" target="_blank" 
+                   style="color: #DC2626; font-size: 12px; text-decoration: none; background: #FEF2F2; padding: 4px 12px; border-radius: 8px; display: inline-block;">
+                  상세정보 보기
+                </a>
+              </div>
+            </div>
+          `;
+          infoWindow.current.setContent(content);
+          infoWindow.current.open(mapInstance.current, marker);
+        });
+
+        newMarkers.push(marker);
+      });
+      
+      // 🔥 핵심: 상태를 완전히 새 배열로 교체 (중복 방지)
+      setPetTourismMarkers(newMarkers);
+      
+      const categoryLabels = {
+        all: '전체',
+        park: '공원',
+        leisure: '레저',
+        culture: '문화시설', 
+        brunch: '브런치',
+        temple: '사찰'
+      };
+      
+      toast.success(`${categoryLabels[categoryId as keyof typeof categoryLabels] || categoryId} ${filteredPlaces.length}개를 지도에 표시했습니다.`);
+    }
+  }, [showPetFilter, allPetData, petTourismMarkers]);
+
+  // 카카오 지도 SDK 로드
   useEffect(() => {
     let isMounted = true;
     
     const loadKakaoMap = async () => {
       try {
-        // 이미 로드되어 있는 경우 바로 초기화
         if (window.kakao && window.kakao.maps) {
           console.log('카카오 지도가 이미 로드되어 있습니다.');
           window.kakao.maps.load(() => {
@@ -311,7 +246,6 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           return;
         }
 
-        // API 키 가져오기
         console.log('카카오 API 키 가져오는 중...');
         const { data, error } = await supabase.functions.invoke('test-api-key');
         
@@ -324,19 +258,15 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         const KAKAO_JS_KEY = data.kakaoJsKey;
         console.log('카카오 지도 스크립트 로딩 시작...');
         
-        // 기존 스크립트 제거
         const existingScript = document.querySelector('script[src*="dapi.kakao.com"]');
         if (existingScript) {
           existingScript.remove();
-          console.log('기존 카카오 스크립트 제거됨');
         }
 
-        // window.kakao 정리
         if (window.kakao) {
           delete window.kakao;
         }
 
-        // 새 스크립트 로드
         const script = document.createElement('script');
         script.type = 'text/javascript';
         script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JS_KEY}&autoload=false&libraries=services,clusterer`;
@@ -350,7 +280,6 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
             clearTimeout(timeout);
             console.log('카카오 스크립트 로드 성공');
             
-            // kakao 객체가 준비될 때까지 대기
             const checkKakao = () => {
               if (window.kakao && window.kakao.maps) {
                 console.log('카카오 지도 초기화 시작');
@@ -392,99 +321,6 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     };
   }, []);
 
-  // 북마크 마커 생성
-  const createBookmarkMarkers = useCallback(() => {
-    if (!mapInstance.current || !window.kakao || bookmarkedPlaces.length === 0) return;
-
-    // 기존 북마크 마커들 제거
-    bookmarkMarkers.forEach(marker => {
-      marker.setMap(null);
-    });
-
-    const newBookmarkMarkers: any[] = [];
-
-    bookmarkedPlaces.forEach((place) => {
-      if (!place.mapx || !place.mapy || place.mapx === '0' || place.mapy === '0') {
-        return; // 좌표가 없는 경우 스킵
-      }
-
-      const position = new window.kakao.maps.LatLng(place.mapy, place.mapx);
-      
-      // 북마크 전용 마커 이미지 생성 (별 모양 아이콘)
-      const imageSize = new window.kakao.maps.Size(35, 35);
-      const imageOption = { offset: new window.kakao.maps.Point(17, 35) };
-      
-      // 북마크 별 아이콘 (타입에 따라 색상 다르게)
-      const bookmarkColor = place.bookmark_type === 'pet' ? '#10B981' : '#3B82F6'; // 초록색(펫) 또는 파란색(일반)
-      const starIconSvg = `data:image/svg+xml;base64,${btoa(`
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${bookmarkColor}" width="35" height="35">
-          <circle cx="12" cy="12" r="11" fill="white" stroke="${bookmarkColor}" stroke-width="2"/>
-          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="${bookmarkColor}"/>
-        </svg>
-      `)}`;
-      
-      const markerImage = new window.kakao.maps.MarkerImage(
-        starIconSvg,
-        imageSize,
-        imageOption
-      );
-
-      const marker = new window.kakao.maps.Marker({
-        position: position,
-        image: markerImage,
-        clickable: true
-      });
-
-      marker.setMap(mapInstance.current);
-
-      // 마커 클릭 이벤트 - 북마크 상세 정보 표시
-      window.kakao.maps.event.addListener(marker, 'click', () => {
-        showBookmarkDetail(marker, place);
-      });
-
-      newBookmarkMarkers.push(marker);
-    });
-
-    setBookmarkMarkers(newBookmarkMarkers);
-    console.log(`${newBookmarkMarkers.length}개의 북마크 마커를 생성했습니다.`);
-  }, [bookmarkedPlaces, userProfileImage]);
-
-  // 북마크 상세 정보 표시
-  const showBookmarkDetail = useCallback((marker: any, place: any) => {
-    const content = `
-      <div style="padding: 15px; min-width: 250px; max-width: 300px; font-family: 'Malgun Gothic', sans-serif;">
-        <div style="display: flex; align-items: center; margin-bottom: 8px;">
-          <span style="font-size: 20px; margin-right: 8px;">⭐</span>
-          <div style="font-weight: bold; font-size: 14px; color: ${place.bookmark_type === 'pet' ? '#10B981' : '#3B82F6'};">${place.title}</div>
-        </div>
-        <div style="font-size: 12px; color: #666; margin-bottom: 8px; background: ${place.bookmark_type === 'pet' ? '#DCFCE7' : '#DBEAFE'}; padding: 2px 6px; border-radius: 10px; display: inline-block;">
-          ${place.bookmark_type === 'pet' ? '⭐ 즐겨찾기 (반려동물 동반)' : '⭐ 즐겨찾기 (일반 관광지)'}
-        </div>
-      </div>
-    `;
-    
-    infoWindow.current.setContent(content);
-    infoWindow.current.open(mapInstance.current, marker);
-  }, []);
-
-  // 반려동물 마커 표시/숨김 토글
-  const togglePetMarkers = useCallback(() => {
-    const shouldShow = !showPetMarkers;
-    setShowPetMarkers(shouldShow);
-
-    // 반려동물 여행지 마커들 표시/숨김
-    petTourismMarkers.forEach(marker => {
-      marker.setMap(shouldShow ? mapInstance.current : null);
-    });
-
-    // 일반->반려동물 마커들 표시/숨김
-    generalAsPetMarkers.forEach(marker => {
-      marker.setMap(shouldShow ? mapInstance.current : null);
-    });
-
-    toast.success(shouldShow ? '반려동물 동반 여행지를 표시합니다.' : '반려동물 동반 여행지를 숨깁니다.');
-  }, [showPetMarkers, petTourismMarkers, generalAsPetMarkers]);
-
   // 지도 초기화
   const initializeMap = useCallback(() => {
     if (!mapRef.current) {
@@ -499,27 +335,24 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     }
 
     try {
-      // 기존 지도 인스턴스가 있으면 정리
       if (mapInstance.current) {
         console.log('기존 지도 인스턴스 정리');
         mapInstance.current = null;
       }
 
       const options = {
-        center: new window.kakao.maps.LatLng(35.1796, 129.0756), // 부산시청
+        center: new window.kakao.maps.LatLng(35.1796, 129.0756),
         level: 5,
       };
 
       mapInstance.current = new window.kakao.maps.Map(mapRef.current, options);
       console.log('지도 인스턴스 생성 완료');
       
-      // 클러스터러 초기화 (선택적)
       if (clusterer.current) {
         clusterer.current.clear();
         clusterer.current = null;
       }
       
-      // MarkerClusterer가 사용 가능한지 확인
       if (window.kakao.maps.MarkerClusterer && typeof window.kakao.maps.MarkerClusterer === 'function') {
         try {
           clusterer.current = new window.kakao.maps.MarkerClusterer({
@@ -537,7 +370,6 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         clusterer.current = null;
       }
 
-      // 인포윈도우 초기화
       if (infoWindow.current) {
         infoWindow.current.close();
       }
@@ -554,548 +386,63 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     }
   }, []);
 
-  // 지도 초기화 후 반려동물 여행지 마커 로드 (한 번만 실행)
-  useEffect(() => {
-    if (isMapLoaded && !isPetDataLoaded) {
-      loadPetTourismMarkers();
-    }
-  }, [isMapLoaded, isPetDataLoaded]);
-
-  // 카테고리 변경에 따른 마커 업데이트
-  useEffect(() => {
-    if (!showPetFilter || !allPetData.length) return;
-    
-    if (selectedCategory === 'all') {
-      setParkFilter(false);
-      // 전체 마커 표시는 이미 로드된 마커들로 처리
-    } else if (selectedCategory === 'park') {
-      setParkFilter(true);
-    }
-  }, [selectedCategory, showPetFilter, allPetData.length]);
-
-  // 공원 필터 이벤트 리스너
-  useEffect(() => {
-    const handleParkFilter = () => {
-      setParkFilter(!parkFilter);
-      // 공원 필터 적용/해제 시 마커 업데이트
-      if (!parkFilter) {
-        // 공원 필터 활성화: 공원만 표시
-        filterParkMarkers();
-      } else {
-        // 공원 필터 비활성화: 전체 표시
-        showAllPetMarkers();
-      }
-    };
-
-    window.addEventListener('parkFilterToggle', handleParkFilter);
-    
-    return () => {
-      window.removeEventListener('parkFilterToggle', handleParkFilter);
-    };
-  }, [parkFilter, allPetData]);
-
-  // parkFilter 변경에 따른 마커 업데이트
-  useEffect(() => {
-    if (!showPetFilter || !allPetData.length) return;
-    
-    if (parkFilter) {
-      filterParkMarkers();
-    } else if (selectedCategory === 'all') {
-      showAllPetMarkers();
-    }
-  }, [parkFilter, showPetFilter, allPetData.length, selectedCategory]);
-
-  // 북마크 마커는 별도로 관리 (북마크가 변경될 때만 업데이트)
-  useEffect(() => {
-    if (isMapLoaded && bookmarkedPlaces.length > 0) {
-      createBookmarkMarkers();
-    }
-  }, [isMapLoaded, bookmarkedPlaces, createBookmarkMarkers]);
-
-  // 일반 관광지 중 반려동물 동반 가능한 곳들 로드
-  const loadGeneralTourismAsPet = useCallback(async () => {
-    try {
-      console.log('=== 일반 관광지를 반려동물 동반으로 표시 시작 ===');
-      console.log('petFriendlyKeywords 개수:', petFriendlyKeywords.length);
-      
-      const response = await supabase.functions.invoke('combined-tour-api', {
-        body: {
-          areaCode: '6', // 부산
-          numOfRows: '200', // 더 많은 데이터 가져오기
-          pageNo: '1',
-          keyword: '', // 키워드 없이 전체 목록
-          activeTab: 'general'
-        }
-      });
-
-      console.log('API 응답:', response);
-
-      if (response.data?.tourismData?.response?.body?.items?.item) {
-        const generalPlaces = response.data.tourismData.response.body.items.item;
-        console.log(`${generalPlaces.length}개의 일반 관광지 데이터를 가져왔습니다.`);
-        
-        // 처음 10개의 관광지 제목을 콘솔에 출력
-        console.log('가져온 관광지들 (처음 10개):');
-        generalPlaces.slice(0, 10).forEach((place: any, index: number) => {
-          console.log(`${index + 1}. ${place.title}`);
-        });
-        
-        // 키워드 매칭 - 정확한 매칭 방식으로 변경
-        const matchedPlaces = generalPlaces.filter((place: any) => {
-          if (!place.title) return false;
-          
-          return petFriendlyKeywords.some(keyword => {
-            // 정확히 일치하는 경우만 매칭
-            const titleMatch = place.title.trim() === keyword.trim();
-            if (titleMatch) {
-              console.log(`매칭됨: "${place.title}" <-> "${keyword}"`);
-            }
-            return titleMatch;
-          });
-        });
-        
-        console.log(`${matchedPlaces.length}개의 일반 관광지가 반려동물 동반 키워드와 매칭되었습니다.`);
-        
-        if (matchedPlaces.length > 0) {
-          console.log('매칭된 관광지들:');
-          matchedPlaces.forEach((place: any, index: number) => {
-            console.log(`${index + 1}. ${place.title} (${place.addr1})`);
-          });
-          
-          createGeneralTourismAsPetMarkers(matchedPlaces);
-          toast.success('일반 관광지를 반려동물 동반 여행지로 추가 표시했습니다.');
-        } else {
-          console.log('매칭되는 관광지가 없습니다.');
-          toast.warning('키워드와 매칭되는 관광지를 찾을 수 없습니다.');
-        }
-      } else {
-        console.log('일반 관광지 데이터가 없습니다.');
-        console.log('Response structure:', JSON.stringify(response.data, null, 2));
-      }
-    } catch (error) {
-      console.error('일반 관광지를 반려동물 동반으로 표시 오류:', error);
-      toast.error('일반 관광지 반려동물 동반 표시에 실패했습니다.');
-    }
-  }, [petFriendlyKeywords]);
-
-  // 일반 관광지를 반려동물 동반으로 표시하는 마커 생성
-  const createGeneralTourismAsPetMarkers = useCallback((matchedPlaces: any[]) => {
-    if (!mapInstance.current || !window.kakao) return;
-
-    // 기존 일반->반려동물 마커들 제거
-    generalAsPetMarkers.forEach(marker => {
-      marker.setMap(null);
-    });
-
-    const newGeneralAsPetMarkers: any[] = [];
-
-    matchedPlaces.forEach((place) => {
-      if (!place.mapx || !place.mapy || place.mapx === '0' || place.mapy === '0') {
-        return; // 좌표가 없는 경우 스킵
-      }
-
-      const position = new window.kakao.maps.LatLng(place.mapy, place.mapx);
-      
-      // 일반->반려동물 전용 마커 이미지 생성 (파란색 강아지 아이콘)
-      const imageSize = new window.kakao.maps.Size(30, 30);
-      const imageOption = { offset: new window.kakao.maps.Point(15, 30) };
-      
-      // 파란색 강아지 아이콘 이미지 (SVG를 base64로 인코딩)
-      const blueDogIconSvg = `data:image/svg+xml;base64,${btoa(`
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#3B82F6" width="30" height="30">
-          <circle cx="12" cy="12" r="10" fill="#E0F2FE" stroke="#3B82F6" stroke-width="2"/>
-          <path d="M8 10c0-1.1.9-2 2-2s2 .9 2 2-2 3-2 3-2-1.9-2-3zm6 0c0-1.1.9-2 2-2s2 .9 2 2-2 3-2 3-2-1.9-2-3z" fill="#3B82F6"/>
-          <circle cx="10" cy="10" r="1.5" fill="#333"/>
-          <circle cx="14" cy="10" r="1.5" fill="#333"/>
-          <path d="M12 13c-1 0-2 .5-2 1s1 1 2 1 2-.5 2-1-.5-1-2-1z" fill="#333"/>
-        </svg>
-      `)}`;
-      
-      const markerImage = new window.kakao.maps.MarkerImage(
-        blueDogIconSvg,
-        imageSize,
-        imageOption
-      );
-
-      const marker = new window.kakao.maps.Marker({
-        position: position,
-        image: markerImage,
-        clickable: true
-      });
-
-      marker.setMap(mapInstance.current);
-
-      // 마커 클릭 이벤트 - 일반->반려동물 여행지 상세 정보 표시
-      window.kakao.maps.event.addListener(marker, 'click', () => {
-        showGeneralAsPetDetail(marker, place);
-      });
-
-      newGeneralAsPetMarkers.push(marker);
-    });
-
-    setGeneralAsPetMarkers(newGeneralAsPetMarkers);
-    console.log(`${newGeneralAsPetMarkers.length}개의 일반->반려동물 동반 마커를 생성했습니다.`);
-  }, [generalAsPetMarkers]);
-
-  // 일반->반려동물 여행지 상세 정보 표시
-  const showGeneralAsPetDetail = useCallback((marker: any, place: any) => {
-    const content = `
-      <div style="padding: 15px; min-width: 250px; max-width: 300px; font-family: 'Malgun Gothic', sans-serif;">
-        <div style="display: flex; align-items: center; margin-bottom: 8px;">
-          <span style="font-size: 20px; margin-right: 8px;">🐕</span>
-          <div style="font-weight: bold; font-size: 14px; color: #3B82F6;">${place.title}</div>
-        </div>
-        <div style="font-size: 12px; color: #666; margin-bottom: 3px; background: #E0F2FE; padding: 2px 6px; border-radius: 10px; display: inline-block;">반려동물 동반 추천 관광지</div>
-        <div style="font-size: 11px; color: #888; margin-bottom: 3px; line-height: 1.4;">${place.addr1 || ''}</div>
-        ${place.tel ? `<div style="font-size: 11px; color: #888; margin-bottom: 8px;"><span style="color: #3B82F6;">📞</span> ${place.tel}</div>` : ''}
-        ${place.firstimage ? `<div style="margin-bottom: 8px;"><img src="${place.firstimage}" alt="${place.title}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 6px;"/></div>` : ''}
-        <div style="font-size: 10px; color: #999; margin-top: 8px; line-height: 1.3;">※ 반려동물 동반 가능 여부는 현장 확인 필요</div>
-      </div>
-    `;
-    
-    infoWindow.current.setContent(content);
-    infoWindow.current.open(mapInstance.current, marker);
-  }, []);
-
-  // 반려동물 여행지 마커 로드 (일관성을 위해 항상 전체 키워드 사용)
+  // 반려동물 여행지 데이터 로드
   const loadPetTourismMarkers = useCallback(async () => {
-    if (!mapInstance.current || isPetDataLoaded) return;
+    if (isPetDataLoaded || !mapInstance.current) return;
 
     console.log('=== 반려동물 여행지 마커 로딩 시작 ===');
+    setLoading(true);
     
     try {
-      const response = await supabase.functions.invoke('combined-tour-api', {
+      const { data, error } = await supabase.functions.invoke('combined-tour-api', {
         body: {
+          areaCode: '6',
+          numOfRows: '10',
+          pageNo: '1',
+          keyword: '',
           activeTab: 'pet',
-          areaCode: '6', // 부산
-          loadAllPetKeywords: true // 일관성을 위해 항상 전체 키워드로 검색
+          loadAllPetKeywords: true
         }
       });
 
-      console.log('반려동물 여행지 API 응답:', response);
+      if (error) {
+        console.error('반려동물 여행지 로딩 오류:', error);
+        toast.error('반려동물 여행지를 불러오는데 실패했습니다.');
+        return;
+      }
 
-      // API 응답 구조 확인 및 데이터 추출
-      let petPlaces = [];
+      if (data.petTourismData && !data.petTourismData.error && 
+          data.petTourismData.response?.header?.resultCode === "0000" &&
+          data.petTourismData.response?.body?.items?.item) {
+        const items = data.petTourismData.response.body.items.item;
+        const processedData = Array.isArray(items) ? items : [items];
+        
+        console.log(`${processedData.length}개의 반려동물 여행지 로딩 완료`);
+        
+        setAllPetData(processedData);
+        setIsPetDataLoaded(true);
+        
+        // 전체 마커 표시
+        handleCategorySelect('all');
+        
+        toast.success('반려동물 여행지를 불러왔습니다!');
+      }
       
-      if (response.data?.petTourismData?.response?.body?.items?.item) {
-        // 표준 API 응답 구조
-        petPlaces = Array.isArray(response.data.petTourismData.response.body.items.item) 
-          ? response.data.petTourismData.response.body.items.item
-          : [response.data.petTourismData.response.body.items.item];
-      } else {
-        console.warn('반려동물 여행지 데이터를 찾을 수 없습니다:', response.data);
-      }
-
-      if (petPlaces && petPlaces.length > 0) {
-        console.log(`${petPlaces.length}개의 반려동물 여행지 데이터를 받았습니다.`);
-        
-        // 전체 데이터 저장 (95개 키워드로 검색한 결과)
-        setAllPetData(petPlaces);
-        
-        // 마커 생성 (추가 데이터 없이 순수 반려동물 여행지만)
-        createPetTourismMarkers(petPlaces);
-        setIsPetDataLoaded(true);
-        
-        toast.success(`반려동물 동반 여행지 ${petPlaces.length}개를 지도에 표시했습니다.`);
-      } else {
-        console.warn('반려동물 여행지 데이터가 없습니다.');
-        toast.warning('반려동물 여행지를 찾을 수 없습니다.');
-        setIsPetDataLoaded(true);
-      }
     } catch (error) {
       console.error('반려동물 여행지 로딩 실패:', error);
       toast.error('반려동물 여행지 로딩에 실패했습니다.');
-      setIsPetDataLoaded(true);
+    } finally {
+      setLoading(false);
     }
-  }, [isPetDataLoaded]);
+  }, [isPetDataLoaded, handleCategorySelect]);
 
-  // 반려동물 여행지 상세 정보 표시
-  const showPetTourismDetail = useCallback((marker: any, place: any) => {
-    const content = `
-      <div style="padding: 15px; min-width: 250px; max-width: 300px; font-family: 'Malgun Gothic', sans-serif;">
-        <div style="display: flex; align-items: center; margin-bottom: 8px;">
-          <span style="font-size: 20px; margin-right: 8px;">🐕</span>
-          <div style="font-weight: bold; font-size: 14px; color: #DC2626;">${place.title}</div>
-        </div>
-        <div style="font-size: 12px; color: #666; margin-bottom: 3px; background: #FFE5E5; padding: 2px 6px; border-radius: 10px; display: inline-block;">반려동물 동반 여행지</div>
-        <div style="font-size: 11px; color: #888; margin-bottom: 3px; line-height: 1.4;">${place.addr1 || ''}</div>
-        ${place.tel ? `<div style="font-size: 11px; color: #888; margin-bottom: 8px;"><span style="color: #FF6B6B;">📞</span> ${place.tel}</div>` : ''}
-        ${place.firstimage ? `<div style="margin-bottom: 8px;"><img src="${place.firstimage}" alt="${place.title}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 6px;"/></div>` : ''}
-        <div style="font-size: 10px; color: #999; margin-top: 8px; line-height: 1.3;">※ 반려동물 동반 가능 여부는 현장 확인 필요</div>
-      </div>
-    `;
-    
-    infoWindow.current.setContent(content);
-    infoWindow.current.open(mapInstance.current, marker);
-  }, []);
-
-  // 반려동물 여행지 마커 생성
-  const createPetTourismMarkers = useCallback((petPlaces: any[]) => {
-    if (!mapInstance.current || !window.kakao) return;
-
-    // 기존 반려동물 마커들 완전히 제거
-    petTourismMarkers.forEach(marker => {
-      marker.setMap(null);
-    });
-    
-    // 상태 초기화
-    setPetTourismMarkers([]);
-
-    const newPetMarkers: any[] = [];
-
-    petPlaces.forEach((place) => {
-      if (!place.mapx || !place.mapy || place.mapx === '0' || place.mapy === '0') {
-        return; // 좌표가 없는 경우 스킵
-      }
-
-      const position = new window.kakao.maps.LatLng(place.mapy, place.mapx);
-      
-      // 반려동물 전용 마커 이미지 생성 (강아지 아이콘)
-      const imageSize = new window.kakao.maps.Size(30, 30);
-      const imageOption = { offset: new window.kakao.maps.Point(15, 30) };
-      
-      // 빨간 마커 아이콘 (SVG를 base64로 인코딩)
-      const redMarkerSvg = `data:image/svg+xml;base64,${btoa(`
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#DC2626" width="30" height="30">
-          <circle cx="12" cy="12" r="10" fill="#DC2626" stroke="#FFFFFF" stroke-width="2"/>
-          <path d="M8 10c0-1.1.9-2 2-2s2 .9 2 2-2 3-2 3-2-1.9-2-3zm6 0c0-1.1.9-2 2-2s2 .9 2 2-2 3-2 3-2-1.9-2-3z" fill="#FFFFFF"/>
-          <circle cx="10" cy="10" r="1.5" fill="#000"/>
-          <circle cx="14" cy="10" r="1.5" fill="#000"/>
-          <path d="M12 13c-1 0-2 .5-2 1s1 1 2 1 2-.5 2-1-.5-1-2-1z" fill="#000"/>
-        </svg>
-      `)}`;
-      
-      const markerImage = new window.kakao.maps.MarkerImage(
-        redMarkerSvg,
-        imageSize,
-        imageOption
-      );
-
-      const marker = new window.kakao.maps.Marker({
-        position: position,
-        image: markerImage,
-        clickable: true
-      });
-
-      marker.setMap(mapInstance.current);
-
-      // 마커 클릭 이벤트 - 반려동물 여행지 상세 정보 표시
-      window.kakao.maps.event.addListener(marker, 'click', () => {
-        showPetTourismDetail(marker, place);
-      });
-
-      newPetMarkers.push(marker);
-    });
-
-    setPetTourismMarkers(newPetMarkers);
-    console.log(`${newPetMarkers.length}개의 반려동물 여행지 마커를 생성했습니다.`);
-  }, [showPetTourismDetail]);
-
-  // 공원 마커만 필터링해서 표시 (정확히 17개 공원만)
-  const filterParkMarkers = useCallback(() => {
-    if (!allPetData.length) return;
-
-    console.log('=== 공원 필터 적용 ===');
-    
-    // 모든 기존 마커들 완전히 제거
-    clearAllPetMarkers();
-    
-    // 정확히 17개 공원 키워드에 해당하는 데이터만 필터링
-    const parkPlaces = allPetData.filter(place => 
-      parkKeywords.some(keyword => 
-        place.title?.trim() === keyword.trim()
-      )
-    );
-    
-    console.log(`${parkPlaces.length}개의 공원 마커를 표시합니다.`);
-    console.log('공원 목록:', parkPlaces.map(p => p.title));
-    
-    // 공원 마커만 생성 (다른 데이터 추가 없이)
-    createPetTourismMarkers(parkPlaces);
-    
-    toast.success(`공원 ${parkPlaces.length}개를 지도에 표시했습니다.`);
-  }, [allPetData, clearAllPetMarkers, parkKeywords, createPetTourismMarkers]);
-
-  // 레저 마커만 필터링해서 표시
-  const filterLeisureMarkers = useCallback(() => {
-    if (!allPetData.length) return;
-
-    console.log('=== 레저 필터 적용 ===');
-    
-    clearAllPetMarkers();
-    
-    const leisurePlaces = allPetData.filter(place => 
-      leisureKeywords.some(keyword => 
-        place.title?.trim() === keyword.trim()
-      )
-    );
-    
-    console.log(`${leisurePlaces.length}개의 레저 마커를 표시합니다.`);
-    console.log('레저 목록:', leisurePlaces.map(p => p.title));
-    
-    createPetTourismMarkers(leisurePlaces);
-    
-    toast.success(`레저시설 ${leisurePlaces.length}개를 지도에 표시했습니다.`);
-  }, [allPetData, clearAllPetMarkers, leisureKeywords, createPetTourismMarkers]);
-
-  // 문화시설 마커만 필터링해서 표시
-  const filterCultureMarkers = useCallback(() => {
-    if (!allPetData.length) return;
-
-    console.log('=== 문화시설 필터 적용 ===');
-    
-    clearAllPetMarkers();
-    
-    const culturePlaces = allPetData.filter(place => 
-      cultureKeywords.some(keyword => 
-        place.title?.trim() === keyword.trim()
-      )
-    );
-    
-    console.log(`${culturePlaces.length}개의 문화시설 마커를 표시합니다.`);
-    console.log('문화시설 목록:', culturePlaces.map(p => p.title));
-    
-    createPetTourismMarkers(culturePlaces);
-    
-    toast.success(`문화시설 ${culturePlaces.length}개를 지도에 표시했습니다.`);
-  }, [allPetData, clearAllPetMarkers, cultureKeywords, createPetTourismMarkers]);
-
-  // 브런치 마커만 필터링해서 표시
-  const filterBrunchMarkers = useCallback(() => {
-    if (!allPetData.length) return;
-
-    console.log('=== 브런치 필터 적용 ===');
-    
-    clearAllPetMarkers();
-    
-    const brunchPlaces = allPetData.filter(place => 
-      brunchKeywords.some(keyword => 
-        place.title?.trim() === keyword.trim()
-      )
-    );
-    
-    console.log(`${brunchPlaces.length}개의 브런치 마커를 표시합니다.`);
-    console.log('브런치 목록:', brunchPlaces.map(p => p.title));
-    
-    createPetTourismMarkers(brunchPlaces);
-    
-    toast.success(`브런치카페 ${brunchPlaces.length}개를 지도에 표시했습니다.`);
-  }, [allPetData, clearAllPetMarkers, brunchKeywords, createPetTourismMarkers]);
-
-  // 사찰 마커만 필터링해서 표시
-  const filterTempleMarkers = useCallback(() => {
-    if (!allPetData.length) return;
-
-    console.log('=== 사찰 필터 적용 ===');
-    
-    clearAllPetMarkers();
-    
-    const templePlaces = allPetData.filter(place => 
-      templeKeywords.some(keyword => 
-        place.title?.trim() === keyword.trim()
-      )
-    );
-    
-    console.log(`${templePlaces.length}개의 사찰 마커를 표시합니다.`);
-    console.log('사찰 목록:', templePlaces.map(p => p.title));
-    
-    createPetTourismMarkers(templePlaces);
-    
-    toast.success(`사찰 ${templePlaces.length}개를 지도에 표시했습니다.`);
-  }, [allPetData, clearAllPetMarkers, templeKeywords, createPetTourismMarkers]);
-
-  // 전체 펫 마커 표시 (순수 반려동물 여행지만)
-  const showAllPetMarkers = useCallback(() => {
-    if (!allPetData.length) return;
-
-    console.log('=== 전체 반려동물 마커 표시 ===');
-    
-    // 모든 기존 마커들 완전히 제거
-    clearAllPetMarkers();
-    
-    // 전체 데이터로 마커 재생성 (추가 데이터 없이 순수 반려동물 여행지만)
-    createPetTourismMarkers(allPetData);
-    
-    toast.success(`전체 반려동물 여행지 ${allPetData.length}개를 지도에 표시했습니다.`);
-  }, [allPetData, clearAllPetMarkers, createPetTourismMarkers]);
-  const convertTourismDataToPlace = useCallback((item: any, source: 'tourism' | 'pet_tourism'): Place => {
-    return {
-      id: `${source}_${item.contentid || Math.random()}`,
-      place_name: item.title || '',
-      category_name: source === 'tourism' ? '관광지' : '반려동물 동반 여행지',
-      address_name: item.addr1 || '',
-      road_address_name: item.addr2 || '',
-      phone: item.tel || '',
-      place_url: `https://korean.visitkorea.or.kr/detail/detail.do?cotid=${item.contentid}`,
-      x: item.mapx || '0',
-      y: item.mapy || '0',
-      distance: '',
-      source: source
-    };
-  }, []);
-
-  // 여행지 데이터 검색
-  const searchTourismPlaces = useCallback(async (keyword: string): Promise<Place[]> => {
-    try {
-      const results: Place[] = [];
-
-      // 일반 여행지 검색
-      const generalResponse = await supabase.functions.invoke('combined-tour-api', {
-        body: {
-          areaCode: '6', // 부산
-          numOfRows: '10',
-          pageNo: '1',
-          keyword: keyword,
-          activeTab: 'general'
-        }
-      });
-
-      if (generalResponse.data?.tourismData?.response?.body?.items?.item) {
-        const generalPlaces = generalResponse.data.tourismData.response.body.items.item.map(
-          (item: any) => convertTourismDataToPlace(item, 'tourism')
-        );
-        results.push(...generalPlaces);
-      }
-
-      // 반려동물 여행지 검색
-      const petResponse = await supabase.functions.invoke('combined-tour-api', {
-        body: {
-          areaCode: '6', // 부산
-          numOfRows: '10',
-          pageNo: '1',
-          keyword: keyword,
-          activeTab: 'pet'
-        }
-      });
-
-      if (petResponse.data?.petTourismData?.response?.body?.items?.item) {
-        const petPlaces = petResponse.data.petTourismData.response.body.items.item.map(
-          (item: any) => convertTourismDataToPlace(item, 'pet_tourism')
-        );
-        results.push(...petPlaces);
-      }
-
-      return results;
-    } catch (error) {
-      console.error('여행지 데이터 검색 오류:', error);
-      return [];
+  // 지도 로드 후 반려동물 데이터 로드
+  useEffect(() => {
+    if (isMapLoaded && showPetFilter && !isPetDataLoaded) {
+      loadPetTourismMarkers();
     }
-  }, [convertTourismDataToPlace]);
+  }, [isMapLoaded, showPetFilter, isPetDataLoaded, loadPetTourismMarkers]);
 
-  // 반려동물 여행지에서의 검색 (로드된 데이터에서 필터링)
-  const searchPetPlaces = useCallback((keyword: string) => {
-    if (!keyword.trim()) return allPetData;
-    
-    const filteredPlaces = allPetData.filter(place => 
-      place.title?.toLowerCase().includes(keyword.toLowerCase()) ||
-      place.addr1?.toLowerCase().includes(keyword.toLowerCase())
-    );
-    
-    console.log(`"${keyword}" 검색 결과: ${filteredPlaces.length}개`);
-    return filteredPlaces;
-  }, [allPetData]);
-
-  // 장소 검색 (반려동물 여행지 특화)
   const searchPlaces = useCallback(async () => {
     if (!searchQuery.trim()) {
       toast.warning('검색어를 입력해주세요.');
@@ -1108,54 +455,30 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     }
 
     setLoading(true);
+    
     try {
-      console.log('반려동물 여행지 검색 시작:', searchQuery);
-
-      // 반려동물 여행지 페이지에서는 로드된 데이터에서 검색
-      if (showPetFilter) {
-        // 반려동물 데이터가 없으면 먼저 로드
-        if (allPetData.length === 0) {
-          toast.info('반려동물 여행지 데이터를 로드하는 중...');
-          try {
-            // 데이터 로드 시도
-            await loadPetTourismMarkers();
-            
-            // 로드 후 다시 검색 시도
-            setTimeout(() => {
-              if (allPetData.length > 0) {
-                const filteredPlaces = searchPetPlaces(searchQuery);
-                if (filteredPlaces.length > 0) {
-                  createPetTourismMarkers(filteredPlaces);
-                  const firstPlace = filteredPlaces[0];
-                  if (firstPlace.mapx && firstPlace.mapy) {
-                    const moveLatLng = new window.kakao.maps.LatLng(firstPlace.mapy, firstPlace.mapx);
-                    mapInstance.current.panTo(moveLatLng);
-                  }
-                  toast.success(`${filteredPlaces.length}개의 반려동물 여행지를 찾았습니다.`);
-                } else {
-                  toast.warning('검색 결과가 없습니다.');
-                }
-              }
-              setLoading(false);
-            }, 1000);
-            return;
-          } catch (error) {
-            toast.error('반려동물 여행지 데이터 로드에 실패했습니다.');
-            setLoading(false);
-            return;
-          }
-        }
-
-        const filteredPlaces = searchPetPlaces(searchQuery);
+      if (showPetFilter && allPetData.length > 0) {
+        const filteredPlaces = allPetData.filter(place => 
+          place.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          place.addr1?.toLowerCase().includes(searchQuery.toLowerCase())
+        );
         
         if (filteredPlaces.length > 0) {
-          // 기존 마커들 제거
-          clearAllPetMarkers();
+          petTourismMarkers.forEach(marker => marker.setMap(null));
           
-          // 검색 결과로 새로운 마커들 생성
-          createPetTourismMarkers(filteredPlaces);
+          const newMarkers: any[] = [];
           
-          // 첫 번째 결과로 지도 이동
+          filteredPlaces.forEach((place) => {
+            if (!place.mapx || !place.mapy) return;
+
+            const position = new window.kakao.maps.LatLng(place.mapy, place.mapx);
+            const marker = new window.kakao.maps.Marker({ position });
+            marker.setMap(mapInstance.current);
+            newMarkers.push(marker);
+          });
+          
+          setPetTourismMarkers(newMarkers);
+          
           const firstPlace = filteredPlaces[0];
           if (firstPlace.mapx && firstPlace.mapy) {
             const moveLatLng = new window.kakao.maps.LatLng(firstPlace.mapy, firstPlace.mapx);
@@ -1164,57 +487,40 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           
           toast.success(`${filteredPlaces.length}개의 반려동물 여행지를 찾았습니다.`);
         } else {
-          clearAllPetMarkers();
+          petTourismMarkers.forEach(marker => marker.setMap(null));
+          setPetTourismMarkers([]);
           toast.warning('검색 결과가 없습니다.');
         }
         
-        setLoading(false);
         return;
       }
 
-      // 일반 지도 페이지에서는 기존 로직 사용
+      // 일반 검색 로직
       const center = mapInstance.current.getCenter();
       const lat = center.getLat();
       const lng = center.getLng();
 
-      console.log('장소 검색 시작:', { query: searchQuery, lat, lng, radius });
+      const response = await fetch(
+        `https://fffcagbbbikhfcydncjb.supabase.co/functions/v1/kakao-proxy?op=/v2/local/search/keyword.json&query=${encodeURIComponent(searchQuery)}&x=${lng}&y=${lat}&radius=${radius}&size=15`,
+        {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZmNhZ2JiYmlraGZjeWRuY2piIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwNzA2MzMsImV4cCI6MjA3MDY0NjYzM30.2ROotnYyQsgReZwOeBun76dOGPOFyOlwwEnDV3JMn28`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
-      // 병렬로 카카오 검색과 여행지 검색 실행
-      const [kakaoResult, tourismPlaces] = await Promise.all([
-        // 카카오 키워드 검색
-        fetch(
-          `https://fffcagbbbikhfcydncjb.supabase.co/functions/v1/kakao-proxy?op=/v2/local/search/keyword.json&query=${encodeURIComponent(searchQuery)}&x=${lng}&y=${lat}&radius=${radius}&size=15`,
-          {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZmNhZ2JiYmlraGZjeWRuY2piIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwNzA2MzMsImV4cCI6MjA3MDY0NjYzM30.2ROotnYyQsgReZwOeBun76dOGPOFyOlwwEnDV3JMn28`,
-              'Content-Type': 'application/json',
-            },
-          }
-        ).then(async res => {
-          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-          const data = await res.json();
-          return data.documents?.map((place: any) => ({ ...place, source: 'kakao' })) || [];
-        }).catch(error => {
-          console.error('카카오 검색 실패:', error);
-          return [];
-        }),
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      
+      const data = await response.json();
+      const places = data.documents?.map((place: any) => ({ ...place, source: 'kakao' })) || [];
+
+      if (places.length > 0) {
+        setPlaces(places);
+        displayMarkers(places);
         
-        // 여행지 데이터 검색
-        searchTourismPlaces(searchQuery)
-      ]);
-
-      // 결과 합치기
-      const allPlaces = [...kakaoResult, ...tourismPlaces];
-
-      console.log('통합 검색 결과:', allPlaces);
-
-      if (allPlaces.length > 0) {
-        setPlaces(allPlaces);
-        displayMarkers(allPlaces);
-        
-        // 첫 번째 결과로 지도 이동
-        const firstPlace = allPlaces[0];
+        const firstPlace = places[0];
         const moveLatLng = new window.kakao.maps.LatLng(firstPlace.y, firstPlace.x);
         mapInstance.current.panTo(moveLatLng);
         
@@ -1230,9 +536,8 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, radius, searchTourismPlaces, showPetFilter, allPetData, searchPetPlaces, clearAllPetMarkers, createPetTourismMarkers]);
+  }, [searchQuery, radius, showPetFilter, allPetData, petTourismMarkers]);
 
-  // 마커 표시
   const displayMarkers = useCallback((places: Place[]) => {
     clearMarkers();
     
@@ -1243,7 +548,6 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         clickable: true,
       });
 
-      // 마커 클릭 이벤트
       window.kakao.maps.event.addListener(marker, 'click', () => {
         showInfoWindow(marker, place);
         setSelectedPlace(place);
@@ -1254,23 +558,19 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
     markers.current = newMarkers;
     
-    // 클러스터러가 있으면 클러스터링, 없으면 개별 마커로 표시
     if (clusterer.current) {
       clusterer.current.addMarkers(newMarkers);
     } else {
-      // 클러스터러가 없는 경우 각 마커를 개별적으로 지도에 표시
       newMarkers.forEach(marker => {
         marker.setMap(mapInstance.current);
       });
     }
   }, []);
 
-  // 마커 클리어
   const clearMarkers = useCallback(() => {
     if (clusterer.current) {
       clusterer.current.clear();
     } else {
-      // 클러스터러가 없는 경우 개별 마커들을 직접 제거
       markers.current.forEach(marker => {
         marker.setMap(null);
       });
@@ -1281,7 +581,6 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     }
   }, []);
 
-  // 인포윈도우 표시
   const showInfoWindow = useCallback((marker: any, place: Place) => {
     const content = `
       <div style="padding: 10px; min-width: 200px;">
@@ -1299,7 +598,6 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     infoWindow.current.open(mapInstance.current, marker);
   }, []);
 
-  // 현재 위치 가져오기
   const getCurrentLocation = useCallback(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -1312,7 +610,6 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
             const locPosition = new window.kakao.maps.LatLng(lat, lng);
             mapInstance.current.panTo(locPosition);
 
-            // 현재 위치 마커 표시
             const marker = new window.kakao.maps.Marker({
               position: locPosition,
             });
@@ -1330,7 +627,6 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     }
   }, []);
 
-  // 장소 선택
   const selectPlace = useCallback((place: Place) => {
     setSelectedPlace(place);
     
@@ -1338,14 +634,12 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       const moveLatLng = new window.kakao.maps.LatLng(place.y, place.x);
       mapInstance.current.panTo(moveLatLng);
 
-      // 해당 마커 찾아서 인포윈도우 표시
       const marker = markers.current.find((m, index) => places[index].id === place.id);
       if (marker) {
         showInfoWindow(marker, place);
       }
     }
     
-    // 모바일에서는 지도 보기로 전환
     if (window.innerWidth < 768) {
       setShowMobileList(false);
     }
@@ -1358,7 +652,6 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
-      {/* 헤더 */}
       {!hideSearchBar && (
         <div className="bg-white shadow-sm border-b p-4">
           <div className="flex items-center gap-4">
@@ -1368,7 +661,6 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
             <h1 className="text-lg font-semibold">지도 검색</h1>
           </div>
           
-          {/* 반려동물 탭인 경우 카테고리 탭 표시 */}
           {showPetFilter && (
             <div className="mt-4 overflow-x-auto">
               <div className="flex gap-1 pb-2 min-w-max px-1">
@@ -1388,7 +680,6 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
             </div>
           )}
           
-          {/* 검색 바 */}
           <form onSubmit={handleSearch} className="mt-4 flex gap-2">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -1408,136 +699,90 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
                 <SelectItem value="1000">1km</SelectItem>
                 <SelectItem value="2000">2km</SelectItem>
                 <SelectItem value="5000">5km</SelectItem>
+                <SelectItem value="10000">10km</SelectItem>
               </SelectContent>
             </Select>
-            <Button type="submit" disabled={loading || !isMapLoaded}>
-              {loading ? '검색중...' : '검색'}
+            <Button type="submit" disabled={loading}>
+              {loading ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              ) : (
+                <Search className="w-4 h-4" />
+              )}
             </Button>
-            <Button type="button" variant="outline" onClick={getCurrentLocation}>
+            <Button variant="outline" onClick={getCurrentLocation}>
               <Navigation className="w-4 h-4" />
             </Button>
           </form>
         </div>
       )}
 
-        {!hideCategoryGrid && !showPetFilter && (
-          <div className="mb-4">
-            <CategoryGrid />
-            {/* 공원 필터 상태 표시 */}
-            {parkFilter && (
-              <div className="mt-3 px-5">
-                <div className="flex items-center justify-between bg-green-50 p-3 rounded-xl border border-green-200">
-                  <div className="flex items-center gap-2">
-                    <TreePine className="w-4 h-4 text-green-600" />
-                    <span className="text-sm font-medium text-green-700">공원만 표시 중</span>
-                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                      {parkKeywords.length}개 공원
-                    </span>
-                  </div>
-                  <button 
-                    onClick={() => {
-                      setParkFilter(false);
-                      showAllPetMarkers();
-                    }}
-                    className="text-green-700 hover:text-green-800 hover:bg-green-100 px-3 py-1 rounded-lg text-sm transition-colors"
-                  >
-                    전체 보기
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-      {/* 메인 콘텐츠 */}
-      <div className="flex-1 flex relative">
-        {/* 데스크톱: 좌측 리스트 */}
-        {!hideSearchBar && (
-          <div className={`w-80 bg-white border-r overflow-hidden md:flex flex-col ${showMobileList ? 'absolute inset-0 z-10' : 'hidden'}`}>
+      <div className="flex-1 flex">
+        <div ref={mapRef} className="flex-1" />
+        
+        {places.length > 0 && (
+          <div className={`${showMobileList ? 'absolute inset-0 bg-white z-10' : 'hidden md:block'} w-full md:w-80 border-l bg-white overflow-y-auto`}>
             <div className="p-4 border-b">
-              <h2 className="font-semibold">검색 결과 ({places.length})</h2>
-              {/* 모바일 닫기 버튼 */}
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="md:hidden absolute top-2 right-2"
-                onClick={() => setShowMobileList(false)}
-              >
-                ✕
-              </Button>
+              <div className="flex items-center justify-between">
+                <h2 className="font-semibold">검색 결과 ({places.length})</h2>
+                {showMobileList && (
+                  <Button variant="ghost" size="sm" onClick={() => setShowMobileList(false)}>
+                    <ArrowLeft className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
             </div>
-            <div className="flex-1 overflow-y-auto">
-              {places.map((place, index) => (
+            
+            <div className="p-4 space-y-3">
+              {places.map((place) => (
                 <Card 
-                  key={place.id}
-                  className={`m-2 p-3 cursor-pointer hover:shadow-md transition-shadow ${
-                    selectedPlace?.id === place.id ? 'ring-2 ring-blue-500' : ''
-                  }`}
+                  key={place.id} 
+                  className="p-3 cursor-pointer hover:shadow-md transition-shadow"
                   onClick={() => selectPlace(place)}
                 >
-                  <h3 className="font-medium text-sm mb-1">{place.place_name}</h3>
-                  <p className="text-xs text-gray-600 mb-1">{place.category_name}</p>
-                  <p className="text-xs text-gray-500 mb-2">{place.address_name}</p>
+                  <h3 className="font-medium text-sm">{place.place_name}</h3>
+                  <p className="text-xs text-gray-600 mt-1">{place.category_name}</p>
+                  <p className="text-xs text-gray-500 mt-1">{place.address_name}</p>
                   {place.phone && (
-                    <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
-                      <Phone className="w-3 h-3" />
-                      {place.phone}
+                    <div className="flex items-center gap-1 mt-2">
+                      <Phone className="w-3 h-3 text-gray-400" />
+                      <span className="text-xs text-gray-600">{place.phone}</span>
                     </div>
                   )}
-                  {place.distance && (
-                    <div className="flex items-center gap-1 text-xs text-blue-600">
-                      <MapPin className="w-3 h-3" />
-                      {Math.round(Number(place.distance))}m
+                  {place.place_url && (
+                    <div className="flex items-center gap-1 mt-1">
+                      <ExternalLink className="w-3 h-3 text-blue-500" />
+                      <a 
+                        href={place.place_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-500 hover:underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        상세보기
+                      </a>
                     </div>
                   )}
-                  <div className="flex justify-end mt-2">
-                    <a 
-                      href={place.place_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      상세보기 <ExternalLink className="w-3 h-3" />
-                    </a>
-                  </div>
                 </Card>
               ))}
-              {places.length === 0 && (
-                <div className="text-center text-gray-500 p-8">
-                  <MapPin className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                  <p>검색 결과가 없습니다.</p>
-                  <p className="text-sm">다른 키워드로 검색해보세요.</p>
-                </div>
-              )}
             </div>
           </div>
         )}
-
-        {/* 지도 */}
-        <div className="flex-1 relative">
-          <div ref={mapRef} className="w-full h-full"></div>
-          
-          {/* 모바일 리스트 토글 버튼 */}
-          {!hideSearchBar && (
-            <Button
-              className="md:hidden absolute top-4 left-4 z-10"
-              onClick={() => setShowMobileList(true)}
-            >
-              결과 목록 ({places.length})
-            </Button>
-          )}
-          
-          {!isMapLoaded && (
-            <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">지도를 불러오는 중...</p>
-              </div>
-            </div>
-          )}
-        </div>
+        
+        {places.length > 0 && (
+          <Button
+            className="md:hidden fixed bottom-20 left-4 z-20"
+            onClick={() => setShowMobileList(true)}
+          >
+            목록 보기 ({places.length})
+          </Button>
+        )}
       </div>
+
+      {!hideCategoryGrid && !showPetFilter && (
+        <div className="bg-white border-t p-4">
+          <CategoryGrid />
+        </div>
+      )}
     </div>
   );
 };
