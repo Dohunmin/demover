@@ -159,7 +159,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
       if (error) {
         console.error('반려동물 여행지 로딩 오류:', error);
         toast.error('반려동물 여행지 로딩에 실패했습니다.');
-        return;
+        return false;
       }
 
       if (data.petTourismData && !data.petTourismData.error && 
@@ -173,10 +173,11 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
         setAllPetPlacesCache(processedData);
         setPetCacheLoaded(true);
         
-        // 첫 페이지 표시
+        // 검색 키워드가 있으면 검색 결과를, 없으면 첫 페이지를 표시
         processCachedPetPlaces(processedData, petSearchKeyword, 1);
         
         toast.success('반려동물 여행지를 불러왔습니다!');
+        return true;
       } else {
         console.warn('반려동물 여행지 데이터 없음:', data.petTourismData?.error || 'No data');
         setAllPetPlacesCache([]);
@@ -184,6 +185,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
         setPetTourPlaces([]);
         setPetTotalCount(0);
         toast.warning("반려동물 동반 여행지를 찾을 수 없습니다.");
+        return false;
       }
       
       } catch (error) {
@@ -194,6 +196,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
         setPetCacheLoaded(true);
         setPetTourPlaces([]);
         setPetTotalCount(0);
+        return false;
       } finally {
         setInitialPetLoading(false);
       }
@@ -340,17 +343,13 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
       setPetCurrentPage(1);
       
       try {
-        if (petCacheLoaded) {
-          processCachedPetPlaces(undefined, petSearchKeyword, 1);
+        if (petCacheLoaded && allPetPlacesCache.length > 0) {
+          // 캐시가 있으면 바로 검색
+          processCachedPetPlaces(allPetPlacesCache, petSearchKeyword, 1);
         } else {
-          // 캐시가 없으면 데이터를 로드한 후 검색
+          // 캐시가 없으면 데이터를 로드 (loadAllPetPlaces 내부에서 검색도 처리됨)
           toast.info('반려동물 여행지 데이터를 로딩 중입니다...');
           await loadAllPetPlaces();
-          
-          // 로드 완료 후 검색 실행
-          if (petCacheLoaded && allPetPlacesCache.length > 0) {
-            processCachedPetPlaces(undefined, petSearchKeyword, 1);
-          }
         }
       } catch (error) {
         console.error('검색 실패:', error);
