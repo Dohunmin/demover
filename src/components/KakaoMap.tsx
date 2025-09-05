@@ -213,62 +213,50 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         // 잠시 대기 후 스크립트 로드
         await new Promise(resolve => setTimeout(resolve, 300));
 
-        // 카카오 지도 SDK를 프록시를 통해 로드
-        console.log('프록시를 통한 카카오 지도 SDK 로드 시작');
+        // 카카오 지도 SDK 직접 로드
+        console.log('카카오 지도 SDK 직접 로드 시작');
         
-        try {
-          // 프록시를 통해 스크립트 내용 가져오기
-          const { data: scriptContent, error: proxyError } = await supabase.functions.invoke('kakao-map-proxy');
-          
-          if (proxyError || !scriptContent) {
-            console.error('카카오 지도 프록시 오류:', proxyError);
-            throw new Error('카카오 지도 프록시 로드 실패');
-          }
-
-          console.log('프록시를 통한 스크립트 로드 성공, 크기:', scriptContent.length, 'bytes');
-
-          // 스크립트를 동적으로 실행
-          const script = document.createElement('script');
-          script.type = 'text/javascript';
-          script.text = scriptContent;
-          
-          // 스크립트가 실행되었는지 확인하기 위한 플래그
-          let scriptExecuted = false;
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.async = true;
+        script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JS_KEY}&autoload=false&libraries=services,clusterer`;
         
-          // 스크립트 실행 후 잠시 대기하여 window.kakao 객체 초기화 확인
-          document.head.appendChild(script);
+        let scriptLoaded = false;
+        
+        script.onload = () => {
+          console.log('카카오 SDK 스크립트 로드 성공');
+          scriptLoaded = true;
           
+          // kakao 객체가 준비될 때까지 잠시 대기
           setTimeout(() => {
             if (window.kakao && window.kakao.maps) {
-              console.log('window.kakao.maps 확인됨, 초기화 시작');
-              scriptExecuted = true;
-              
               window.kakao.maps.load(() => {
                 console.log('카카오 지도 API 초기화 완료');
                 initializeMap();
                 setIsMapLoaded(true);
-                retryCount = 0; // 성공시 재시도 카운터 리셋
+                retryCount = 0;
               });
             } else {
-              console.error('window.kakao.maps 객체가 생성되지 않음. window.kakao:', window.kakao);
-              if (!scriptExecuted) {
-                handleLoadError('카카오 지도 객체 초기화 실패');
-              }
+              console.error('window.kakao.maps 객체가 생성되지 않음');
+              handleLoadError('카카오 지도 객체 초기화 실패');
             }
-          }, 1000); // 1초 대기
-
-          // 타임아웃 설정 (10초)
-          setTimeout(() => {
-            if (!scriptExecuted) {
-              console.error('카카오 지도 초기화 타임아웃');
-              handleLoadError('초기화 타임아웃');
-            }
-          }, 10000);
-
-        } catch (proxyFetchError) {
-          console.error('프록시 fetch 오류:', proxyFetchError);
-          handleLoadError(`프록시 오류: ${proxyFetchError.message}`);
-        }
+          }, 500);
+        };
+        
+        script.onerror = (error) => {
+          console.error('카카오 SDK 스크립트 로드 실패:', error);
+          handleLoadError('스크립트 로드 실패');
+        };
+        
+        document.head.appendChild(script);
+        
+        // 타임아웃 설정 (10초)
+        setTimeout(() => {
+          if (!scriptLoaded) {
+            console.error('카카오 지도 스크립트 로드 타임아웃');
+            handleLoadError('스크립트 로드 타임아웃');
+          }
+        }, 10000);
         
       } catch (error) {
         console.error('카카오 지도 로드 중 예외 발생:', error);
