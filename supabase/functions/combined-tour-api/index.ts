@@ -278,10 +278,10 @@ serve(async (req) => {
               const chunkPromise = Promise.all(chunk.map(async (keywordItem, index) => {
                 const searchUrl = `https://apis.data.go.kr/B551011/KorService2/searchKeyword2?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&keyword=${encodeURIComponent(keywordItem)}&areaCode=${areaCode}&numOfRows=20&pageNo=1&_type=xml`;
                 
-                // 재시도 로직 (최대 5번 시도로 증가)
-                for (let attempt = 1; attempt <= 5; attempt++) {
+                // 재시도 로직 (최대 3번 시도)
+                for (let attempt = 1; attempt <= 3; attempt++) {
                   try {
-                    console.log(`🔍 [${i + index + 1}/${petFriendlyKeywords.length}] "${keywordItem}" 검색 중... (시도 ${attempt}/5)`);
+                    console.log(`🔍 [${i + index + 1}/${petFriendlyKeywords.length}] "${keywordItem}" 검색 중... (시도 ${attempt}/3)`);
                     
                     const response = await fetch(searchUrl).catch(async (httpsError) => {
                       if (attempt === 1) {
@@ -293,7 +293,10 @@ serve(async (req) => {
                     
                     if (response.ok) {
                       const responseText = await response.text();
+                      console.log(`Parsing XML content: ${responseText.substring(0, 200)}`);
+                      
                       const parsedData = parseXmlToJson(responseText);
+                      console.log(`Parsed XML result: ${JSON.stringify(parsedData).substring(0, 500)}`);
                       
                       if (parsedData?.response?.body?.items?.item) {
                         const items = Array.isArray(parsedData.response.body.items.item) 
@@ -309,27 +312,30 @@ serve(async (req) => {
                         successCount++;
                         return mappedItems;
                       } else {
-                        console.log(`📭 "${keywordItem}": 검색 결과 없음 (시도 ${attempt}번째)`);
-                        if (attempt === 5) {
-                          successCount++;
+                        console.log(`📭 "${keywordItem}": 검색 결과 없음 (시도 ${attempt}번째) - API 응답 구조: ${JSON.stringify(parsedData?.response?.body || {})}`);
+                        if (attempt === 3) {
+                          console.log(`🚫 최종 실패: "${keywordItem}" - 3번 시도 모두 결과 없음`);
+                          successCount++; // 시도는 완료된 것으로 처리
                           return [];
                         }
                       }
                     } else {
-                      console.log(`❌ "${keywordItem}": HTTP ${response.status} 오류 (시도 ${attempt}/5)`);
-                      if (attempt === 5) {
+                      console.log(`❌ "${keywordItem}": HTTP ${response.status} 오류 (시도 ${attempt}/3) - 응답: ${await response.text()}`);
+                      if (attempt === 3) {
+                        console.log(`🚫 최종 실패: "${keywordItem}" - HTTP 오류로 3번 시도 실패`);
                         errorCount++;
                         return [];
                       }
                     }
                   } catch (error) {
-                    console.log(`💥 "${keywordItem}" 검색 실패 (시도 ${attempt}/5): ${error.message}`);
-                    if (attempt === 5) {
+                    console.log(`💥 "${keywordItem}" 검색 실패 (시도 ${attempt}/3): ${error.message}`);
+                    if (attempt === 3) {
+                      console.log(`🚫 최종 실패: "${keywordItem}" - 예외 발생으로 3번 시도 실패`);
                       errorCount++;
                       return [];
                     }
-                    // 재시도 전 더 긴 대기
-                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    // 재시도 전 대기
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                   }
                 }
                 
