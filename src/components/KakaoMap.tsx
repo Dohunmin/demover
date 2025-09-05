@@ -633,7 +633,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     infoWindow.current.open(mapInstance.current, marker);
   }, []);
 
-  // 반려동물 여행지 마커 로드 (정확히 101개만)
+  // 반려동물 여행지 마커 로드 (일관성을 위해 항상 전체 키워드 사용)
   const loadPetTourismMarkers = useCallback(async () => {
     if (!mapInstance.current || isPetDataLoaded) return;
 
@@ -644,7 +644,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         body: {
           activeTab: 'pet',
           areaCode: '6', // 부산
-          loadAllPetKeywords: true // 95개 키워드로 모든 데이터 로드
+          loadAllPetKeywords: true // 일관성을 위해 항상 전체 키워드로 검색
         }
       });
 
@@ -665,7 +665,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       if (petPlaces && petPlaces.length > 0) {
         console.log(`${petPlaces.length}개의 반려동물 여행지 데이터를 받았습니다.`);
         
-        // 전체 데이터 저장 (정확히 101개 유지)
+        // 전체 데이터 저장 (95개 키워드로 검색한 결과)
         setAllPetData(petPlaces);
         
         // 마커 생성 (추가 데이터 없이 순수 반려동물 여행지만)
