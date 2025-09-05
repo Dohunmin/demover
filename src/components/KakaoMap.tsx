@@ -177,6 +177,23 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     '해동용궁사'
   ];
 
+  // 모든 펫 마커를 완전히 제거하는 함수 (필터 함수들보다 먼저 정의)
+  const clearAllPetMarkers = useCallback(() => {
+    // 반려동물 여행지 마커들 제거
+    petTourismMarkers.forEach(marker => {
+      marker.setMap(null);
+    });
+    setPetTourismMarkers([]);
+    
+    // 일반->반려동물 마커들도 제거
+    generalAsPetMarkers.forEach(marker => {
+      marker.setMap(null);
+    });
+    setGeneralAsPetMarkers([]);
+    
+    console.log('모든 반려동물 마커가 제거되었습니다.');
+  }, [petTourismMarkers, generalAsPetMarkers]);
+
   // 반려동물 동반 가능한 일반 관광지 키워드 목록
   const petFriendlyKeywords = [
     '롯데프리미엄아울렛 동부산점',
@@ -881,8 +898,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     console.log('=== 공원 필터 적용 ===');
     
     // 모든 기존 마커들 완전히 제거
-    petTourismMarkers.forEach(marker => marker.setMap(null));
-    setPetTourismMarkers([]);
+    clearAllPetMarkers();
     
     // 정확히 17개 공원 키워드에 해당하는 데이터만 필터링
     const parkPlaces = allPetData.filter(place => 
@@ -898,7 +914,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     createPetTourismMarkers(parkPlaces);
     
     toast.success(`공원 ${parkPlaces.length}개를 지도에 표시했습니다.`);
-  }, [allPetData, petTourismMarkers, parkKeywords, createPetTourismMarkers]);
+  }, [allPetData, clearAllPetMarkers, parkKeywords, createPetTourismMarkers]);
 
   // 레저 마커만 필터링해서 표시
   const filterLeisureMarkers = useCallback(() => {
@@ -906,8 +922,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
     console.log('=== 레저 필터 적용 ===');
     
-    petTourismMarkers.forEach(marker => marker.setMap(null));
-    setPetTourismMarkers([]);
+    clearAllPetMarkers();
     
     const leisurePlaces = allPetData.filter(place => 
       leisureKeywords.some(keyword => 
@@ -921,7 +936,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     createPetTourismMarkers(leisurePlaces);
     
     toast.success(`레저시설 ${leisurePlaces.length}개를 지도에 표시했습니다.`);
-  }, [allPetData, petTourismMarkers, leisureKeywords, createPetTourismMarkers]);
+  }, [allPetData, clearAllPetMarkers, leisureKeywords, createPetTourismMarkers]);
 
   // 문화시설 마커만 필터링해서 표시
   const filterCultureMarkers = useCallback(() => {
@@ -929,8 +944,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
     console.log('=== 문화시설 필터 적용 ===');
     
-    petTourismMarkers.forEach(marker => marker.setMap(null));
-    setPetTourismMarkers([]);
+    clearAllPetMarkers();
     
     const culturePlaces = allPetData.filter(place => 
       cultureKeywords.some(keyword => 
@@ -944,7 +958,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     createPetTourismMarkers(culturePlaces);
     
     toast.success(`문화시설 ${culturePlaces.length}개를 지도에 표시했습니다.`);
-  }, [allPetData, petTourismMarkers, cultureKeywords, createPetTourismMarkers]);
+  }, [allPetData, clearAllPetMarkers, cultureKeywords, createPetTourismMarkers]);
 
   // 브런치 마커만 필터링해서 표시
   const filterBrunchMarkers = useCallback(() => {
@@ -952,8 +966,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
     console.log('=== 브런치 필터 적용 ===');
     
-    petTourismMarkers.forEach(marker => marker.setMap(null));
-    setPetTourismMarkers([]);
+    clearAllPetMarkers();
     
     const brunchPlaces = allPetData.filter(place => 
       brunchKeywords.some(keyword => 
@@ -967,7 +980,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     createPetTourismMarkers(brunchPlaces);
     
     toast.success(`브런치카페 ${brunchPlaces.length}개를 지도에 표시했습니다.`);
-  }, [allPetData, petTourismMarkers, brunchKeywords, createPetTourismMarkers]);
+  }, [allPetData, clearAllPetMarkers, brunchKeywords, createPetTourismMarkers]);
 
   // 사찰 마커만 필터링해서 표시
   const filterTempleMarkers = useCallback(() => {
@@ -975,8 +988,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
     console.log('=== 사찰 필터 적용 ===');
     
-    petTourismMarkers.forEach(marker => marker.setMap(null));
-    setPetTourismMarkers([]);
+    clearAllPetMarkers();
     
     const templePlaces = allPetData.filter(place => 
       templeKeywords.some(keyword => 
@@ -990,16 +1002,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     createPetTourismMarkers(templePlaces);
     
     toast.success(`사찰 ${templePlaces.length}개를 지도에 표시했습니다.`);
-  }, [allPetData, petTourismMarkers, templeKeywords, createPetTourismMarkers]);
-
-  // 반려동물 마커들만 제거하는 함수
-  const clearPetMarkers = useCallback(() => {
-    // 반려동물 여행지 마커들 제거
-    petTourismMarkers.forEach(marker => {
-      marker.setMap(null);
-    });
-    setPetTourismMarkers([]);
-  }, [petTourismMarkers]);
+  }, [allPetData, clearAllPetMarkers, templeKeywords, createPetTourismMarkers]);
 
   // 전체 펫 마커 표시 (순수 반려동물 여행지만)
   const showAllPetMarkers = useCallback(() => {
@@ -1008,14 +1011,13 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     console.log('=== 전체 반려동물 마커 표시 ===');
     
     // 모든 기존 마커들 완전히 제거
-    petTourismMarkers.forEach(marker => marker.setMap(null));
-    setPetTourismMarkers([]);
+    clearAllPetMarkers();
     
     // 전체 데이터로 마커 재생성 (추가 데이터 없이 순수 반려동물 여행지만)
     createPetTourismMarkers(allPetData);
     
     toast.success(`전체 반려동물 여행지 ${allPetData.length}개를 지도에 표시했습니다.`);
-  }, [allPetData, petTourismMarkers, createPetTourismMarkers]);
+  }, [allPetData, clearAllPetMarkers, createPetTourismMarkers]);
   const convertTourismDataToPlace = useCallback((item: any, source: 'tourism' | 'pet_tourism'): Place => {
     return {
       id: `${source}_${item.contentid || Math.random()}`,
@@ -1148,7 +1150,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         
         if (filteredPlaces.length > 0) {
           // 기존 마커들 제거
-          clearPetMarkers();
+          clearAllPetMarkers();
           
           // 검색 결과로 새로운 마커들 생성
           createPetTourismMarkers(filteredPlaces);
@@ -1162,7 +1164,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           
           toast.success(`${filteredPlaces.length}개의 반려동물 여행지를 찾았습니다.`);
         } else {
-          clearPetMarkers();
+          clearAllPetMarkers();
           toast.warning('검색 결과가 없습니다.');
         }
         
@@ -1228,7 +1230,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, radius, searchTourismPlaces, showPetFilter, allPetData, searchPetPlaces, clearPetMarkers, createPetTourismMarkers]);
+  }, [searchQuery, radius, searchTourismPlaces, showPetFilter, allPetData, searchPetPlaces, clearAllPetMarkers, createPetTourismMarkers]);
 
   // 마커 표시
   const displayMarkers = useCallback((places: Place[]) => {
