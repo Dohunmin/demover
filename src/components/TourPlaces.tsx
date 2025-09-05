@@ -330,24 +330,33 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
     }
   };
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (activeTab === "general") {
       setGeneralCurrentPage(1);
       fetchTourPlaces(generalSearchKeyword, "");
     } else {
       // 반려동물 탭에서는 캐시된 데이터에서 검색
+      setLoading(true);
       setPetCurrentPage(1);
-      if (petCacheLoaded) {
-        processCachedPetPlaces(undefined, petSearchKeyword, 1);
-      } else {
-        // 캐시가 없으면 데이터를 로드한 후 검색
-        toast.info('반려동물 여행지 데이터를 로딩 중입니다...');
-        loadAllPetPlaces().then(() => {
+      
+      try {
+        if (petCacheLoaded) {
+          processCachedPetPlaces(undefined, petSearchKeyword, 1);
+        } else {
+          // 캐시가 없으면 데이터를 로드한 후 검색
+          toast.info('반려동물 여행지 데이터를 로딩 중입니다...');
+          await loadAllPetPlaces();
+          
           // 로드 완료 후 검색 실행
-          setTimeout(() => {
+          if (petCacheLoaded && allPetPlacesCache.length > 0) {
             processCachedPetPlaces(undefined, petSearchKeyword, 1);
-          }, 100);
-        });
+          }
+        }
+      } catch (error) {
+        console.error('검색 실패:', error);
+        toast.error('검색에 실패했습니다.');
+      } finally {
+        setLoading(false);
       }
     }
   };
