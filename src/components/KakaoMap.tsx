@@ -427,17 +427,29 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       mapInstance.current = new window.kakao.maps.Map(mapRef.current, options);
       console.log('지도 인스턴스 생성 완료');
       
-      // 클러스터러 초기화
+      // 클러스터러 초기화 (선택적)
       if (clusterer.current) {
         clusterer.current.clear();
+        clusterer.current = null;
       }
       
-      clusterer.current = new window.kakao.maps.MarkerClusterer({
-        map: mapInstance.current,
-        averageCenter: true,
-        minLevel: 6,
-      });
-      console.log('마커 클러스터러 생성 완료');
+      // MarkerClusterer가 사용 가능한지 확인
+      if (window.kakao.maps.MarkerClusterer && typeof window.kakao.maps.MarkerClusterer === 'function') {
+        try {
+          clusterer.current = new window.kakao.maps.MarkerClusterer({
+            map: mapInstance.current,
+            averageCenter: true,
+            minLevel: 6,
+          });
+          console.log('마커 클러스터러 생성 완료');
+        } catch (clustererError) {
+          console.warn('마커 클러스터러를 사용할 수 없습니다. 일반 마커로 표시됩니다:', clustererError);
+          clusterer.current = null;
+        }
+      } else {
+        console.warn('MarkerClusterer가 로드되지 않았습니다. 일반 마커로 표시됩니다.');
+        clusterer.current = null;
+      }
 
       // 인포윈도우 초기화
       if (infoWindow.current) {
@@ -878,13 +890,27 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     });
 
     markers.current = newMarkers;
-    clusterer.current.addMarkers(newMarkers);
+    
+    // 클러스터러가 있으면 클러스터링, 없으면 개별 마커로 표시
+    if (clusterer.current) {
+      clusterer.current.addMarkers(newMarkers);
+    } else {
+      // 클러스터러가 없는 경우 각 마커를 개별적으로 지도에 표시
+      newMarkers.forEach(marker => {
+        marker.setMap(mapInstance.current);
+      });
+    }
   }, []);
 
   // 마커 클리어
   const clearMarkers = useCallback(() => {
     if (clusterer.current) {
       clusterer.current.clear();
+    } else {
+      // 클러스터러가 없는 경우 개별 마커들을 직접 제거
+      markers.current.forEach(marker => {
+        marker.setMap(null);
+      });
     }
     markers.current = [];
     if (infoWindow.current) {
