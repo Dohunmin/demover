@@ -572,7 +572,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground mx-auto"></div>
             <p className="text-gray-600 mt-2">
-              {initialPetLoading ? '95개 키워드로 반려동물 여행지 로딩 중...' : '로딩 중...'}
+              {initialPetLoading ? '로딩중' : '로딩 중...'}
             </p>
           </div>
         ) : (
