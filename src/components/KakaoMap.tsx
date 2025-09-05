@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, MapPin, Navigation, Search, Phone, ExternalLink, PawPrint } from 'lucide-react';
+import { ArrowLeft, MapPin, Navigation, Search, Phone, ExternalLink, PawPrint, TreePine } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import CategoryGrid from '@/components/CategoryGrid';
@@ -69,6 +69,29 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
   const [showPetMarkers, setShowPetMarkers] = useState(true); // 반려동물 마커 표시 여부
   const [bookmarkMarkers, setBookmarkMarkers] = useState<any[]>([]); // 북마크 마커들
   const [isPetDataLoaded, setIsPetDataLoaded] = useState(false); // 반려동물 데이터 로딩 상태
+  const [parkFilter, setParkFilter] = useState(false); // 공원 필터 상태
+  const [allPetData, setAllPetData] = useState<any[]>([]); // 전체 반려동물 데이터 저장
+
+  // 공원 키워드 목록 (17개)
+  const parkKeywords = [
+    '부산시민공원',
+    '센텀 APEC나루공원', 
+    '신호공원',
+    '온천천시민공원',
+    '대저생태공원',
+    '대저수문 생태공원',
+    '맥도생태공원',
+    '민락수변공원',
+    '부산 암남공원',
+    '부산북항 친수공원',
+    '부산어린이대공원',
+    '삼락생태공원',
+    '스포원파크',
+    '아미르공원',
+    '용소웰빙공원',
+    '을숙도 공원',
+    '회동수원지'
+  ];
 
   // 반려동물 동반 가능한 일반 관광지 키워드 목록
   const petFriendlyKeywords = [
@@ -437,6 +460,27 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     }
   }, [isMapLoaded, isPetDataLoaded]);
 
+  // 공원 필터 이벤트 리스너
+  useEffect(() => {
+    const handleParkFilter = () => {
+      setParkFilter(!parkFilter);
+      // 공원 필터 적용/해제 시 마커 업데이트
+      if (!parkFilter) {
+        // 공원 필터 활성화: 공원만 표시
+        filterParkMarkers();
+      } else {
+        // 공원 필터 비활성화: 전체 표시
+        showAllPetMarkers();
+      }
+    };
+
+    window.addEventListener('parkFilterToggle', handleParkFilter);
+    
+    return () => {
+      window.removeEventListener('parkFilterToggle', handleParkFilter);
+    };
+  }, [parkFilter, allPetData]);
+
   // 북마크 마커는 별도로 관리 (북마크가 변경될 때만 업데이트)
   useEffect(() => {
     if (isMapLoaded && bookmarkedPlaces.length > 0) {
@@ -589,41 +633,92 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     infoWindow.current.open(mapInstance.current, marker);
   }, []);
 
-  // 반려동물 여행지 마커들 로드 (101개 모든 반려동물 동반 여행지)
+  // 반려동물 여행지 마커 로드
   const loadPetTourismMarkers = useCallback(async () => {
+    if (!mapInstance.current || isPetDataLoaded) return;
+
+    console.log('=== 반려동물 여행지 마커 로딩 시작 ===');
+    
     try {
-      console.log('반려동물 여행지 마커 로드 시작...');
-      
       const response = await supabase.functions.invoke('combined-tour-api', {
         body: {
-          areaCode: '6', // 부산
-          numOfRows: '200', // 101개 모두 가져오기 위해 여유있게
-          pageNo: '1',
-          keyword: '', // 키워드 없이 전체 목록
           activeTab: 'pet',
-          loadAllPetKeywords: true // TourPlaces와 동일하게 101개 반려동물 동반 여행지 모두 로드
+          areaCode: '6' // 부산
         }
       });
 
-      if (response.data?.petTourismData?.response?.body?.items?.item) {
-        const petPlaces = response.data.petTourismData.response.body.items.item;
-        console.log(`${petPlaces.length}개의 반려동물 여행지 데이터를 가져왔습니다.`);
+      console.log('반려동물 여행지 API 응답:', response);
+
+      if (response.data?.petTourismData) {
+        const petPlaces = response.data.petTourismData;
+        console.log(`${petPlaces.length}개의 반려동물 여행지 데이터를 받았습니다.`);
         
+        // 전체 데이터 저장
+        setAllPetData(petPlaces);
+        
+        // 마커 생성
         createPetTourismMarkers(petPlaces);
-        toast.success('반려동물 동반 여행지를 지도에 표시했습니다.');
-        
-        // 데이터 로딩 완료 표시
         setIsPetDataLoaded(true);
+        
+        // 일반 관광지 중 반려동물 동반 가능한 곳들도 로드
+        loadGeneralTourismAsPet();
+        
+        toast.success('반려동물 동반 여행지를 지도에 표시했습니다.');
       } else {
-        console.log('반려동물 여행지 데이터가 없습니다.');
-        setIsPetDataLoaded(true); // 데이터가 없어도 로딩 완료로 표시
+        console.warn('반려동물 여행지 데이터가 없습니다.');
+        toast.warning('반려동물 여행지를 찾을 수 없습니다.');
+        setIsPetDataLoaded(true); // 실패해도 재시도 방지
       }
     } catch (error) {
-      console.error('반려동물 여행지 로드 오류:', error);
-      toast.error('반려동물 여행지 로드에 실패했습니다.');
-      setIsPetDataLoaded(true); // 오류가 발생해도 재시도 방지
+      console.error('반려동물 여행지 로딩 실패:', error);
+      toast.error('반려동물 여행지 로딩에 실패했습니다.');
+      setIsPetDataLoaded(true); // 실패해도 재시도 방지
     }
-  }, []);
+  }, [isPetDataLoaded]);
+
+  // 공원 마커만 필터링해서 표시
+  const filterParkMarkers = useCallback(() => {
+    if (!allPetData.length) return;
+
+    console.log('=== 공원 필터 적용 ===');
+    
+    // 기존 마커들 제거
+    petTourismMarkers.forEach(marker => marker.setMap(null));
+    generalAsPetMarkers.forEach(marker => marker.setMap(null));
+    
+    // 공원 키워드에 해당하는 데이터만 필터링
+    const parkPlaces = allPetData.filter(place => 
+      parkKeywords.some(keyword => 
+        place.title?.trim() === keyword.trim()
+      )
+    );
+    
+    console.log(`${parkPlaces.length}개의 공원 마커를 표시합니다.`);
+    console.log('공원 목록:', parkPlaces.map(p => p.title));
+    
+    // 공원 마커만 생성
+    createPetTourismMarkers(parkPlaces);
+    
+    toast.success(`${parkKeywords.length}개 공원을 지도에 표시했습니다.`);
+  }, [allPetData, petTourismMarkers, generalAsPetMarkers, parkKeywords]);
+
+  // 전체 펫 마커 표시
+  const showAllPetMarkers = useCallback(() => {
+    if (!allPetData.length) return;
+
+    console.log('=== 전체 반려동물 마커 표시 ===');
+    
+    // 기존 마커들 제거
+    petTourismMarkers.forEach(marker => marker.setMap(null));
+    
+    // 전체 데이터로 마커 재생성
+    createPetTourismMarkers(allPetData);
+    
+    // 일반 관광지 마커도 다시 표시
+    loadGeneralTourismAsPet();
+    
+    toast.success('전체 반려동물 여행지를 지도에 표시했습니다.');
+  }, [allPetData, petTourismMarkers]);
 
   // 반려동물 여행지 마커 생성
   const createPetTourismMarkers = useCallback((petPlaces: any[]) => {
@@ -1028,8 +1123,34 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         </div>
       )}
 
-      {/* 카테고리별 둘러보기 */}
-      {!hideCategoryGrid && <CategoryGrid />}
+        {!hideCategoryGrid && (
+          <div className="mb-4">
+            <CategoryGrid />
+            {/* 공원 필터 상태 표시 */}
+            {parkFilter && (
+              <div className="mt-3 px-5">
+                <div className="flex items-center justify-between bg-green-50 p-3 rounded-xl border border-green-200">
+                  <div className="flex items-center gap-2">
+                    <TreePine className="w-4 h-4 text-green-600" />
+                    <span className="text-sm font-medium text-green-700">공원만 표시 중</span>
+                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                      {parkKeywords.length}개 공원
+                    </span>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      setParkFilter(false);
+                      showAllPetMarkers();
+                    }}
+                    className="text-green-700 hover:text-green-800 hover:bg-green-100 px-3 py-1 rounded-lg text-sm transition-colors"
+                  >
+                    전체 보기
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
       {/* 메인 콘텐츠 */}
       <div className="flex-1 flex relative">
