@@ -201,7 +201,10 @@ serve(async (req) => {
       // 2. 한국관광공사 반려동물 동반 여행지 서비스 호출 (반려동물만)
       if (loadAllPetKeywords) {
         // 95개 키워드로 모든 반려동물 여행지 검색
-        console.log('Loading all pet-friendly places using', petFriendlyKeywords.length, 'keywords');
+        console.log('=== 반려동물 여행지 키워드 검색 시작 ===');
+        console.log(`총 ${petFriendlyKeywords.length}개 키워드로 검색을 시작합니다...`);
+        
+        const startTime = Date.now();
         
         try {
           let decodedApiKey = apiKey;
@@ -213,20 +216,31 @@ serve(async (req) => {
           
           const allResults = [];
           let totalSearched = 0;
+          let successCount = 0;
+          let errorCount = 0;
           
           // 키워드를 10개씩 청크로 나누어 병렬 처리 (속도 개선)
           const chunkSize = 10;
           const promises = [];
           
+          console.log(`키워드를 ${chunkSize}개씩 청크로 나누어 병렬 처리합니다...`);
+          
           for (let i = 0; i < petFriendlyKeywords.length; i += chunkSize) {
             const chunk = petFriendlyKeywords.slice(i, i + chunkSize);
+            const chunkIndex = Math.floor(i / chunkSize) + 1;
+            const totalChunks = Math.ceil(petFriendlyKeywords.length / chunkSize);
+            
+            console.log(`📦 청크 ${chunkIndex}/${totalChunks} 처리 중... (키워드 ${i + 1}-${Math.min(i + chunkSize, petFriendlyKeywords.length)})`);
             
             // 각 청크를 병렬 처리
-            const chunkPromise = Promise.all(chunk.map(async (keywordItem) => {
+            const chunkPromise = Promise.all(chunk.map(async (keywordItem, index) => {
               const searchUrl = `https://apis.data.go.kr/B551011/KorService2/searchKeyword2?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&keyword=${encodeURIComponent(keywordItem)}&areaCode=${areaCode}&numOfRows=20&pageNo=1&_type=xml`;
               
               try {
+                console.log(`🔍 [${i + index + 1}/${petFriendlyKeywords.length}] "${keywordItem}" 검색 중...`);
+                
                 const response = await fetch(searchUrl).catch(async (httpsError) => {
+                  console.log(`⚠️ HTTPS 실패, HTTP로 재시도: ${keywordItem}`);
                   const httpUrl = searchUrl.replace('https://', 'http://');
                   return await fetch(httpUrl);
                 });
@@ -245,15 +259,22 @@ serve(async (req) => {
                       searchKeyword: keywordItem
                     }));
                     
-                    console.log(`키워드 "${keywordItem}": ${mappedItems.length}개 결과`);
+                    console.log(`✅ "${keywordItem}": ${mappedItems.length}개 결과 찾음`);
+                    successCount++;
                     return mappedItems;
+                  } else {
+                    console.log(`📭 "${keywordItem}": 검색 결과 없음`);
+                    successCount++;
+                    return [];
                   }
                 } else {
-                  console.log(`키워드 "${keywordItem}": HTTP ${response.status}`);
+                  console.log(`❌ "${keywordItem}": HTTP ${response.status} 오류`);
+                  errorCount++;
+                  return [];
                 }
-                return [];
               } catch (error) {
-                console.log(`키워드 "${keywordItem}" 검색 실패:`, error.message);
+                console.log(`💥 "${keywordItem}" 검색 실패: ${error.message}`);
+                errorCount++;
                 return [];
               }
             }));
@@ -262,9 +283,12 @@ serve(async (req) => {
             
             // 청크 간 500ms 딜레이 (API 한도 고려하되 속도 개선)
             if (i + chunkSize < petFriendlyKeywords.length) {
+              console.log(`⏱️ 다음 청크 처리까지 0.5초 대기...`);
               await new Promise(resolve => setTimeout(resolve, 500));
             }
           }
+          
+          console.log('🔄 모든 청크 완료 대기 중...');
           
           // 모든 청크 완료까지 대기
           const chunkResults = await Promise.all(promises);
@@ -274,9 +298,19 @@ serve(async (req) => {
             });
           });
           
-          console.log(`처리 완료: ${petFriendlyKeywords.length}/${petFriendlyKeywords.length} 키워드, 총 결과: ${allResults.length}개`);
+          const endTime = Date.now();
+          const totalTime = ((endTime - startTime) / 1000).toFixed(2);
+          
+          console.log(`🎉 키워드 검색 완료!`);
+          console.log(`📊 검색 통계:`);
+          console.log(`   - 총 키워드: ${petFriendlyKeywords.length}개`);
+          console.log(`   - 성공: ${successCount}개`);
+          console.log(`   - 실패: ${errorCount}개`);
+          console.log(`   - 총 검색 결과: ${allResults.length}개`);
+          console.log(`   - 소요 시간: ${totalTime}초`);
           
           // 중복 제거 (contentid 기준)
+          console.log('🔄 중복 데이터 제거 중...');
           const uniqueResults = [];
           const seenIds = new Set();
           
@@ -287,7 +321,20 @@ serve(async (req) => {
             }
           }
           
-          console.log(`Found ${allResults.length} total results, ${uniqueResults.length} unique results`);
+          const duplicateCount = allResults.length - uniqueResults.length;
+          console.log(`✨ 중복 제거 완료: ${duplicateCount}개 중복 제거, ${uniqueResults.length}개 고유 결과`);
+          
+          // 카테고리별 분류 통계
+          const categoryStats = {};
+          uniqueResults.forEach(item => {
+            const cat = item.cat1 || 'unknown';
+            categoryStats[cat] = (categoryStats[cat] || 0) + 1;
+          });
+          
+          console.log('📂 카테고리별 분포:');
+          Object.entries(categoryStats).forEach(([category, count]) => {
+            console.log(`   - ${category}: ${count}개`);
+          });
           
           // 응답 형태로 구성
           petTourismData = {
@@ -307,9 +354,11 @@ serve(async (req) => {
             }
           };
           
+          console.log('=== 반려동물 여행지 키워드 검색 완료 ===');
+          
         } catch (error) {
           petTourismError = `Pet keywords search error: ${error.message}`;
-          console.error(petTourismError);
+          console.error('💥 반려동물 키워드 검색 중 오류 발생:', petTourismError);
         }
         
       } else {
