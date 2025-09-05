@@ -334,6 +334,14 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
   };
 
   const handleSearch = async () => {
+    console.log('=== handleSearch 호출됨 ===', { 
+      activeTab, 
+      petSearchKeyword, 
+      generalSearchKeyword, 
+      petCacheLoaded, 
+      allPetPlacesCache: allPetPlacesCache.length 
+    });
+    
     if (activeTab === "general") {
       setGeneralCurrentPage(1);
       fetchTourPlaces(generalSearchKeyword, "");
@@ -343,11 +351,15 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
       setPetCurrentPage(1);
       
       try {
+        console.log('반려동물 탭 검색 시작:', petSearchKeyword);
+        
         if (petCacheLoaded && allPetPlacesCache.length > 0) {
           // 캐시가 있으면 바로 검색
+          console.log('캐시된 데이터로 검색 실행');
           processCachedPetPlaces(allPetPlacesCache, petSearchKeyword, 1);
         } else {
           // 캐시가 없으면 데이터를 로드 (loadAllPetPlaces 내부에서 검색도 처리됨)
+          console.log('캐시가 없어서 데이터 로딩 시작');
           toast.info('반려동물 여행지 데이터를 로딩 중입니다...');
           await loadAllPetPlaces();
         }
@@ -361,7 +373,9 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
+    console.log('=== handleKeyPress 호출됨 ===', e.key);
     if (e.key === 'Enter') {
+      console.log('엔터키 눌림 - handleSearch 호출');
       handleSearch();
     }
   };
