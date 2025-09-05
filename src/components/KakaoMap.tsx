@@ -219,12 +219,16 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       console.log(`=== 카테고리 선택: ${categoryId} ===`);
       
       // 🔥 핵심: 모든 기존 마커들 완전히 제거
-      petTourismMarkers.forEach(marker => marker.setMap(null));
+      setPetTourismMarkers(prevMarkers => {
+        prevMarkers.forEach(marker => marker.setMap(null));
+        return [];
+      });
       
       let filteredPlaces = [];
       
       if (categoryId === 'all') {
         filteredPlaces = allPetData;
+        console.log(`전체 데이터: ${allPetData.length}개`);
       } else if (categoryKeywords[categoryId as keyof typeof categoryKeywords]) {
         const keywords = categoryKeywords[categoryId as keyof typeof categoryKeywords];
         filteredPlaces = allPetData.filter(place => 
@@ -316,7 +320,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       
       toast.success(`${categoryLabels[categoryId as keyof typeof categoryLabels] || categoryId} ${filteredPlaces.length}개를 지도에 표시했습니다.`);
     }
-  }, [showPetFilter, allPetData, petTourismMarkers]);
+  }, [showPetFilter, allPetData]);
 
   // 카카오 지도 SDK 로드
   useEffect(() => {
@@ -570,8 +574,10 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         setAllPetData(processedData);
         setIsPetDataLoaded(true);
         
-        // 전체 마커 표시
-        handleCategorySelect('all');
+        // 전체 마커 표시 (조금 지연하여 실행)
+        setTimeout(() => {
+          handleCategorySelect('all');
+        }, 100);
         
         toast.success('반려동물 여행지를 불러왔습니다!');
       }

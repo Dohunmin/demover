@@ -262,11 +262,11 @@ serve(async (req) => {
                     console.log(`✅ "${keywordItem}": ${mappedItems.length}개 결과 찾음`);
                     successCount++;
                     return mappedItems;
-                  } else {
-                    console.log(`📭 "${keywordItem}": 검색 결과 없음`);
-                    successCount++;
-                    return [];
-                  }
+                   } else {
+                     console.log(`📭 "${keywordItem}": 검색 결과 없음`);
+                     successCount++;
+                     return [];
+                   }
                 } else {
                   console.log(`❌ "${keywordItem}": HTTP ${response.status} 오류`);
                   errorCount++;
@@ -301,28 +301,41 @@ serve(async (req) => {
           const endTime = Date.now();
           const totalTime = ((endTime - startTime) / 1000).toFixed(2);
           
-          console.log(`🎉 키워드 검색 완료!`);
-          console.log(`📊 검색 통계:`);
-          console.log(`   - 총 키워드: ${petFriendlyKeywords.length}개`);
-          console.log(`   - 성공: ${successCount}개`);
-          console.log(`   - 실패: ${errorCount}개`);
-          console.log(`   - 총 검색 결과: ${allResults.length}개`);
-          console.log(`   - 소요 시간: ${totalTime}초`);
-          
-          // 중복 제거 (contentid 기준)
-          console.log('🔄 중복 데이터 제거 중...');
-          const uniqueResults = [];
-          const seenIds = new Set();
-          
-          for (const item of allResults) {
-            if (!seenIds.has(item.contentid)) {
-              seenIds.add(item.contentid);
-              uniqueResults.push(item);
-            }
-          }
-          
-          const duplicateCount = allResults.length - uniqueResults.length;
-          console.log(`✨ 중복 제거 완료: ${duplicateCount}개 중복 제거, ${uniqueResults.length}개 고유 결과`);
+           console.log(`🎉 키워드 검색 완료!`);
+           console.log(`📊 검색 통계:`);
+           console.log(`   - 총 키워드: ${petFriendlyKeywords.length}개`);
+           console.log(`   - 성공: ${successCount}개`);
+           console.log(`   - 실패: ${errorCount}개`);
+           console.log(`   - 결과 없음: ${successCount - Math.floor(allResults.length / petFriendlyKeywords.length * successCount)}개`);
+           console.log(`   - 총 검색 결과: ${allResults.length}개`);
+           console.log(`   - 소요 시간: ${totalTime}초`);
+           
+           // 결과가 있는 키워드들만 따로 카운트
+           const keywordsWithResults = new Set();
+           allResults.forEach(item => {
+             if (item.searchKeyword) {
+               keywordsWithResults.add(item.searchKeyword);
+             }
+           });
+           console.log(`   - 결과를 반환한 키워드: ${keywordsWithResults.size}개`);
+           
+           // 중복 제거 (contentid 기준)
+           console.log('🔄 중복 데이터 제거 중...');
+           const uniqueResults = [];
+           const seenIds = new Set();
+           const duplicatedIds = new Set();
+           
+           for (const item of allResults) {
+             if (!seenIds.has(item.contentid)) {
+               seenIds.add(item.contentid);
+               uniqueResults.push(item);
+             } else {
+               duplicatedIds.add(item.contentid);
+             }
+           }
+           
+           const duplicateCount = allResults.length - uniqueResults.length;
+           console.log(`✨ 중복 제거 완료: ${duplicateCount}개 중복 제거 (고유 ID: ${duplicatedIds.size}개), ${uniqueResults.length}개 최종 결과`);
           
           // 카테고리별 분류 통계
           const categoryStats = {};
