@@ -1,5 +1,24 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
+// 인메모리 캐시 (24시간 TTL)
+const cache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL = 24 * 60 * 60 * 1000; // 24시간
+
+function getCached(key: string) {
+  const cached = cache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    console.log(`🎯 캐시에서 데이터 로드: ${key}`);
+    return cached.data;
+  }
+  cache.delete(key);
+  return null;
+}
+
+function setCache(key: string, data: any) {
+  cache.set(key, { data, timestamp: Date.now() });
+  console.log(`💾 캐시에 데이터 저장: ${key} (${data.length}개)`);
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -197,246 +216,272 @@ serve(async (req) => {
       }
     }
 
-    if (activeTab === "pet") {
       // 2. 한국관광공사 반려동물 동반 여행지 서비스 호출 (반려동물만)
       if (loadAllPetKeywords) {
-        // 95개 키워드로 모든 반려동물 여행지 검색
-        console.log('=== 반려동물 여행지 키워드 검색 시작 ===');
-        console.log(`총 ${petFriendlyKeywords.length}개 키워드로 검색을 시작합니다...`);
+        // 캐시 확인
+        const cacheKey = 'pet_friendly_places_busan';
+        const cachedData = getCached(cacheKey);
         
-        const startTime = Date.now();
-        
-        try {
-          let decodedApiKey = apiKey;
+        if (cachedData) {
+          console.log(`🎯 캐시에서 데이터 사용: ${cachedData.length}개`);
+          petTourismData = {
+            response: {
+              header: {
+                resultCode: "0000",
+                resultMsg: "OK"
+              },
+              body: {
+                totalCount: cachedData.length,
+                numOfRows: cachedData.length,
+                pageNo: 1,
+                items: {
+                  item: cachedData
+                }
+              }
+            }
+          };
+        } else {
+          // 95개 키워드로 모든 반려동물 여행지 검색
+          console.log('=== 반려동물 여행지 키워드 검색 시작 ===');
+          console.log(`총 ${petFriendlyKeywords.length}개 키워드로 검색을 시작합니다...`);
+          
+          const startTime = Date.now();
+          
           try {
-            decodedApiKey = decodeURIComponent(apiKey);
-          } catch (e) {
-            decodedApiKey = apiKey;
-          }
-          
-          const allResults = [];
-          let totalSearched = 0;
-          let successCount = 0;
-          let errorCount = 0;
-          
-          // 키워드를 10개씩 청크로 나누어 병렬 처리 (속도 개선)
-          const chunkSize = 10;
-          const promises = [];
-          
-          console.log(`키워드를 ${chunkSize}개씩 청크로 나누어 병렬 처리합니다...`);
-          
-          for (let i = 0; i < petFriendlyKeywords.length; i += chunkSize) {
-            const chunk = petFriendlyKeywords.slice(i, i + chunkSize);
-            const chunkIndex = Math.floor(i / chunkSize) + 1;
-            const totalChunks = Math.ceil(petFriendlyKeywords.length / chunkSize);
+            let decodedApiKey = apiKey;
+            try {
+              decodedApiKey = decodeURIComponent(apiKey);
+            } catch (e) {
+              decodedApiKey = apiKey;
+            }
             
-            console.log(`📦 청크 ${chunkIndex}/${totalChunks} 처리 중... (키워드 ${i + 1}-${Math.min(i + chunkSize, petFriendlyKeywords.length)})`);
+            const allResults = [];
+            let totalSearched = 0;
+            let successCount = 0;
+            let errorCount = 0;
             
-            // 각 청크를 병렬 처리
-            const chunkPromise = Promise.all(chunk.map(async (keywordItem, index) => {
-              const searchUrl = `https://apis.data.go.kr/B551011/KorService2/searchKeyword2?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&keyword=${encodeURIComponent(keywordItem)}&areaCode=${areaCode}&numOfRows=20&pageNo=1&_type=xml`;
+            // 키워드를 10개씩 청크로 나누어 병렬 처리 (속도 개선)
+            const chunkSize = 10;
+            const promises = [];
+            
+            console.log(`키워드를 ${chunkSize}개씩 청크로 나누어 병렬 처리합니다...`);
+            
+            for (let i = 0; i < petFriendlyKeywords.length; i += chunkSize) {
+              const chunk = petFriendlyKeywords.slice(i, i + chunkSize);
+              const chunkIndex = Math.floor(i / chunkSize) + 1;
+              const totalChunks = Math.ceil(petFriendlyKeywords.length / chunkSize);
               
-              // 재시도 로직 (최대 3번 시도)
-              for (let attempt = 1; attempt <= 3; attempt++) {
-                try {
-                  console.log(`🔍 [${i + index + 1}/${petFriendlyKeywords.length}] "${keywordItem}" 검색 중... (시도 ${attempt}/3)`);
-                  
-                  const response = await fetch(searchUrl).catch(async (httpsError) => {
-                    if (attempt === 1) {
-                      console.log(`⚠️ HTTPS 실패, HTTP로 재시도: ${keywordItem}`);
-                    }
-                    const httpUrl = searchUrl.replace('https://', 'http://');
-                    return await fetch(httpUrl);
-                  });
-                  
-                  if (response.ok) {
-                    const responseText = await response.text();
-                    const parsedData = parseXmlToJson(responseText);
+              console.log(`📦 청크 ${chunkIndex}/${totalChunks} 처리 중... (키워드 ${i + 1}-${Math.min(i + chunkSize, petFriendlyKeywords.length)})`);
+              
+              // 각 청크를 병렬 처리
+              const chunkPromise = Promise.all(chunk.map(async (keywordItem, index) => {
+                const searchUrl = `https://apis.data.go.kr/B551011/KorService2/searchKeyword2?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&keyword=${encodeURIComponent(keywordItem)}&areaCode=${areaCode}&numOfRows=20&pageNo=1&_type=xml`;
+                
+                // 재시도 로직 (최대 5번 시도로 증가)
+                for (let attempt = 1; attempt <= 5; attempt++) {
+                  try {
+                    console.log(`🔍 [${i + index + 1}/${petFriendlyKeywords.length}] "${keywordItem}" 검색 중... (시도 ${attempt}/5)`);
                     
-                    if (parsedData?.response?.body?.items?.item) {
-                      const items = Array.isArray(parsedData.response.body.items.item) 
-                        ? parsedData.response.body.items.item 
-                        : [parsedData.response.body.items.item];
+                    const response = await fetch(searchUrl).catch(async (httpsError) => {
+                      if (attempt === 1) {
+                        console.log(`⚠️ HTTPS 실패, HTTP로 재시도: ${keywordItem}`);
+                      }
+                      const httpUrl = searchUrl.replace('https://', 'http://');
+                      return await fetch(httpUrl);
+                    });
+                    
+                    if (response.ok) {
+                      const responseText = await response.text();
+                      const parsedData = parseXmlToJson(responseText);
                       
-                      const mappedItems = items.map(item => ({
-                        ...item,
-                        searchKeyword: keywordItem
-                      }));
-                      
-                      console.log(`✅ "${keywordItem}": ${mappedItems.length}개 결과 찾음 (시도 ${attempt}번째 성공)`);
-                      successCount++;
-                      return mappedItems;
-                    } else {
-                      console.log(`📭 "${keywordItem}": 검색 결과 없음 (시도 ${attempt}번째)`);
-                      if (attempt === 3) {
+                      if (parsedData?.response?.body?.items?.item) {
+                        const items = Array.isArray(parsedData.response.body.items.item) 
+                          ? parsedData.response.body.items.item 
+                          : [parsedData.response.body.items.item];
+                        
+                        const mappedItems = items.map(item => ({
+                          ...item,
+                          searchKeyword: keywordItem
+                        }));
+                        
+                        console.log(`✅ "${keywordItem}": ${mappedItems.length}개 결과 찾음 (시도 ${attempt}번째 성공)`);
                         successCount++;
+                        return mappedItems;
+                      } else {
+                        console.log(`📭 "${keywordItem}": 검색 결과 없음 (시도 ${attempt}번째)`);
+                        if (attempt === 5) {
+                          successCount++;
+                          return [];
+                        }
+                      }
+                    } else {
+                      console.log(`❌ "${keywordItem}": HTTP ${response.status} 오류 (시도 ${attempt}/5)`);
+                      if (attempt === 5) {
+                        errorCount++;
                         return [];
                       }
                     }
-                  } else {
-                    console.log(`❌ "${keywordItem}": HTTP ${response.status} 오류 (시도 ${attempt}/3)`);
-                    if (attempt === 3) {
+                  } catch (error) {
+                    console.log(`💥 "${keywordItem}" 검색 실패 (시도 ${attempt}/5): ${error.message}`);
+                    if (attempt === 5) {
                       errorCount++;
                       return [];
                     }
+                    // 재시도 전 더 긴 대기
+                    await new Promise(resolve => setTimeout(resolve, 1500));
                   }
-                } catch (error) {
-                  console.log(`💥 "${keywordItem}" 검색 실패 (시도 ${attempt}/3): ${error.message}`);
-                  if (attempt === 3) {
-                    errorCount++;
-                    return [];
-                  }
-                  // 재시도 전 잠시 대기
-                  await new Promise(resolve => setTimeout(resolve, 1000));
                 }
-              }
+                
+                return []; // 모든 시도 실패 시 빈 배열 반환
+              }));
               
-              return []; // 모든 시도 실패 시 빈 배열 반환
-            }));
-            
-            promises.push(chunkPromise);
-            
-            // 청크 간 500ms 딜레이 (API 한도 고려하되 속도 개선)
-            if (i + chunkSize < petFriendlyKeywords.length) {
-              console.log(`⏱️ 다음 청크 처리까지 0.5초 대기...`);
-              await new Promise(resolve => setTimeout(resolve, 500));
+              promises.push(chunkPromise);
+              
+              // 청크 간 1초 딜레이 (안정성 향상)
+              if (i + chunkSize < petFriendlyKeywords.length) {
+                console.log(`⏱️ 다음 청크 처리까지 1초 대기...`);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+              }
             }
-          }
-          
-          console.log('🔄 모든 청크 완료 대기 중...');
-          
-          // 모든 청크 완료까지 대기
-          const chunkResults = await Promise.all(promises);
-          chunkResults.forEach(chunkResult => {
-            chunkResult.forEach(items => {
-              allResults.push(...items);
+            
+            console.log('🔄 모든 청크 완료 대기 중...');
+            
+            // 모든 청크 완료까지 대기
+            const chunkResults = await Promise.all(promises);
+            chunkResults.forEach(chunkResult => {
+              chunkResult.forEach(items => {
+                allResults.push(...items);
+              });
             });
-          });
-          
-          const endTime = Date.now();
-          const totalTime = ((endTime - startTime) / 1000).toFixed(2);
-          
-           console.log(`🎉 키워드 검색 완료!`);
-           console.log(`📊 검색 통계:`);
-           console.log(`   - 총 키워드: ${petFriendlyKeywords.length}개`);
-           console.log(`   - 성공: ${successCount}개`);
-           console.log(`   - 실패: ${errorCount}개`);
-           console.log(`   - 총 검색 결과: ${allResults.length}개`);
-           console.log(`   - 소요 시간: ${totalTime}초`);
-           
-           // 결과가 있는 키워드들만 따로 카운트
-           const keywordsWithResults = new Set();
-           const keywordsWithoutResults = [];
-           allResults.forEach(item => {
-             if (item.searchKeyword) {
-               keywordsWithResults.add(item.searchKeyword);
+            
+            const endTime = Date.now();
+            const totalTime = ((endTime - startTime) / 1000).toFixed(2);
+            
+             console.log(`🎉 키워드 검색 완료!`);
+             console.log(`📊 검색 통계:`);
+             console.log(`   - 총 키워드: ${petFriendlyKeywords.length}개`);
+             console.log(`   - 성공: ${successCount}개`);
+             console.log(`   - 실패: ${errorCount}개`);
+             console.log(`   - 총 검색 결과: ${allResults.length}개`);
+             console.log(`   - 소요 시간: ${totalTime}초`);
+             
+             // 결과가 있는 키워드들만 따로 카운트
+             const keywordsWithResults = new Set();
+             const keywordsWithoutResults = [];
+             allResults.forEach(item => {
+               if (item.searchKeyword) {
+                 keywordsWithResults.add(item.searchKeyword);
+               }
+             });
+             
+             // 결과 없는 키워드 찾기
+             petFriendlyKeywords.forEach(keyword => {
+               if (!keywordsWithResults.has(keyword)) {
+                 keywordsWithoutResults.push(keyword);
+               }
+             });
+             
+             console.log(`   - 결과를 반환한 키워드: ${keywordsWithResults.size}개`);
+             if (keywordsWithoutResults.length > 0) {
+               console.log(`   - 결과 없는 키워드: ${keywordsWithoutResults.length}개`);
+               console.log(`     >> ${keywordsWithoutResults.slice(0, 5).join(', ')}${keywordsWithoutResults.length > 5 ? ' 등...' : ''}`);
              }
-           });
-           
-           // 결과 없는 키워드 찾기
-           petFriendlyKeywords.forEach(keyword => {
-             if (!keywordsWithResults.has(keyword)) {
-               keywordsWithoutResults.push(keyword);
+             
+             // 검색 성공률 체크
+             const successRate = ((successCount / petFriendlyKeywords.length) * 100).toFixed(1);
+             console.log(`   - 검색 성공률: ${successRate}%`);
+             
+             if (successRate < 90) {
+               console.log(`⚠️ 경고: 검색 성공률이 90% 미만입니다. API 응답이 불안정할 수 있습니다.`);
              }
-           });
-           
-           console.log(`   - 결과를 반환한 키워드: ${keywordsWithResults.size}개`);
-           if (keywordsWithoutResults.length > 0) {
-             console.log(`   - 결과 없는 키워드: ${keywordsWithoutResults.length}개`);
-             console.log(`     >> ${keywordsWithoutResults.slice(0, 5).join(', ')}${keywordsWithoutResults.length > 5 ? ' 등...' : ''}`);
-           }
-           
-           // 검색 성공률 체크
-           const successRate = ((successCount / petFriendlyKeywords.length) * 100).toFixed(1);
-           console.log(`   - 검색 성공률: ${successRate}%`);
-           
-           if (successRate < 90) {
-             console.log(`⚠️ 경고: 검색 성공률이 90% 미만입니다. API 응답이 불안정할 수 있습니다.`);
-           }
-           
-           // 중복 제거 (contentid 기준)
-           console.log('🔄 중복 데이터 제거 중...');
-           const uniqueResults = [];
-           const seenIds = new Set();
-           const duplicatedIds = new Set();
-           
-           for (const item of allResults) {
-             if (!seenIds.has(item.contentid)) {
-               seenIds.add(item.contentid);
-               uniqueResults.push(item);
-             } else {
-               duplicatedIds.add(item.contentid);
-             }
-           }
-           
-           const duplicateCount = allResults.length - uniqueResults.length;
-           console.log(`✨ 중복 제거 완료: ${duplicateCount}개 중복 제거 (고유 ID: ${duplicatedIds.size}개), ${uniqueResults.length}개 최종 결과`);
-          
-          // 카테고리별 분류 통계
-          const categoryStats = {};
-          uniqueResults.forEach(item => {
-            const cat = item.cat1 || 'unknown';
-            categoryStats[cat] = (categoryStats[cat] || 0) + 1;
-          });
-          
-          console.log('📂 카테고리별 분포:');
-          Object.entries(categoryStats).forEach(([category, count]) => {
-            console.log(`   - ${category}: ${count}개`);
-          });
-          
-           // 응답 형태로 구성 - 모든 필드 포함하여 완전한 데이터 제공
-           const simplifiedResults = uniqueResults.map(item => ({
-             contentid: item.contentid || '',
-             contenttypeid: item.contenttypeid || '',
-             title: item.title || '',
-             addr1: item.addr1 || '',
-             addr2: item.addr2 || '',
-             zipcode: item.zipcode || '',
-             tel: item.tel || '',
-             mapx: item.mapx || '',
-             mapy: item.mapy || '',
-             firstimage: item.firstimage || '',
-             firstimage2: item.firstimage2 || '',
-             areacode: item.areacode || '',
-             sigungucode: item.sigungucode || '',
-             cat1: item.cat1 || '',
-             cat2: item.cat2 || '',
-             cat3: item.cat3 || '',
-             createdtime: item.createdtime || '',
-             modifiedtime: item.modifiedtime || '',
-             mlevel: item.mlevel || '',
-             searchKeyword: item.searchKeyword || '',
-             // 빠진 필드들 추가
-             cpyrhtDivCd: item.cpyrhtDivCd || '',
-             lDongRegnCd: item.lDongRegnCd || '',
-             lDongSignguCd: item.lDongSignguCd || '',
-             lclsSystm1: item.lclsSystm1 || '',
-             lclsSystm2: item.lclsSystm2 || '',
-             lclsSystm3: item.lclsSystm3 || ''
-           }));
-           
-           petTourismData = {
-             response: {
-               header: {
-                 resultCode: "0000",
-                 resultMsg: "OK"
-               },
-               body: {
-                 totalCount: simplifiedResults.length,
-                 numOfRows: simplifiedResults.length,
-                 pageNo: 1,
-                 items: {
-                   item: simplifiedResults
-                 }
+             
+             // 중복 제거 (contentid 기준)
+             console.log('🔄 중복 데이터 제거 중...');
+             const uniqueResults = [];
+             const seenIds = new Set();
+             const duplicatedIds = new Set();
+             
+             for (const item of allResults) {
+               if (!seenIds.has(item.contentid)) {
+                 seenIds.add(item.contentid);
+                 uniqueResults.push(item);
+               } else {
+                 duplicatedIds.add(item.contentid);
                }
              }
-           };
-          
-          console.log('=== 반려동물 여행지 키워드 검색 완료 ===');
-          
-        } catch (error) {
-          petTourismError = `Pet keywords search error: ${error.message}`;
-          console.error('💥 반려동물 키워드 검색 중 오류 발생:', petTourismError);
+             
+             const duplicateCount = allResults.length - uniqueResults.length;
+             console.log(`✨ 중복 제거 완료: ${duplicateCount}개 중복 제거 (고유 ID: ${duplicatedIds.size}개), ${uniqueResults.length}개 최종 결과`);
+            
+            // 카테고리별 분류 통계
+            const categoryStats = {};
+            uniqueResults.forEach(item => {
+              const cat = item.cat1 || 'unknown';
+              categoryStats[cat] = (categoryStats[cat] || 0) + 1;
+            });
+            
+            console.log('📂 카테고리별 분포:');
+            Object.entries(categoryStats).forEach(([category, count]) => {
+              console.log(`   - ${category}: ${count}개`);
+            });
+            
+            // 응답 형태로 구성 - 모든 필드 포함하여 완전한 데이터 제공
+            const simplifiedResults = uniqueResults.map(item => ({
+              contentid: item.contentid || '',
+              contenttypeid: item.contenttypeid || '',
+              title: item.title || '',
+              addr1: item.addr1 || '',
+              addr2: item.addr2 || '',
+              zipcode: item.zipcode || '',
+              tel: item.tel || '',
+              mapx: item.mapx || '',
+              mapy: item.mapy || '',
+              firstimage: item.firstimage || '',
+              firstimage2: item.firstimage2 || '',
+              areacode: item.areacode || '',
+              sigungucode: item.sigungucode || '',
+              cat1: item.cat1 || '',
+              cat2: item.cat2 || '',
+              cat3: item.cat3 || '',
+              createdtime: item.createdtime || '',
+              modifiedtime: item.modifiedtime || '',
+              mlevel: item.mlevel || '',
+              searchKeyword: item.searchKeyword || '',
+              // 빠진 필드들 추가
+              cpyrhtDivCd: item.cpyrhtDivCd || '',
+              lDongRegnCd: item.lDongRegnCd || '',
+              lDongSignguCd: item.lDongSignguCd || '',
+              lclsSystm1: item.lclsSystm1 || '',
+              lclsSystm2: item.lclsSystm2 || '',
+              lclsSystm3: item.lclsSystm3 || ''
+            }));
+            
+            // 캐시에 저장
+            setCache(cacheKey, simplifiedResults);
+            
+            petTourismData = {
+              response: {
+                header: {
+                  resultCode: "0000",
+                  resultMsg: "OK"
+                },
+                body: {
+                  totalCount: simplifiedResults.length,
+                  numOfRows: simplifiedResults.length,
+                  pageNo: 1,
+                  items: {
+                    item: simplifiedResults
+                  }
+                }
+              }
+            };
+            
+            console.log('=== 반려동물 여행지 키워드 검색 완료 ===');
+            
+          } catch (error) {
+            petTourismError = `Pet keywords search error: ${error.message}`;
+            console.error('💥 반려동물 키워드 검색 중 오류 발생:', petTourismError);
+          }
         }
         
       } else {
