@@ -574,10 +574,9 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         setAllPetData(processedData);
         setIsPetDataLoaded(true);
         
-        // 전체 마커 표시 (조금 지연하여 실행)
-        setTimeout(() => {
-          handleCategorySelect('all');
-        }, 100);
+        // 전체 마커 표시
+        setSelectedCategory('all');
+        handleCategorySelect('all');
         
         toast.success('반려동물 여행지를 불러왔습니다!');
       }
@@ -596,6 +595,15 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       loadPetTourismMarkers();
     }
   }, [isMapLoaded, showPetFilter, isPetDataLoaded, loadPetTourismMarkers]);
+
+  // 지도와 데이터 모두 로드된 후 자동으로 전체 마커 표시
+  useEffect(() => {
+    if (isMapLoaded && showPetFilter && isPetDataLoaded && allPetData.length > 0) {
+      console.log('🎯 자동으로 전체 마커 표시 시작');
+      setSelectedCategory('all');
+      handleCategorySelect('all');
+    }
+  }, [isMapLoaded, showPetFilter, isPetDataLoaded, allPetData.length, handleCategorySelect]);
 
   const searchPlaces = useCallback(async () => {
     if (!searchQuery.trim()) {
