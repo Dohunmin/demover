@@ -576,19 +576,45 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         return;
       }
 
-      console.log('API 응답 구조:', data);
+      console.log('🔍 API 원본 응답 분석:');
+      console.log('- data.petTourismData 존재 여부:', !!data.petTourismData);
+      console.log('- response.header.resultCode:', data.petTourismData?.response?.header?.resultCode);
+      console.log('- response.body.totalCount:', data.petTourismData?.response?.body?.totalCount);
+      console.log('- response.body.items 존재 여부:', !!data.petTourismData?.response?.body?.items);
 
       if (data.petTourismData && !data.petTourismData.error && 
           data.petTourismData.response?.header?.resultCode === "0000" &&
           data.petTourismData.response?.body?.items?.item) {
         const items = data.petTourismData.response.body.items.item;
+        console.log('📊 원본 items 분석:');
+        console.log('- items 타입:', Array.isArray(items) ? 'Array' : typeof items);
+        console.log('- items 길이:', Array.isArray(items) ? items.length : '단일 객체');
+        
         const processedData = Array.isArray(items) ? items : [items];
+        console.log('🔧 처리된 데이터 분석:');
+        console.log('- processedData 길이:', processedData.length);
         
-        console.log(`🎉 ${processedData.length}개의 반려동물 여행지 로딩 완료`);
+        // 좌표 없는 데이터 확인
+        const validData = processedData.filter(item => item.mapx && item.mapy && item.mapx !== '0' && item.mapy !== '0');
+        const invalidData = processedData.filter(item => !item.mapx || !item.mapy || item.mapx === '0' || item.mapy === '0');
         
-        // 각 데이터를 콘솔에 출력하여 확인
-        processedData.forEach((place, index) => {
-          console.log(`반려동물 장소 ${index}:`, place);
+        console.log('📍 좌표 유효성 분석:');
+        console.log('- 유효한 좌표를 가진 데이터:', validData.length);
+        console.log('- 유효하지 않은 좌표를 가진 데이터:', invalidData.length);
+        
+        if (invalidData.length > 0) {
+          console.log('❌ 좌표가 없는 데이터들:');
+          invalidData.slice(0, 5).forEach((item, index) => {
+            console.log(`  ${index + 1}. ${item.title} - mapx: ${item.mapx}, mapy: ${item.mapy}`);
+          });
+        }
+        
+        console.log(`🎉 최종 로딩 완료: ${processedData.length}개 (유효 좌표: ${validData.length}개)`);
+        
+        // 첫 10개 데이터 샘플 출력
+        console.log('📝 데이터 샘플:');
+        processedData.slice(0, 10).forEach((place, index) => {
+          console.log(`  ${index + 1}. ${place.title} (${place.mapx}, ${place.mapy})`);
         });
         
         setAllPetData(processedData);
