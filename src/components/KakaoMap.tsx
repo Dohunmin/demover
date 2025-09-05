@@ -814,14 +814,13 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
-      {!hideSearchBar && (
-        <div className="bg-white shadow-sm border-b p-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={onBack}>
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-            <h1 className="text-lg font-semibold">지도 검색</h1>
-          </div>
+      <div className="bg-white shadow-sm border-b p-4">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="sm" onClick={onBack}>
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+          <h1 className="text-lg font-semibold">지도 검색</h1>
+        </div>
           
           {showPetFilter && (
             <div className="mt-4 overflow-x-auto">
@@ -876,7 +875,6 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
             </Button>
           </form>
         </div>
-      )}
 
       <div className="flex-1 flex">
         <div ref={mapRef} className="flex-1" />
