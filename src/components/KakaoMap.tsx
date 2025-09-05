@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, MapPin, Navigation, Search, Phone, ExternalLink, PawPrint, TreePine } from 'lucide-react';
+import { ArrowLeft, MapPin, Navigation, Search, Phone, ExternalLink, PawPrint, TreePine, UtensilsCrossed, ShoppingBag } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import CategoryGrid from '@/components/CategoryGrid';
@@ -57,6 +57,34 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
   const markers = useRef<any[]>([]);
   const infoWindow = useRef<any>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+  // 카테고리별 필터링
+  const categories = [
+    { id: 'all', label: '전체', icon: MapPin },
+    { id: 'park', label: '공원', icon: TreePine },
+    { id: 'restaurant', label: '음식점', icon: UtensilsCrossed },
+    { id: 'shopping', label: '쇼핑', icon: ShoppingBag },
+  ];
+
+  const handleCategorySelect = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    
+    if (showPetFilter) {
+      // 비동기적으로 처리하여 함수 정의 후 실행
+      setTimeout(() => {
+        if (categoryId === 'all') {
+          // 전체 마커 표시 로직
+          console.log('전체 카테고리 선택');
+        } else if (categoryId === 'park') {
+          // 공원 필터 적용
+          console.log('공원 카테고리 선택');
+          setParkFilter(true);
+        }
+      }, 0);
+    }
+  };
+
   const [searchQuery, setSearchQuery] = useState('');
   const [radius, setRadius] = useState('2000');
   const [places, setPlaces] = useState<Place[]>([]);
@@ -460,6 +488,18 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     }
   }, [isMapLoaded, isPetDataLoaded]);
 
+  // 카테고리 변경에 따른 마커 업데이트
+  useEffect(() => {
+    if (!showPetFilter || !allPetData.length) return;
+    
+    if (selectedCategory === 'all') {
+      setParkFilter(false);
+      // 전체 마커 표시는 이미 로드된 마커들로 처리
+    } else if (selectedCategory === 'park') {
+      setParkFilter(true);
+    }
+  }, [selectedCategory, showPetFilter, allPetData.length]);
+
   // 공원 필터 이벤트 리스너
   useEffect(() => {
     const handleParkFilter = () => {
@@ -480,6 +520,17 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       window.removeEventListener('parkFilterToggle', handleParkFilter);
     };
   }, [parkFilter, allPetData]);
+
+  // parkFilter 변경에 따른 마커 업데이트
+  useEffect(() => {
+    if (!showPetFilter || !allPetData.length) return;
+    
+    if (parkFilter) {
+      filterParkMarkers();
+    } else if (selectedCategory === 'all') {
+      showAllPetMarkers();
+    }
+  }, [parkFilter, showPetFilter, allPetData.length, selectedCategory]);
 
   // 북마크 마커는 별도로 관리 (북마크가 변경될 때만 업데이트)
   useEffect(() => {
@@ -1167,6 +1218,24 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
             <h1 className="text-lg font-semibold">지도 검색</h1>
           </div>
           
+          {/* 반려동물 탭인 경우 카테고리 탭 표시 */}
+          {showPetFilter && (
+            <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
+              {categories.map(({ id, label, icon: Icon }) => (
+                <Button
+                  key={id}
+                  variant={selectedCategory === id ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handleCategorySelect(id)}
+                  className="flex items-center gap-1 whitespace-nowrap text-xs px-3 py-1.5"
+                >
+                  <Icon className="w-3 h-3" />
+                  {label}
+                </Button>
+              ))}
+            </div>
+          )}
+          
           {/* 검색 바 */}
           <form onSubmit={handleSearch} className="mt-4 flex gap-2">
             <div className="flex-1 relative">
@@ -1241,7 +1310,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         </div>
       )}
 
-        {!hideCategoryGrid && (
+        {!hideCategoryGrid && !showPetFilter && (
           <div className="mb-4">
             <CategoryGrid />
             {/* 공원 필터 상태 표시 */}
