@@ -219,9 +219,9 @@ serve(async (req) => {
     if (activeTab === "pet") {
       // 2. 한국관광공사 반려동물 동반 여행지 서비스 호출 (반려동물만)
       if (loadAllPetKeywords) {
-        // 캐시 확인
-        const cacheKey = 'pet_friendly_places_busan';
-        const cachedData = getCached(cacheKey);
+        // 캐시 확인 (캐시 무효화하여 최신 데이터 수집)
+        const cacheKey = 'pet_friendly_places_busan_v2'; // 새 버전으로 캐시 키 변경
+        const cachedData = null; // 캐시 무시하고 항상 새로 수집
         
         if (cachedData) {
           console.log(`🎯 캐시에서 데이터 사용: ${cachedData.length}개`);
