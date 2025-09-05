@@ -76,7 +76,6 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     { id: 'trekking', label: '트레킹', icon: Mountain },
     { id: 'port', label: '항구', icon: Anchor },
     { id: 'beach', label: '해수욕장', icon: Waves },
-    { id: 'hospital', label: '동물병원', icon: Stethoscope },
   ];
 
   // 카테고리별 키워드 목록
@@ -463,70 +462,77 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     };
   }, []);
 
-  // 지도 초기화
-  const initializeMap = useCallback(() => {
-    if (!mapRef.current) {
-      console.error('지도 초기화 실패: mapRef가 없습니다.');
-      return;
-    }
-
-    if (!window.kakao || !window.kakao.maps) {
-      console.error('지도 초기화 실패: Kakao Maps API가 로드되지 않았습니다.');
-      toast.error('지도 초기화에 실패했습니다.');
-      return;
-    }
-
-    try {
-      if (mapInstance.current) {
-        console.log('기존 지도 인스턴스 정리');
-        mapInstance.current = null;
-      }
-
-      const options = {
-        center: new window.kakao.maps.LatLng(35.1796, 129.0756),
-        level: 5,
-      };
-
-      mapInstance.current = new window.kakao.maps.Map(mapRef.current, options);
-      console.log('지도 인스턴스 생성 완료');
-      
-      if (clusterer.current) {
-        clusterer.current.clear();
-        clusterer.current = null;
-      }
-      
-      if (window.kakao.maps.MarkerClusterer && typeof window.kakao.maps.MarkerClusterer === 'function') {
-        try {
-          clusterer.current = new window.kakao.maps.MarkerClusterer({
-            map: mapInstance.current,
-            averageCenter: true,
-            minLevel: 6,
-          });
-          console.log('마커 클러스터러 생성 완료');
-        } catch (clustererError) {
-          console.warn('마커 클러스터러를 사용할 수 없습니다. 일반 마커로 표시됩니다:', clustererError);
-          clusterer.current = null;
+      // 지도 초기화
+      const initializeMap = useCallback(() => {
+        if (!mapRef.current) {
+          console.error('지도 초기화 실패: mapRef가 없습니다.');
+          return;
         }
-      } else {
-        console.warn('MarkerClusterer가 로드되지 않았습니다. 일반 마커로 표시됩니다.');
-        clusterer.current = null;
-      }
 
-      if (infoWindow.current) {
-        infoWindow.current.close();
-      }
+        if (!window.kakao || !window.kakao.maps) {
+          console.error('지도 초기화 실패: Kakao Maps API가 로드되지 않았습니다.');
+          toast.error('지도 초기화에 실패했습니다.');
+          return;
+        }
 
-      infoWindow.current = new window.kakao.maps.InfoWindow({
-        removable: true,
-      });
-      console.log('인포윈도우 생성 완료');
-      
-      toast.success('지도가 성공적으로 로드되었습니다!');
-    } catch (error) {
-      console.error('지도 초기화 오류:', error);
-      toast.error('지도 초기화 중 오류가 발생했습니다.');
-    }
-  }, []);
+        try {
+          if (mapInstance.current) {
+            console.log('기존 지도 인스턴스 정리');
+            mapInstance.current = null;
+          }
+
+          const options = {
+            center: new window.kakao.maps.LatLng(35.1796, 129.0756),
+            level: 5,
+          };
+
+          mapInstance.current = new window.kakao.maps.Map(mapRef.current, options);
+          console.log('지도 인스턴스 생성 완료');
+          
+          if (clusterer.current) {
+            clusterer.current.clear();
+            clusterer.current = null;
+          }
+          
+          if (window.kakao.maps.MarkerClusterer && typeof window.kakao.maps.MarkerClusterer === 'function') {
+            try {
+              clusterer.current = new window.kakao.maps.MarkerClusterer({
+                map: mapInstance.current,
+                averageCenter: true,
+                minLevel: 6,
+              });
+              console.log('마커 클러스터러 생성 완료');
+            } catch (clustererError) {
+              console.warn('마커 클러스터러를 사용할 수 없습니다. 일반 마커로 표시됩니다:', clustererError);
+              clusterer.current = null;
+            }
+          } else {
+            console.warn('MarkerClusterer가 로드되지 않았습니다. 일반 마커로 표시됩니다.');
+            clusterer.current = null;
+          }
+
+          if (infoWindow.current) {
+            infoWindow.current.close();
+          }
+
+          infoWindow.current = new window.kakao.maps.InfoWindow({
+            removable: true,
+          });
+          console.log('인포윈도우 생성 완료');
+          
+          toast.success('지도가 성공적으로 로드되었습니다!');
+          
+          // 반려동물 필터가 활성화된 경우 자동으로 데이터 로드
+          if (showPetFilter) {
+            setTimeout(() => {
+              loadPetTourismMarkers();
+            }, 500);
+          }
+        } catch (error) {
+          console.error('지도 초기화 오류:', error);
+          toast.error('지도 초기화 중 오류가 발생했습니다.');
+        }
+      }, [showPetFilter]);
 
   // 반려동물 여행지 데이터 로드
   const loadPetTourismMarkers = useCallback(async () => {
