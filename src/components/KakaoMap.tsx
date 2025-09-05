@@ -114,7 +114,40 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       '홍법사(부산)',
       '금강사(부산)',
       '해동용궁사'
-    ]
+    ],
+    shopping: [
+      '롯데프리미엄아울렛 동부산점',
+      '신세계사이먼 부산 프리미엄 아울렛'
+    ],
+    accommodation: [
+      '그림하우스',
+      '더웨이브',
+      '더펫텔프리미엄스위트',
+      '모닝듀 게스트 하우스(모닝듀)',
+      '아르반호텔[한국관광 품질인증/Korea Quality]',
+      '옐로우라이트하우스',
+      '윙민박',
+      '이바구캠프',
+      '캐빈스위트광안',
+      '캔버스',
+      '캔버스 블랙',
+      '팝콘 호스텔 해운대점',
+      '해운대 영무파라드호텔',
+      'AJ하우스(AJ House)',
+      'JSTAY',
+      'The Park Guest House'
+    ],
+    restaurant: [
+      '몽작',
+      '칠암만장',
+      '감나무집',
+      '구덕포끝집고기',
+      '성안집',
+      '송정물총칼국수',
+      '알로이삥삥',
+      '형제가든'
+    ],
+    market: ['구포시장']
   };
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -222,7 +255,11 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         leisure: '레저',
         culture: '문화시설', 
         brunch: '브런치',
-        temple: '사찰'
+        temple: '사찰',
+        shopping: '쇼핑',
+        accommodation: '숙소',
+        restaurant: '식당',
+        market: '재래시장'
       };
       
       toast.success(`${categoryLabels[categoryId as keyof typeof categoryLabels] || categoryId} ${filteredPlaces.length}개를 지도에 표시했습니다.`);
