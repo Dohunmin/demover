@@ -649,8 +649,20 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
       console.log('반려동물 여행지 API 응답:', response);
 
-      if (response.data?.petTourismData) {
-        const petPlaces = response.data.petTourismData;
+      // API 응답 구조 확인 및 데이터 추출
+      let petPlaces = [];
+      
+      if (response.data?.petTourismData?.response?.body?.items?.item) {
+        // 표준 API 응답 구조
+        petPlaces = response.data.petTourismData.response.body.items.item;
+      } else if (response.data?.petTourismData && Array.isArray(response.data.petTourismData)) {
+        // 직접 배열로 온 경우
+        petPlaces = response.data.petTourismData;
+      } else {
+        console.warn('반려동물 여행지 데이터 구조를 인식할 수 없습니다:', response.data);
+      }
+
+      if (petPlaces && petPlaces.length > 0) {
         console.log(`${petPlaces.length}개의 반려동물 여행지 데이터를 받았습니다.`);
         
         // 전체 데이터 저장
