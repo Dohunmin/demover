@@ -88,10 +88,27 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         if (categoryId === 'all') {
           // 전체 마커 표시 로직
           console.log('전체 카테고리 선택');
+          showAllPetMarkers();
         } else if (categoryId === 'park') {
           // 공원 필터 적용
           console.log('공원 카테고리 선택');
-          setParkFilter(true);
+          filterParkMarkers();
+        } else if (categoryId === 'leisure') {
+          // 레저 필터 적용
+          console.log('레저 카테고리 선택');
+          filterLeisureMarkers();
+        } else if (categoryId === 'culture') {
+          // 문화시설 필터 적용
+          console.log('문화시설 카테고리 선택');
+          filterCultureMarkers();
+        } else if (categoryId === 'brunch') {
+          // 브런치 필터 적용
+          console.log('브런치 카테고리 선택');
+          filterBrunchMarkers();
+        } else if (categoryId === 'temple') {
+          // 사찰 필터 적용
+          console.log('사찰 카테고리 선택');
+          filterTempleMarkers();
         }
       }, 0);
     }
@@ -131,6 +148,33 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     '용소웰빙공원',
     '을숙도 공원',
     '회동수원지'
+  ];
+
+  // 레저 키워드 목록
+  const leisureKeywords = [
+    '드림서프라운지'
+  ];
+
+  // 문화시설 키워드 목록
+  const cultureKeywords = [
+    '국립부산과학관'
+  ];
+
+  // 브런치 키워드 목록
+  const brunchKeywords = [
+    '포레스트3002',
+    '듀스포레',
+    '만달리',
+    '불란서그로서리',
+    '오구카페',
+    '프루터리포레스트'
+  ];
+
+  // 사찰 키워드 목록
+  const templeKeywords = [
+    '홍법사(부산)',
+    '금강사(부산)',
+    '해동용궁사'
   ];
 
   // 반려동물 동반 가능한 일반 관광지 키워드 목록
@@ -855,6 +899,98 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     
     toast.success(`공원 ${parkPlaces.length}개를 지도에 표시했습니다.`);
   }, [allPetData, petTourismMarkers, parkKeywords, createPetTourismMarkers]);
+
+  // 레저 마커만 필터링해서 표시
+  const filterLeisureMarkers = useCallback(() => {
+    if (!allPetData.length) return;
+
+    console.log('=== 레저 필터 적용 ===');
+    
+    petTourismMarkers.forEach(marker => marker.setMap(null));
+    setPetTourismMarkers([]);
+    
+    const leisurePlaces = allPetData.filter(place => 
+      leisureKeywords.some(keyword => 
+        place.title?.trim() === keyword.trim()
+      )
+    );
+    
+    console.log(`${leisurePlaces.length}개의 레저 마커를 표시합니다.`);
+    console.log('레저 목록:', leisurePlaces.map(p => p.title));
+    
+    createPetTourismMarkers(leisurePlaces);
+    
+    toast.success(`레저시설 ${leisurePlaces.length}개를 지도에 표시했습니다.`);
+  }, [allPetData, petTourismMarkers, leisureKeywords, createPetTourismMarkers]);
+
+  // 문화시설 마커만 필터링해서 표시
+  const filterCultureMarkers = useCallback(() => {
+    if (!allPetData.length) return;
+
+    console.log('=== 문화시설 필터 적용 ===');
+    
+    petTourismMarkers.forEach(marker => marker.setMap(null));
+    setPetTourismMarkers([]);
+    
+    const culturePlaces = allPetData.filter(place => 
+      cultureKeywords.some(keyword => 
+        place.title?.trim() === keyword.trim()
+      )
+    );
+    
+    console.log(`${culturePlaces.length}개의 문화시설 마커를 표시합니다.`);
+    console.log('문화시설 목록:', culturePlaces.map(p => p.title));
+    
+    createPetTourismMarkers(culturePlaces);
+    
+    toast.success(`문화시설 ${culturePlaces.length}개를 지도에 표시했습니다.`);
+  }, [allPetData, petTourismMarkers, cultureKeywords, createPetTourismMarkers]);
+
+  // 브런치 마커만 필터링해서 표시
+  const filterBrunchMarkers = useCallback(() => {
+    if (!allPetData.length) return;
+
+    console.log('=== 브런치 필터 적용 ===');
+    
+    petTourismMarkers.forEach(marker => marker.setMap(null));
+    setPetTourismMarkers([]);
+    
+    const brunchPlaces = allPetData.filter(place => 
+      brunchKeywords.some(keyword => 
+        place.title?.trim() === keyword.trim()
+      )
+    );
+    
+    console.log(`${brunchPlaces.length}개의 브런치 마커를 표시합니다.`);
+    console.log('브런치 목록:', brunchPlaces.map(p => p.title));
+    
+    createPetTourismMarkers(brunchPlaces);
+    
+    toast.success(`브런치카페 ${brunchPlaces.length}개를 지도에 표시했습니다.`);
+  }, [allPetData, petTourismMarkers, brunchKeywords, createPetTourismMarkers]);
+
+  // 사찰 마커만 필터링해서 표시
+  const filterTempleMarkers = useCallback(() => {
+    if (!allPetData.length) return;
+
+    console.log('=== 사찰 필터 적용 ===');
+    
+    petTourismMarkers.forEach(marker => marker.setMap(null));
+    setPetTourismMarkers([]);
+    
+    const templePlaces = allPetData.filter(place => 
+      templeKeywords.some(keyword => 
+        place.title?.trim() === keyword.trim()
+      )
+    );
+    
+    console.log(`${templePlaces.length}개의 사찰 마커를 표시합니다.`);
+    console.log('사찰 목록:', templePlaces.map(p => p.title));
+    
+    createPetTourismMarkers(templePlaces);
+    
+    toast.success(`사찰 ${templePlaces.length}개를 지도에 표시했습니다.`);
+  }, [allPetData, petTourismMarkers, templeKeywords, createPetTourismMarkers]);
 
   // 반려동물 마커들만 제거하는 함수
   const clearPetMarkers = useCallback(() => {
