@@ -216,6 +216,99 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
   const [selectedPlaceForReview, setSelectedPlaceForReview] = useState<any>(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
+  // 즐겨찾기 장소 마커 표시 함수
+  const displayBookmarkedMarkers = useCallback(() => {
+    if (!mapInstance.current || !bookmarkedPlaces || bookmarkedPlaces.length === 0) return;
+
+    console.log('즐겨찾기 마커 표시:', bookmarkedPlaces.length, '개');
+    
+    // 기존 마커 제거
+    markers.current.forEach(marker => marker.setMap(null));
+    markers.current = [];
+    
+    if (clusterer.current) {
+      clusterer.current.clear();
+    }
+
+    const bounds = new window.kakao.maps.LatLngBounds();
+    const newMarkers: any[] = [];
+
+    bookmarkedPlaces.forEach((place) => {
+      if (!place.mapx || !place.mapy || place.mapx === '0' || place.mapy === '0') return;
+
+      const position = new window.kakao.maps.LatLng(place.mapy, place.mapx);
+      bounds.extend(position);
+      
+      const imageSize = new window.kakao.maps.Size(30, 30);
+      const imageOption = { offset: new window.kakao.maps.Point(15, 30) };
+      
+      // 즐겨찾기 타입에 따라 다른 색상의 마커
+      const markerColor = place.bookmark_type === 'pet' ? '#DC2626' : '#2563EB';
+      const markerIcon = place.bookmark_type === 'pet' ? '🐾' : '📍';
+      
+      const bookmarkMarkerSvg = `data:image/svg+xml;base64,${btoa(`
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${markerColor}" width="30" height="30">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+        </svg>
+      `)}`;
+      
+      const markerImage = new window.kakao.maps.MarkerImage(bookmarkMarkerSvg, imageSize, imageOption);
+
+      const marker = new window.kakao.maps.Marker({
+        position: position,
+        image: markerImage,
+        clickable: true
+      });
+
+      marker.setMap(mapInstance.current);
+      
+      // 마커 클릭 이벤트
+      window.kakao.maps.event.addListener(marker, 'click', () => {
+        const content = `
+          <div style="padding: 15px; min-width: 250px; max-width: 300px; font-family: 'Malgun Gothic', sans-serif;">
+            <div style="font-weight: bold; font-size: 16px; margin-bottom: 8px; color: ${markerColor};">${place.title}</div>
+            <div style="font-size: 12px; color: #666; margin-bottom: 8px; background: ${place.bookmark_type === 'pet' ? '#FEF2F2' : '#EFF6FF'}; padding: 4px 8px; border-radius: 12px; display: inline-block;">
+              ${markerIcon} ${place.bookmark_type === 'pet' ? '반려동물 동반 가능' : '일반 관광지'}
+            </div>
+            <div style="text-align: center; margin-top: 10px;">
+              <button id="review-btn-${place.content_id}" 
+                 style="color: ${markerColor}; font-size: 12px; text-decoration: none; background: ${place.bookmark_type === 'pet' ? '#FEF2F2' : '#EFF6FF'}; padding: 6px 12px; border-radius: 8px; display: inline-block; border: 1px solid ${place.bookmark_type === 'pet' ? '#FCA5A5' : '#93C5FD'}; cursor: pointer;">
+                ⭐ 평점 및 후기
+              </button>
+            </div>
+          </div>
+        `;
+        infoWindow.current.setContent(content);
+        infoWindow.current.open(mapInstance.current, marker);
+        
+        // 평점/후기 버튼 이벤트 리스너 추가
+        setTimeout(() => {
+          const reviewBtn = document.getElementById(`review-btn-${place.content_id}`);
+          if (reviewBtn) {
+            reviewBtn.addEventListener('click', () => {
+              setSelectedPlaceForReview({
+                contentid: place.content_id,
+                title: place.title
+              });
+              setIsReviewModalOpen(true);
+            });
+          }
+        }, 100);
+      });
+
+      newMarkers.push(marker);
+    });
+    
+    markers.current = newMarkers;
+    
+    // 지도 영역을 모든 마커가 보이도록 조정
+    if (newMarkers.length > 0) {
+      mapInstance.current.setBounds(bounds);
+    }
+    
+    toast.success(`즐겨찾기 ${bookmarkedPlaces.length}개를 지도에 표시했습니다.`);
+  }, [bookmarkedPlaces]);
+
   // 카테고리 선택 핸들러 (마커 중복 문제 해결)
   const handleCategorySelect = useCallback((categoryId: string) => {
     setSelectedCategory(categoryId);
@@ -513,8 +606,15 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           
           toast.success('지도가 성공적으로 로드되었습니다!');
           
+          // 즐겨찾기 장소가 있는 경우 (Records 페이지)
+          if (bookmarkedPlaces && bookmarkedPlaces.length > 0) {
+            console.log('즐겨찾기 마커 표시 시작');
+            setTimeout(() => {
+              displayBookmarkedMarkers();
+            }, 300);
+          } 
           // 반려동물 필터가 활성화된 경우 자동으로 데이터 로드
-          if (showPetFilter) {
+          else if (showPetFilter) {
             setTimeout(() => {
               loadPetTourismMarkers();
             }, 500);
@@ -523,7 +623,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           console.error('지도 초기화 오류:', error);
           toast.error('지도 초기화 중 오류가 발생했습니다.');
         }
-      }, [showPetFilter]);
+      }, [showPetFilter, bookmarkedPlaces]);
 
   // 반려동물 여행지 데이터 로드
   const loadPetTourismMarkers = useCallback(async () => {
