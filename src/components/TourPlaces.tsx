@@ -145,12 +145,17 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
         toast.warning("반려동물 동반 여행지를 찾을 수 없습니다.");
       }
       
-    } catch (error) {
-      console.error('반려동물 여행지 로딩 실패:', error);
-      toast.error('반려동물 여행지 로딩에 실패했습니다.');
-    } finally {
-      setInitialPetLoading(false);
-    }
+      } catch (error) {
+        console.error('반려동물 여행지 로딩 실패:', error);
+        toast.error('반려동물 여행지 로딩에 실패했습니다.');
+        // 오류 발생 시 빈 캐시로 설정하여 무한 로딩 방지
+        setAllPetPlacesCache([]);
+        setPetCacheLoaded(true);
+        setPetTourPlaces([]);
+        setPetTotalCount(0);
+      } finally {
+        setInitialPetLoading(false);
+      }
   };
 
   // 캐시된 데이터로 클라이언트 사이드 페이지네이션 및 검색
@@ -254,6 +259,11 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
     } catch (error) {
       console.error('여행지 정보 조회 실패:', error);
       toast.error('여행지 정보를 불러오는데 실패했습니다.');
+      // 오류 발생 시 빈 데이터로 설정
+      if (activeTab === "general") {
+        setTourPlaces([]);
+        setTotalCount(0);
+      }
     } finally {
       setLoading(false);
     }
@@ -280,10 +290,17 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
     }
   };
 
-  // 탭 전환 시 탭만 변경 (useEffect가 자동으로 데이터 로딩)
+  // 탭 전환 시 로딩 상태 리셋 및 탭 변경
   const handleTabChange = (tab: "general" | "pet") => {
+    // 이전 탭의 로딩 상태 리셋
+    if (activeTab === "pet" && tab === "general") {
+      setInitialPetLoading(false);
+    } else if (activeTab === "general" && tab === "pet") {
+      setLoading(false);
+    }
+    
     setActiveTab(tab);
-    // useEffect가 activeTab 변경을 감지해서 자동으로 fetchTourPlaces 호출
+    // useEffect가 activeTab 변경을 감지해서 자동으로 데이터 로딩
   };
 
   // 페이지네이션 관련 계산
