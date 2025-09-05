@@ -548,10 +548,6 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     try {
       const { data, error } = await supabase.functions.invoke('combined-tour-api', {
         body: {
-          areaCode: '6',
-          numOfRows: '10',
-          pageNo: '1',
-          keyword: '',
           activeTab: 'pet',
           loadAllPetKeywords: true
         }
@@ -563,31 +559,37 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         return;
       }
 
-      if (data.petTourismData && !data.petTourismData.error && 
-          data.petTourismData.response?.header?.resultCode === "0000" &&
-          data.petTourismData.response?.body?.items?.item) {
-        const items = data.petTourismData.response.body.items.item;
-        const processedData = Array.isArray(items) ? items : [items];
+      console.log('API 응답 구조:', data);
+
+      // 새로운 응답 구조 처리: data.data에 직접 배열이 담겨있음
+      if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
+        const processedData = data.data.map((item: any) => ({
+          ...item,
+          searchKeyword: item.searchKeyword || '반려동물 여행지'
+        }));
         
-        console.log(`${processedData.length}개의 반려동물 여행지 로딩 완료`);
+        console.log(`🎉 ${processedData.length}개의 반려동물 여행지 로딩 완료`);
+        
+        // 각 데이터를 콘솔에 출력하여 확인
+        processedData.forEach((place, index) => {
+          console.log(`반려동물 장소 ${index}:`, place);
+        });
         
         setAllPetData(processedData);
         setIsPetDataLoaded(true);
         
-        // 전체 마커 표시
-        setSelectedCategory('all');
-        handleCategorySelect('all');
-        
         toast.success('반려동물 여행지를 불러왔습니다!');
+      } else {
+        console.warn('API 응답에 데이터가 없습니다:', data);
+        toast.warning('반려동물 여행지 데이터를 찾을 수 없습니다.');
       }
-      
     } catch (error) {
       console.error('반려동물 여행지 로딩 실패:', error);
-      toast.error('반려동물 여행지 로딩에 실패했습니다.');
+      toast.error('반려동물 여행지를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
-  }, [isPetDataLoaded, handleCategorySelect]);
+  }, [isPetDataLoaded]);
 
   // 지도 로드 후 반려동물 데이터 로드
   useEffect(() => {
