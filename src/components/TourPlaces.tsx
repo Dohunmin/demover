@@ -340,7 +340,14 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
       if (petCacheLoaded) {
         processCachedPetPlaces(undefined, petSearchKeyword, 1);
       } else {
+        // 캐시가 없으면 데이터를 로드한 후 검색
         toast.info('반려동물 여행지 데이터를 로딩 중입니다...');
+        loadAllPetPlaces().then(() => {
+          // 로드 완료 후 검색 실행
+          setTimeout(() => {
+            processCachedPetPlaces(undefined, petSearchKeyword, 1);
+          }, 100);
+        });
       }
     }
   };
