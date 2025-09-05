@@ -241,8 +241,14 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
     
     console.log(`필터링 후 ${filteredData.length}개, 페이지네이션 후 ${paginatedData.length}개`);
     
+    // 검색 결과를 상태에 설정
     setPetTourPlaces(paginatedData);
     setPetTotalCount(filteredData.length);
+    
+    // 검색 결과 로그 출력
+    paginatedData.forEach((place, index) => {
+      console.log(`반려동물 장소 ${index}:`, place);
+    });
   };
 
   const fetchTourPlaces = async (generalKeyword?: string, petKeyword?: string) => {
