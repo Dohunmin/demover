@@ -793,6 +793,15 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     toast.success(`공원 ${parkPlaces.length}개를 지도에 표시했습니다.`);
   }, [allPetData, petTourismMarkers, parkKeywords, createPetTourismMarkers]);
 
+  // 반려동물 마커들만 제거하는 함수
+  const clearPetMarkers = useCallback(() => {
+    // 반려동물 여행지 마커들 제거
+    petTourismMarkers.forEach(marker => {
+      marker.setMap(null);
+    });
+    setPetTourismMarkers([]);
+  }, [petTourismMarkers]);
+
   // 전체 펫 마커 표시 (순수 반려동물 여행지만)
   const showAllPetMarkers = useCallback(() => {
     if (!allPetData.length) return;
@@ -872,7 +881,20 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     }
   }, [convertTourismDataToPlace]);
 
-  // 장소 검색
+  // 반려동물 여행지에서의 검색 (로드된 데이터에서 필터링)
+  const searchPetPlaces = useCallback((keyword: string) => {
+    if (!keyword.trim()) return allPetData;
+    
+    const filteredPlaces = allPetData.filter(place => 
+      place.title?.toLowerCase().includes(keyword.toLowerCase()) ||
+      place.addr1?.toLowerCase().includes(keyword.toLowerCase())
+    );
+    
+    console.log(`"${keyword}" 검색 결과: ${filteredPlaces.length}개`);
+    return filteredPlaces;
+  }, [allPetData]);
+
+  // 장소 검색 (반려동물 여행지 특화)
   const searchPlaces = useCallback(async () => {
     if (!searchQuery.trim()) {
       toast.warning('검색어를 입력해주세요.');
@@ -886,6 +908,37 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
     setLoading(true);
     try {
+      console.log('반려동물 여행지 검색 시작:', searchQuery);
+
+      // 반려동물 여행지 페이지에서는 로드된 데이터에서 검색
+      if (showPetFilter || allPetData.length > 0) {
+        const filteredPlaces = searchPetPlaces(searchQuery);
+        
+        if (filteredPlaces.length > 0) {
+          // 기존 마커들 제거
+          clearPetMarkers();
+          
+          // 검색 결과로 새로운 마커들 생성
+          createPetTourismMarkers(filteredPlaces);
+          
+          // 첫 번째 결과로 지도 이동
+          const firstPlace = filteredPlaces[0];
+          if (firstPlace.mapx && firstPlace.mapy) {
+            const moveLatLng = new window.kakao.maps.LatLng(firstPlace.mapy, firstPlace.mapx);
+            mapInstance.current.panTo(moveLatLng);
+          }
+          
+          toast.success(`${filteredPlaces.length}개의 반려동물 여행지를 찾았습니다.`);
+        } else {
+          clearPetMarkers();
+          toast.warning('검색 결과가 없습니다.');
+        }
+        
+        setLoading(false);
+        return;
+      }
+
+      // 일반 지도 페이지에서는 기존 로직 사용
       const center = mapInstance.current.getCenter();
       const lat = center.getLat();
       const lng = center.getLng();
@@ -943,7 +996,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, radius, searchTourismPlaces]);
+  }, [searchQuery, radius, searchTourismPlaces, showPetFilter, allPetData, searchPetPlaces, clearPetMarkers, createPetTourismMarkers]);
 
   // 마커 표시
   const displayMarkers = useCallback((places: Place[]) => {
