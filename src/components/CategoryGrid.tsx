@@ -137,11 +137,10 @@ const CategoryGrid = () => {
   const handleCategoryClick = (categoryId: string) => {
     if (categoryId === 'hospital') {
       navigate('/animal-hospitals');
-    } else if (categoryId === 'park') {
-      // 공원 필터 이벤트 발생
-      window.dispatchEvent(new CustomEvent('parkFilterToggle'));
+    } else {
+      // 여행지 페이지로 이동하면서 카테고리 정보 전달
+      navigate(`/travel?category=${categoryId}`);
     }
-    // 다른 카테고리들은 나중에 구현
   };
 
   // 여행지 페이지에서는 처음에 5개만 보여주고, 홈화면에서는 모든 카테고리 보여주기

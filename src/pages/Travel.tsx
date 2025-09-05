@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PawPrint, MapPin, Search, Heart, Sparkles, ArrowLeft } from "lucide-react";
@@ -12,8 +12,20 @@ import { useAuth } from "@/hooks/useAuth";
 const Travel = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [currentView, setCurrentView] = useState<'places' | 'map'>('places');
   const [activeTab, setActiveTab] = useState<"general" | "pet">("general");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  // URL 파라미터에서 카테고리 확인하고 지도로 이동
+  useEffect(() => {
+    const category = searchParams.get('category');
+    if (category && user) {
+      setSelectedCategory(category);
+      setCurrentView('map');
+      setActiveTab('pet'); // 카테고리 선택시 pet 탭으로 설정
+    }
+  }, [searchParams, user]);
 
   const showMap = (tab: "general" | "pet") => {
     setActiveTab(tab);
@@ -72,7 +84,7 @@ const Travel = () => {
   }
 
   if (currentView === 'map') {
-    return <KakaoMap onBack={showPlaces} showPetFilter={activeTab === 'pet'} />;
+    return <KakaoMap onBack={showPlaces} showPetFilter={activeTab === 'pet'} initialCategory={selectedCategory} />;
   }
 
   return (

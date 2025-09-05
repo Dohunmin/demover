@@ -34,6 +34,7 @@ interface KakaoMapProps {
   hideSearchBar?: boolean;
   showPetFilter?: boolean;
   userProfileImage?: string;
+  initialCategory?: string | null;
   bookmarkedPlaces?: Array<{
     content_id: string;
     title: string;
@@ -49,6 +50,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
   hideSearchBar = false,
   showPetFilter = false,
   userProfileImage,
+  initialCategory = null,
   bookmarkedPlaces = []
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -57,7 +59,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
   const markers = useRef<any[]>([]);
   const infoWindow = useRef<any>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'all');
 
   // 카테고리별 필터링
   const categories = [
@@ -640,14 +642,15 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     }
   }, [isMapLoaded, showPetFilter, isPetDataLoaded, loadPetTourismMarkers]);
 
-  // 지도와 데이터 모두 로드된 후 자동으로 전체 마커 표시
+  // 지도와 데이터 모두 로드된 후 자동으로 카테고리 마커 표시
   useEffect(() => {
     if (isMapLoaded && showPetFilter && isPetDataLoaded && allPetData.length > 0) {
-      console.log('🎯 자동으로 전체 마커 표시 시작 - 데이터 개수:', allPetData.length);
-      setSelectedCategory('all');
-      handleCategorySelect('all');
+      const targetCategory = initialCategory || 'all';
+      console.log('🎯 자동으로 카테고리 마커 표시 시작 - 카테고리:', targetCategory, '데이터 개수:', allPetData.length);
+      setSelectedCategory(targetCategory);
+      handleCategorySelect(targetCategory);
     }
-  }, [isMapLoaded, showPetFilter, isPetDataLoaded, allPetData.length, handleCategorySelect]);
+  }, [isMapLoaded, showPetFilter, isPetDataLoaded, allPetData.length, initialCategory, handleCategorySelect]);
 
   const searchPlaces = useCallback(async () => {
     if (!searchQuery.trim()) {
