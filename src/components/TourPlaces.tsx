@@ -12,11 +12,11 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { MapPin, Phone, Search, Heart, PawPrint, Map, ChevronsLeft, ChevronsRight, ChevronLeft, ChevronRight, TreePine } from "lucide-react";
+import { MapPin, Phone, Search, Heart, PawPrint, Map, ChevronsLeft, ChevronsRight, ChevronLeft, ChevronRight, TreePine, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
-import TourDetailModal from "./TourDetailModal";
+import PlaceReviewModal from "./PlaceReviewModal";
 
 interface TourPlace {
   contentId: string;
@@ -74,6 +74,8 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
   const [userAreaCode, setUserAreaCode] = useState<string>('');
   const [selectedPlace, setSelectedPlace] = useState<TourPlace | null>(null);
   const [bookmarkedPlaces, setBookmarkedPlaces] = useState<Set<string>>(new Set());
+  const [selectedPlaceForReview, setSelectedPlaceForReview] = useState<any>(null);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   
   // 반려동물 키워드 검색 결과 캐시
   const [allPetPlacesCache, setAllPetPlacesCache] = useState<any[]>([]);
@@ -563,21 +565,12 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
         return;
       }
       
-      const tourPlace: TourPlace = {
-        contentId: place.contentid || place.contentId,
-        contentTypeId: place.contenttypeid || place.contentTypeId,
-        title: place.title,
-        addr1: place.addr1 || '',
-        addr2: place.addr2 || '',
-        image: place.firstimage || place.image || '',
-        firstImage: place.firstimage || place.image || '',
-        tel: place.tel || '',
-        mapx: place.mapx || '',
-        mapy: place.mapy || '',
-        areacode: place.areacode || '',
-        sigungucode: place.sigungucode || ''
-      };
-      setSelectedPlace(tourPlace);
+      // 평점/후기 모달 열기
+      setSelectedPlaceForReview({
+        contentid: place.contentid || place.contentId,
+        title: place.title
+      });
+      setIsReviewModalOpen(true);
     };
 
     return (
@@ -624,17 +617,35 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
               <Badge variant="secondary" className="text-xs">
                 {activeTab === "pet" ? "반려동물 동반" : "일반 관광지"}
               </Badge>
-              <Button
-                variant="ghost"
-                size="sm"
-                className={`bookmark-button p-2 ${isBookmarked ? 'text-red-500 hover:text-red-600' : 'text-gray-400 hover:text-red-500'}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleBookmark(place, activeTab);
-                }}
-              >
-                <Heart className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs px-2 py-1 h-auto"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedPlaceForReview({
+                      contentid: place.contentid || place.contentId,
+                      title: place.title
+                    });
+                    setIsReviewModalOpen(true);
+                  }}
+                >
+                  <Star className="w-3 h-3 mr-1" />
+                  평점
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={`bookmark-button p-2 ${isBookmarked ? 'text-red-500 hover:text-red-600' : 'text-gray-400 hover:text-red-500'}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleBookmark(place, activeTab);
+                  }}
+                >
+                  <Heart className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -869,14 +880,18 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
         </div>
       )}
 
-      {/* 상세 정보 모달 */}
-      {selectedPlace && (
-        <TourDetailModal
-          contentId={selectedPlace.contentId}
-          contentTypeId={selectedPlace.contentTypeId}
-          title={selectedPlace.title}
-          isOpen={!!selectedPlace}
-          onClose={() => setSelectedPlace(null)}
+      {/* 평점/후기 모달 */}
+      {selectedPlaceForReview && (
+        <PlaceReviewModal
+          isOpen={isReviewModalOpen}
+          onClose={() => {
+            setIsReviewModalOpen(false);
+            setSelectedPlaceForReview(null);
+          }}
+          place={{
+            contentid: selectedPlaceForReview.contentid,
+            title: selectedPlaceForReview.title
+          }}
         />
       )}
     </div>
