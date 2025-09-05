@@ -34,7 +34,7 @@ interface TourPlace {
 }
 
 interface TourPlacesProps {
-  onShowMap?: () => void;
+  onShowMap?: (activeTab: "general" | "pet") => void;
 }
 
 const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
@@ -602,7 +602,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
             </Button>
             {onShowMap && (
               <Button 
-                onClick={onShowMap}
+                onClick={() => onShowMap(activeTab)}
                 variant="outline"
                 className="px-6"
               >

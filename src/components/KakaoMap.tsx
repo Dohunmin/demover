@@ -911,7 +911,40 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       console.log('반려동물 여행지 검색 시작:', searchQuery);
 
       // 반려동물 여행지 페이지에서는 로드된 데이터에서 검색
-      if (showPetFilter || allPetData.length > 0) {
+      if (showPetFilter) {
+        // 반려동물 데이터가 없으면 먼저 로드
+        if (allPetData.length === 0) {
+          toast.info('반려동물 여행지 데이터를 로드하는 중...');
+          try {
+            // 데이터 로드 시도
+            await loadPetTourismMarkers();
+            
+            // 로드 후 다시 검색 시도
+            setTimeout(() => {
+              if (allPetData.length > 0) {
+                const filteredPlaces = searchPetPlaces(searchQuery);
+                if (filteredPlaces.length > 0) {
+                  createPetTourismMarkers(filteredPlaces);
+                  const firstPlace = filteredPlaces[0];
+                  if (firstPlace.mapx && firstPlace.mapy) {
+                    const moveLatLng = new window.kakao.maps.LatLng(firstPlace.mapy, firstPlace.mapx);
+                    mapInstance.current.panTo(moveLatLng);
+                  }
+                  toast.success(`${filteredPlaces.length}개의 반려동물 여행지를 찾았습니다.`);
+                } else {
+                  toast.warning('검색 결과가 없습니다.');
+                }
+              }
+              setLoading(false);
+            }, 1000);
+            return;
+          } catch (error) {
+            toast.error('반려동물 여행지 데이터 로드에 실패했습니다.');
+            setLoading(false);
+            return;
+          }
+        }
+
         const filteredPlaces = searchPetPlaces(searchQuery);
         
         if (filteredPlaces.length > 0) {

@@ -13,8 +13,12 @@ const Travel = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [currentView, setCurrentView] = useState<'places' | 'map'>('places');
+  const [activeTab, setActiveTab] = useState<"general" | "pet">("general");
 
-  const showMap = () => setCurrentView('map');
+  const showMap = (tab: "general" | "pet") => {
+    setActiveTab(tab);
+    setCurrentView('map');
+  };
   const showPlaces = () => setCurrentView('places');
 
   // 로그인하지 않은 사용자를 위한 안내
@@ -68,7 +72,7 @@ const Travel = () => {
   }
 
   if (currentView === 'map') {
-    return <KakaoMap onBack={showPlaces} />;
+    return <KakaoMap onBack={showPlaces} showPetFilter={activeTab === 'pet'} />;
   }
 
   return (
