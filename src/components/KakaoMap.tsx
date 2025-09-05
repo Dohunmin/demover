@@ -1282,28 +1282,6 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         </div>
       )}
 
-      {/* 반려동물 필터 버튼들 */}
-      <div className="bg-white border-b p-3">
-        <div className="flex gap-2 overflow-x-auto">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={showAllPetMarkers}
-            className="whitespace-nowrap"
-          >
-            전체 ({allPetData.length})
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={filterParkMarkers}
-            className="whitespace-nowrap"
-          >
-            공원 ({parkKeywords.length})
-          </Button>
-        </div>
-      </div>
-
         {!hideCategoryGrid && !showPetFilter && (
           <div className="mb-4">
             <CategoryGrid />
