@@ -76,6 +76,39 @@ export type Database = {
         }
         Relationships: []
       }
+      place_reviews: {
+        Row: {
+          comment: string | null
+          content_id: string
+          created_at: string
+          id: string
+          place_title: string
+          rating: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          content_id: string
+          created_at?: string
+          id?: string
+          place_title: string
+          rating: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          content_id?: string
+          created_at?: string
+          id?: string
+          place_title?: string
+          rating?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           area_code: string | null

@@ -3,10 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, MapPin, Navigation, Search, Phone, ExternalLink, PawPrint, TreePine, UtensilsCrossed, ShoppingBag, Dumbbell, Building2, Utensils, Church, Bed, Store, Coffee, Mountain, Anchor, Waves, Stethoscope } from 'lucide-react';
+import { ArrowLeft, MapPin, Navigation, Search, Phone, ExternalLink, PawPrint, TreePine, UtensilsCrossed, ShoppingBag, Dumbbell, Building2, Utensils, Church, Bed, Store, Coffee, Mountain, Anchor, Waves, Stethoscope, Star, MessageSquare } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import CategoryGrid from '@/components/CategoryGrid';
+import PlaceReviewModal from '@/components/PlaceReviewModal';
 
 declare global {
   interface Window {
@@ -212,6 +213,8 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
   const [bookmarkMarkers, setBookmarkMarkers] = useState<any[]>([]);
   const [isPetDataLoaded, setIsPetDataLoaded] = useState(false);
   const [allPetData, setAllPetData] = useState<any[]>([]);
+  const [selectedPlaceForReview, setSelectedPlaceForReview] = useState<any>(null);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
   // 카테고리 선택 핸들러 (마커 중복 문제 해결)
   const handleCategorySelect = useCallback((categoryId: string) => {
@@ -298,15 +301,26 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
               ${place.addr2 ? `<div style="font-size: 12px; color: #666; margin-bottom: 6px;">${place.addr2}</div>` : ''}
               ${place.tel ? `<div style="font-size: 12px; color: #666; margin-bottom: 8px;">📞 ${place.tel}</div>` : ''}
               <div style="text-align: center;">
-                <a href="https://korean.visitkorea.or.kr/detail/detail.do?cotid=${place.contentid}" target="_blank" 
-                   style="color: #DC2626; font-size: 12px; text-decoration: none; background: #FEF2F2; padding: 4px 12px; border-radius: 8px; display: inline-block;">
-                  상세정보 보기
-                </a>
+                <button id="review-btn-${place.contentid}" 
+                   style="color: #DC2626; font-size: 12px; text-decoration: none; background: #FEF2F2; padding: 6px 12px; border-radius: 8px; display: inline-block; border: 1px solid #FCA5A5; cursor: pointer;">
+                  ⭐ 평점 및 후기
+                </button>
               </div>
             </div>
           `;
           infoWindow.current.setContent(content);
           infoWindow.current.open(mapInstance.current, marker);
+          
+          // 평점/후기 버튼 이벤트 리스너 추가
+          setTimeout(() => {
+            const reviewBtn = document.getElementById(`review-btn-${place.contentid}`);
+            if (reviewBtn) {
+              reviewBtn.addEventListener('click', () => {
+                setSelectedPlaceForReview(place);
+                setIsReviewModalOpen(true);
+              });
+            }
+          }, 100);
         });
 
         newMarkers.push(marker);
@@ -847,13 +861,27 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         <div style="font-size: 11px; color: #888; margin-bottom: 3px;">${place.address_name}</div>
         ${place.phone ? `<div style="font-size: 11px; color: #888; margin-bottom: 5px;"><i class="phone-icon"></i> ${place.phone}</div>` : ''}
         <div style="text-align: center;">
-          <a href="${place.place_url}" target="_blank" style="color: #007bff; font-size: 11px; text-decoration: none;">상세보기</a>
+          <button id="review-btn-${place.id}" 
+             style="color: #007bff; font-size: 11px; text-decoration: none; background: #f8f9fa; padding: 4px 8px; border-radius: 4px; display: inline-block; border: 1px solid #dee2e6; cursor: pointer;">
+            ⭐ 평점 및 후기
+          </button>
         </div>
       </div>
     `;
     
     infoWindow.current.setContent(content);
     infoWindow.current.open(mapInstance.current, marker);
+    
+    // 평점/후기 버튼 이벤트 리스너 추가
+    setTimeout(() => {
+      const reviewBtn = document.getElementById(`review-btn-${place.id}`);
+      if (reviewBtn) {
+        reviewBtn.addEventListener('click', () => {
+          setSelectedPlaceForReview(place);
+          setIsReviewModalOpen(true);
+        });
+      }
+    }, 100);
   }, []);
 
   const getCurrentLocation = useCallback(() => {
@@ -1038,6 +1066,21 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         <div className="bg-white border-t p-4">
           <CategoryGrid />
         </div>
+      )}
+
+      {/* 평점/후기 모달 */}
+      {selectedPlaceForReview && (
+        <PlaceReviewModal
+          isOpen={isReviewModalOpen}
+          onClose={() => {
+            setIsReviewModalOpen(false);
+            setSelectedPlaceForReview(null);
+          }}
+          place={{
+            contentid: selectedPlaceForReview.contentid || selectedPlaceForReview.id,
+            title: selectedPlaceForReview.title || selectedPlaceForReview.place_name
+          }}
+        />
       )}
     </div>
   );
