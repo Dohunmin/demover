@@ -261,11 +261,10 @@ serve(async (req) => {
             let successCount = 0;
             let errorCount = 0;
             
-            // 키워드를 10개씩 청크로 나누어 병렬 처리 (속도 개선)
-            const chunkSize = 10;
-            const promises = [];
+            // 키워드를 5개씩 청크로 나누어 순차 처리 (안정성 최우선)
+            const chunkSize = 5;
             
-            console.log(`키워드를 ${chunkSize}개씩 청크로 나누어 병렬 처리합니다...`);
+            console.log(`키워드를 ${chunkSize}개씩 청크로 나누어 순차 처리합니다...`);
             
             for (let i = 0; i < petFriendlyKeywords.length; i += chunkSize) {
               const chunk = petFriendlyKeywords.slice(i, i + chunkSize);
@@ -275,7 +274,7 @@ serve(async (req) => {
               console.log(`📦 청크 ${chunkIndex}/${totalChunks} 처리 중... (키워드 ${i + 1}-${Math.min(i + chunkSize, petFriendlyKeywords.length)})`);
               
               // 각 청크를 병렬 처리
-              const chunkPromise = Promise.all(chunk.map(async (keywordItem, index) => {
+              const chunkPromises = chunk.map(async (keywordItem, index) => {
                 const searchUrl = `https://apis.data.go.kr/B551011/KorService2/searchKeyword2?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&keyword=${encodeURIComponent(keywordItem)}&areaCode=${areaCode}&numOfRows=20&pageNo=1&_type=xml`;
                 
                 // 재시도 로직 (최대 3번 시도)
@@ -340,26 +339,22 @@ serve(async (req) => {
                 }
                 
                 return []; // 모든 시도 실패 시 빈 배열 반환
-              }));
+              });
               
-              promises.push(chunkPromise);
+              // 청크 결과 처리
+              const chunkResults = await Promise.all(chunkPromises);
+              chunkResults.forEach(items => {
+                allResults.push(...items);
+              });
               
-              // 청크 간 1초 딜레이 (안정성 향상)
+              // 청크 간 2초 딜레이 (안정성 향상)
               if (i + chunkSize < petFriendlyKeywords.length) {
-                console.log(`⏱️ 다음 청크 처리까지 1초 대기...`);
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                console.log(`⏱️ 다음 청크 처리까지 2초 대기...`);
+                await new Promise(resolve => setTimeout(resolve, 2000));
               }
             }
             
-            console.log('🔄 모든 청크 완료 대기 중...');
-            
-            // 모든 청크 완료까지 대기
-            const chunkResults = await Promise.all(promises);
-            chunkResults.forEach(chunkResult => {
-              chunkResult.forEach(items => {
-                allResults.push(...items);
-              });
-            });
+            console.log('🔄 모든 청크 처리 완료');
             
             const endTime = Date.now();
             const totalTime = ((endTime - startTime) / 1000).toFixed(2);
