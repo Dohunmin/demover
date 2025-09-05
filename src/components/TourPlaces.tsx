@@ -48,7 +48,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
   const [generalCurrentPage, setGeneralCurrentPage] = useState(1);
   const [petCurrentPage, setPetCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [activeTab, setActiveTab] = useState<"general" | "pet">("general");
+  const [activeTab, setActiveTab] = useState<"general" | "pet">("pet");
   const [userAreaCode, setUserAreaCode] = useState<string>('');
   const [selectedPlace, setSelectedPlace] = useState<TourPlace | null>(null);
   const [bookmarkedPlaces, setBookmarkedPlaces] = useState<Set<string>>(new Set());
