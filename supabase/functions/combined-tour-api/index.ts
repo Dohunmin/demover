@@ -236,47 +236,62 @@ serve(async (req) => {
             const chunkPromise = Promise.all(chunk.map(async (keywordItem, index) => {
               const searchUrl = `https://apis.data.go.kr/B551011/KorService2/searchKeyword2?serviceKey=${encodeURIComponent(decodedApiKey)}&MobileOS=ETC&MobileApp=PetTravelApp&keyword=${encodeURIComponent(keywordItem)}&areaCode=${areaCode}&numOfRows=20&pageNo=1&_type=xml`;
               
-              try {
-                console.log(`🔍 [${i + index + 1}/${petFriendlyKeywords.length}] "${keywordItem}" 검색 중...`);
-                
-                const response = await fetch(searchUrl).catch(async (httpsError) => {
-                  console.log(`⚠️ HTTPS 실패, HTTP로 재시도: ${keywordItem}`);
-                  const httpUrl = searchUrl.replace('https://', 'http://');
-                  return await fetch(httpUrl);
-                });
-                
-                if (response.ok) {
-                  const responseText = await response.text();
-                  const parsedData = parseXmlToJson(responseText);
+              // 재시도 로직 (최대 3번 시도)
+              for (let attempt = 1; attempt <= 3; attempt++) {
+                try {
+                  console.log(`🔍 [${i + index + 1}/${petFriendlyKeywords.length}] "${keywordItem}" 검색 중... (시도 ${attempt}/3)`);
                   
-                  if (parsedData?.response?.body?.items?.item) {
-                    const items = Array.isArray(parsedData.response.body.items.item) 
-                      ? parsedData.response.body.items.item 
-                      : [parsedData.response.body.items.item];
+                  const response = await fetch(searchUrl).catch(async (httpsError) => {
+                    if (attempt === 1) {
+                      console.log(`⚠️ HTTPS 실패, HTTP로 재시도: ${keywordItem}`);
+                    }
+                    const httpUrl = searchUrl.replace('https://', 'http://');
+                    return await fetch(httpUrl);
+                  });
+                  
+                  if (response.ok) {
+                    const responseText = await response.text();
+                    const parsedData = parseXmlToJson(responseText);
                     
-                    const mappedItems = items.map(item => ({
-                      ...item,
-                      searchKeyword: keywordItem
-                    }));
-                    
-                    console.log(`✅ "${keywordItem}": ${mappedItems.length}개 결과 찾음`);
-                    successCount++;
-                    return mappedItems;
-                   } else {
-                     console.log(`📭 "${keywordItem}": 검색 결과 없음`);
-                     successCount++;
-                     return [];
-                   }
-                } else {
-                  console.log(`❌ "${keywordItem}": HTTP ${response.status} 오류`);
-                  errorCount++;
-                  return [];
+                    if (parsedData?.response?.body?.items?.item) {
+                      const items = Array.isArray(parsedData.response.body.items.item) 
+                        ? parsedData.response.body.items.item 
+                        : [parsedData.response.body.items.item];
+                      
+                      const mappedItems = items.map(item => ({
+                        ...item,
+                        searchKeyword: keywordItem
+                      }));
+                      
+                      console.log(`✅ "${keywordItem}": ${mappedItems.length}개 결과 찾음 (시도 ${attempt}번째 성공)`);
+                      successCount++;
+                      return mappedItems;
+                    } else {
+                      console.log(`📭 "${keywordItem}": 검색 결과 없음 (시도 ${attempt}번째)`);
+                      if (attempt === 3) {
+                        successCount++;
+                        return [];
+                      }
+                    }
+                  } else {
+                    console.log(`❌ "${keywordItem}": HTTP ${response.status} 오류 (시도 ${attempt}/3)`);
+                    if (attempt === 3) {
+                      errorCount++;
+                      return [];
+                    }
+                  }
+                } catch (error) {
+                  console.log(`💥 "${keywordItem}" 검색 실패 (시도 ${attempt}/3): ${error.message}`);
+                  if (attempt === 3) {
+                    errorCount++;
+                    return [];
+                  }
+                  // 재시도 전 잠시 대기
+                  await new Promise(resolve => setTimeout(resolve, 1000));
                 }
-              } catch (error) {
-                console.log(`💥 "${keywordItem}" 검색 실패: ${error.message}`);
-                errorCount++;
-                return [];
               }
+              
+              return []; // 모든 시도 실패 시 빈 배열 반환
             }));
             
             promises.push(chunkPromise);
@@ -306,18 +321,38 @@ serve(async (req) => {
            console.log(`   - 총 키워드: ${petFriendlyKeywords.length}개`);
            console.log(`   - 성공: ${successCount}개`);
            console.log(`   - 실패: ${errorCount}개`);
-           console.log(`   - 결과 없음: ${successCount - Math.floor(allResults.length / petFriendlyKeywords.length * successCount)}개`);
            console.log(`   - 총 검색 결과: ${allResults.length}개`);
            console.log(`   - 소요 시간: ${totalTime}초`);
            
            // 결과가 있는 키워드들만 따로 카운트
            const keywordsWithResults = new Set();
+           const keywordsWithoutResults = [];
            allResults.forEach(item => {
              if (item.searchKeyword) {
                keywordsWithResults.add(item.searchKeyword);
              }
            });
+           
+           // 결과 없는 키워드 찾기
+           petFriendlyKeywords.forEach(keyword => {
+             if (!keywordsWithResults.has(keyword)) {
+               keywordsWithoutResults.push(keyword);
+             }
+           });
+           
            console.log(`   - 결과를 반환한 키워드: ${keywordsWithResults.size}개`);
+           if (keywordsWithoutResults.length > 0) {
+             console.log(`   - 결과 없는 키워드: ${keywordsWithoutResults.length}개`);
+             console.log(`     >> ${keywordsWithoutResults.slice(0, 5).join(', ')}${keywordsWithoutResults.length > 5 ? ' 등...' : ''}`);
+           }
+           
+           // 검색 성공률 체크
+           const successRate = ((successCount / petFriendlyKeywords.length) * 100).toFixed(1);
+           console.log(`   - 검색 성공률: ${successRate}%`);
+           
+           if (successRate < 90) {
+             console.log(`⚠️ 경고: 검색 성공률이 90% 미만입니다. API 응답이 불안정할 수 있습니다.`);
+           }
            
            // 중복 제거 (contentid 기준)
            console.log('🔄 중복 데이터 제거 중...');
