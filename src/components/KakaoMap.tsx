@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, MapPin, Navigation, Search, Phone, ExternalLink, PawPrint, TreePine, UtensilsCrossed, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, MapPin, Navigation, Search, Phone, ExternalLink, PawPrint, TreePine, UtensilsCrossed, ShoppingBag, Dumbbell, Building2, Utensils, Church, Bed, Store, Coffee, Mountain, Anchor, Waves, Stethoscope } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import CategoryGrid from '@/components/CategoryGrid';
@@ -63,8 +63,20 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
   const categories = [
     { id: 'all', label: '전체', icon: MapPin },
     { id: 'park', label: '공원', icon: TreePine },
-    { id: 'restaurant', label: '음식점', icon: UtensilsCrossed },
+    { id: 'leisure', label: '레저', icon: Dumbbell },
+    { id: 'culture', label: '문화시설', icon: Building2 },
+    { id: 'brunch', label: '브런치', icon: Utensils },
+    { id: 'temple', label: '사찰', icon: Church },
     { id: 'shopping', label: '쇼핑', icon: ShoppingBag },
+    { id: 'accommodation', label: '숙소', icon: Bed },
+    { id: 'restaurant', label: '식당', icon: UtensilsCrossed },
+    { id: 'market', label: '재래시장', icon: Store },
+    { id: 'cafe', label: '카페', icon: Coffee },
+    { id: 'theme-street', label: '테마거리', icon: MapPin },
+    { id: 'trekking', label: '트레킹', icon: Mountain },
+    { id: 'port', label: '항구', icon: Anchor },
+    { id: 'beach', label: '해수욕장', icon: Waves },
+    { id: 'hospital', label: '동물병원', icon: Stethoscope },
   ];
 
   const handleCategorySelect = (categoryId: string) => {
@@ -1220,14 +1232,14 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           
           {/* 반려동물 탭인 경우 카테고리 탭 표시 */}
           {showPetFilter && (
-            <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
+            <div className="mt-4 flex gap-1 overflow-x-auto pb-2 scrollbar-hide">
               {categories.map(({ id, label, icon: Icon }) => (
                 <Button
                   key={id}
                   variant={selectedCategory === id ? "default" : "outline"}
                   size="sm"
                   onClick={() => handleCategorySelect(id)}
-                  className="flex items-center gap-1 whitespace-nowrap text-xs px-3 py-1.5"
+                  className="flex items-center gap-1 whitespace-nowrap text-xs px-2 py-1 flex-shrink-0"
                 >
                   <Icon className="w-3 h-3" />
                   {label}
