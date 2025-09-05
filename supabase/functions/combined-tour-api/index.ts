@@ -83,7 +83,7 @@ function parseXmlToJson(xmlText: string) {
   }
 }
 
-// 반려동물 동반 가능한 키워드 목록 (원본 95개 유지)
+// 반려동물 동반 가능한 키워드 목록
 const petFriendlyKeywords = [
   '롯데프리미엄아울렛 동부산점', '몽작', '부산시민공원', '센텀 APEC나루공원', '신호공원', '오르디', '온천천시민공원', '칠암만장',
   '카페 만디', '포레스트3002', '홍법사(부산)', '감나무집', '광안리해변 테마거리', '광안리해수욕장', '구덕포끝집고기',
@@ -214,8 +214,8 @@ serve(async (req) => {
           const allResults = [];
           let totalSearched = 0;
           
-          // 키워드를 20개씩 청크로 나누어 병렬 처리 (딜레이 없이 빠른 처리)
-          const chunkSize = 20;
+          // 키워드를 10개씩 청크로 나누어 병렬 처리 (속도 개선)
+          const chunkSize = 10;
           const promises = [];
           
           for (let i = 0; i < petFriendlyKeywords.length; i += chunkSize) {
@@ -260,7 +260,10 @@ serve(async (req) => {
             
             promises.push(chunkPromise);
             
-            // 딜레이 제거 - 모든 청크를 즉시 실행
+            // 청크 간 500ms 딜레이 (API 한도 고려하되 속도 개선)
+            if (i + chunkSize < petFriendlyKeywords.length) {
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
           }
           
           // 모든 청크 완료까지 대기
