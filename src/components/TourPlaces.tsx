@@ -76,6 +76,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
   const [bookmarkedPlaces, setBookmarkedPlaces] = useState<Set<string>>(new Set());
   const [selectedPlaceForReview, setSelectedPlaceForReview] = useState<any>(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [placeReviews, setPlaceReviews] = useState<Record<string, {averageRating: number, totalReviews: number}>>({});
   
   // 반려동물 키워드 검색 결과 캐시
   const [allPetPlacesCache, setAllPetPlacesCache] = useState<any[]>([]);
@@ -558,30 +559,39 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
   const renderTourPlace = (place: any, index: number) => {
     const contentId = place.contentid || place.contentId;
     const isBookmarked = bookmarkedPlaces.has(contentId);
+    const reviewStats = placeReviews[contentId];
     
     const handlePlaceClick = (e: React.MouseEvent) => {
-      // 즐겨찾기 버튼 클릭 시 모달이 열리지 않도록 방지
-      if ((e.target as HTMLElement).closest('.bookmark-button')) {
+      // 버튼 클릭 시 모달이 열리지 않도록 방지
+      if ((e.target as HTMLElement).closest('button')) {
         return;
       }
       
       // 평점/후기 모달 열기
       setSelectedPlaceForReview({
-        contentid: place.contentid || place.contentId,
+        contentid: contentId,
         title: place.title
       });
       setIsReviewModalOpen(true);
     };
 
+    const handleReviewUpdate = (stats: {averageRating: number, totalReviews: number}) => {
+      setPlaceReviews(prev => ({
+        ...prev,
+        [contentId]: stats
+      }));
+    };
+
     return (
       <Card 
-        key={place.contentid || place.contentId || index} 
-        className="p-4 shadow-sm border-0 bg-white rounded-2xl hover:shadow-md transition-shadow cursor-pointer"
+        key={contentId || index} 
+        className="overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer bg-white border border-gray-100"
         onClick={handlePlaceClick}
       >
-        <div className="flex gap-4">
-          {(place.firstimage || place.image) && (
-            <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+        <div className="flex">
+          {/* 이미지 영역 */}
+          <div className="w-24 h-24 flex-shrink-0 bg-gray-100 relative">
+            {(place.firstimage || place.image) ? (
               <img 
                 src={place.firstimage || place.image} 
                 alt={place.title}
@@ -589,63 +599,95 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.style.display = 'none';
+                  target.parentElement!.innerHTML = '<div class="w-full h-full bg-gray-100 flex items-center justify-center"><svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path></svg></div>';
                 }}
               />
+            ) : (
+              <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                <MapPin className="w-8 h-8 text-gray-400" />
+              </div>
+            )}
+          </div>
+          
+          {/* 콘텐츠 영역 */}
+          <div className="flex-1 p-4 min-w-0">
+            <div className="flex justify-between items-start mb-2">
+              <h4 className="font-semibold text-gray-900 text-sm leading-tight line-clamp-1 pr-2">
+                {place.title}
+              </h4>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`bookmark-button flex-shrink-0 p-1 ${isBookmarked ? 'text-red-500 hover:text-red-600' : 'text-gray-400 hover:text-red-500'}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleBookmark(place, activeTab);
+                }}
+              >
+                <Heart className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
+              </Button>
             </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <h4 className="font-semibold text-gray-900 mb-1 line-clamp-1">
-              {place.title}
-            </h4>
+
+            {/* 평점 정보 */}
+            {reviewStats && reviewStats.totalReviews > 0 && (
+              <div className="flex items-center gap-1 mb-2">
+                <div className="flex">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`w-3 h-3 ${
+                        star <= reviewStats.averageRating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="text-xs text-gray-600">
+                  {reviewStats.averageRating}점 ({reviewStats.totalReviews}개)
+                </span>
+              </div>
+            )}
+            
+            {/* 주소 */}
             {place.addr1 && (
               <div className="flex items-start gap-1 mb-2">
                 <MapPin className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
-                <p className="text-xs text-gray-600 line-clamp-2">
+                <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
                   {place.addr1} {place.addr2}
                 </p>
               </div>
             )}
+            
+            {/* 전화번호 */}
             {place.tel && (
-              <div className="flex items-center gap-1 mb-2">
+              <div className="flex items-center gap-1 mb-3">
                 <Phone className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-gray-600 truncate">
                   {place.tel}
                 </p>
               </div>
             )}
+            
+            {/* 하단 영역 */}
             <div className="flex items-center justify-between">
-              <Badge variant="secondary" className="text-xs">
+              <Badge variant="secondary" className="text-xs px-2 py-1">
                 {activeTab === "pet" ? "반려동물 동반" : "일반 관광지"}
               </Badge>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-xs px-2 py-1 h-auto"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedPlaceForReview({
-                      contentid: place.contentid || place.contentId,
-                      title: place.title
-                    });
-                    setIsReviewModalOpen(true);
-                  }}
-                >
-                  <Star className="w-3 h-3 mr-1" />
-                  평점
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={`bookmark-button p-2 ${isBookmarked ? 'text-red-500 hover:text-red-600' : 'text-gray-400 hover:text-red-500'}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleBookmark(place, activeTab);
-                  }}
-                >
-                  <Heart className={`w-4 h-4 ${isBookmarked ? 'fill-current' : ''}`} />
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs px-3 py-1 h-auto"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedPlaceForReview({
+                    contentid: contentId,
+                    title: place.title
+                  });
+                  setIsReviewModalOpen(true);
+                }}
+              >
+                <Star className="w-3 h-3 mr-1" />
+                평점
+              </Button>
             </div>
           </div>
         </div>
@@ -887,6 +929,12 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
           onClose={() => {
             setIsReviewModalOpen(false);
             setSelectedPlaceForReview(null);
+          }}
+          onReviewUpdate={(stats) => {
+            setPlaceReviews(prev => ({
+              ...prev,
+              [selectedPlaceForReview.contentid]: stats
+            }));
           }}
           place={{
             contentid: selectedPlaceForReview.contentid,

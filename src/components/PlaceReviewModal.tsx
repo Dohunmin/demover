@@ -15,16 +15,22 @@ interface Review {
   created_at: string;
 }
 
+interface ReviewStats {
+  averageRating: number;
+  totalReviews: number;
+}
+
 interface PlaceReviewModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onReviewUpdate?: (stats: ReviewStats) => void;
   place: {
     contentid: string;
     title: string;
   };
 }
 
-const PlaceReviewModal: React.FC<PlaceReviewModalProps> = ({ isOpen, onClose, place }) => {
+const PlaceReviewModal: React.FC<PlaceReviewModalProps> = ({ isOpen, onClose, onReviewUpdate, place }) => {
   const { user } = useAuth();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [userReview, setUserReview] = useState<Review | null>(null);
@@ -55,9 +61,24 @@ const PlaceReviewModal: React.FC<PlaceReviewModalProps> = ({ isOpen, onClose, pl
       // 평균 평점 계산
       if (allReviews && allReviews.length > 0) {
         const avg = allReviews.reduce((sum, review) => sum + review.rating, 0) / allReviews.length;
-        setAverageRating(Math.round(avg * 10) / 10);
+        const avgRating = Math.round(avg * 10) / 10;
+        setAverageRating(avgRating);
+        
+        // 부모 컴포넌트에 평점 정보 전달
+        if (onReviewUpdate) {
+          onReviewUpdate({
+            averageRating: avgRating,
+            totalReviews: allReviews.length
+          });
+        }
       } else {
         setAverageRating(0);
+        if (onReviewUpdate) {
+          onReviewUpdate({
+            averageRating: 0,
+            totalReviews: 0
+          });
+        }
       }
 
       // 현재 사용자의 리뷰 확인

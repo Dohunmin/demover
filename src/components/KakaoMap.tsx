@@ -1076,6 +1076,9 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
             setIsReviewModalOpen(false);
             setSelectedPlaceForReview(null);
           }}
+          onReviewUpdate={() => {
+            // 평점 업데이트 시 필요하면 추가 로직 구현
+          }}
           place={{
             contentid: selectedPlaceForReview.contentid || selectedPlaceForReview.id,
             title: selectedPlaceForReview.title || selectedPlaceForReview.place_name
