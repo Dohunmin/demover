@@ -685,54 +685,37 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     }
   }, [isPetDataLoaded]);
 
-  // 공원 마커만 필터링해서 표시 (정확히 17개 공원만)
-  const filterParkMarkers = useCallback(() => {
-    if (!allPetData.length) return;
-
-    console.log('=== 공원 필터 적용 ===');
+  // 반려동물 여행지 상세 정보 표시
+  const showPetTourismDetail = useCallback((marker: any, place: any) => {
+    const content = `
+      <div style="padding: 15px; min-width: 250px; max-width: 300px; font-family: 'Malgun Gothic', sans-serif;">
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+          <span style="font-size: 20px; margin-right: 8px;">🐕</span>
+          <div style="font-weight: bold; font-size: 14px; color: #DC2626;">${place.title}</div>
+        </div>
+        <div style="font-size: 12px; color: #666; margin-bottom: 3px; background: #FFE5E5; padding: 2px 6px; border-radius: 10px; display: inline-block;">반려동물 동반 여행지</div>
+        <div style="font-size: 11px; color: #888; margin-bottom: 3px; line-height: 1.4;">${place.addr1 || ''}</div>
+        ${place.tel ? `<div style="font-size: 11px; color: #888; margin-bottom: 8px;"><span style="color: #FF6B6B;">📞</span> ${place.tel}</div>` : ''}
+        ${place.firstimage ? `<div style="margin-bottom: 8px;"><img src="${place.firstimage}" alt="${place.title}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 6px;"/></div>` : ''}
+        <div style="font-size: 10px; color: #999; margin-top: 8px; line-height: 1.3;">※ 반려동물 동반 가능 여부는 현장 확인 필요</div>
+      </div>
+    `;
     
-    // 기존 마커들 제거
-    petTourismMarkers.forEach(marker => marker.setMap(null));
-    
-    // 정확히 17개 공원 키워드에 해당하는 데이터만 필터링
-    const parkPlaces = allPetData.filter(place => 
-      parkKeywords.some(keyword => 
-        place.title?.trim() === keyword.trim()
-      )
-    );
-    
-    console.log(`${parkPlaces.length}개의 공원 마커를 표시합니다.`);
-    console.log('공원 목록:', parkPlaces.map(p => p.title));
-    
-    // 공원 마커만 생성 (다른 데이터 추가 없이)
-    createPetTourismMarkers(parkPlaces);
-    
-    toast.success(`공원 ${parkPlaces.length}개를 지도에 표시했습니다.`);
-  }, [allPetData, petTourismMarkers, parkKeywords]);
-
-  // 전체 펫 마커 표시 (순수 반려동물 여행지만)
-  const showAllPetMarkers = useCallback(() => {
-    if (!allPetData.length) return;
-
-    console.log('=== 전체 반려동물 마커 표시 ===');
-    
-    // 기존 마커들 제거
-    petTourismMarkers.forEach(marker => marker.setMap(null));
-    
-    // 전체 데이터로 마커 재생성 (추가 데이터 없이 순수 반려동물 여행지만)
-    createPetTourismMarkers(allPetData);
-    
-    toast.success(`전체 반려동물 여행지 ${allPetData.length}개를 지도에 표시했습니다.`);
-  }, [allPetData, petTourismMarkers]);
+    infoWindow.current.setContent(content);
+    infoWindow.current.open(mapInstance.current, marker);
+  }, []);
 
   // 반려동물 여행지 마커 생성
   const createPetTourismMarkers = useCallback((petPlaces: any[]) => {
     if (!mapInstance.current || !window.kakao) return;
 
-    // 기존 반려동물 마커들 제거
+    // 기존 반려동물 마커들 완전히 제거
     petTourismMarkers.forEach(marker => {
       marker.setMap(null);
     });
+    
+    // 상태 초기화
+    setPetTourismMarkers([]);
 
     const newPetMarkers: any[] = [];
 
@@ -782,27 +765,49 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
     setPetTourismMarkers(newPetMarkers);
     console.log(`${newPetMarkers.length}개의 반려동물 여행지 마커를 생성했습니다.`);
-  }, [petTourismMarkers]);
+  }, [showPetTourismDetail]);
 
-  // 반려동물 여행지 상세 정보 표시
-  const showPetTourismDetail = useCallback((marker: any, place: any) => {
-    const content = `
-      <div style="padding: 15px; min-width: 250px; max-width: 300px; font-family: 'Malgun Gothic', sans-serif;">
-        <div style="display: flex; align-items: center; margin-bottom: 8px;">
-          <span style="font-size: 20px; margin-right: 8px;">🐕</span>
-          <div style="font-weight: bold; font-size: 14px; color: #DC2626;">${place.title}</div>
-        </div>
-        <div style="font-size: 12px; color: #666; margin-bottom: 3px; background: #FFE5E5; padding: 2px 6px; border-radius: 10px; display: inline-block;">반려동물 동반 여행지</div>
-        <div style="font-size: 11px; color: #888; margin-bottom: 3px; line-height: 1.4;">${place.addr1 || ''}</div>
-        ${place.tel ? `<div style="font-size: 11px; color: #888; margin-bottom: 8px;"><span style="color: #FF6B6B;">📞</span> ${place.tel}</div>` : ''}
-        ${place.firstimage ? `<div style="margin-bottom: 8px;"><img src="${place.firstimage}" alt="${place.title}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 6px;"/></div>` : ''}
-        <div style="font-size: 10px; color: #999; margin-top: 8px; line-height: 1.3;">※ 반려동물 동반 가능 여부는 현장 확인 필요</div>
-      </div>
-    `;
+  // 공원 마커만 필터링해서 표시 (정확히 17개 공원만)
+  const filterParkMarkers = useCallback(() => {
+    if (!allPetData.length) return;
+
+    console.log('=== 공원 필터 적용 ===');
     
-    infoWindow.current.setContent(content);
-    infoWindow.current.open(mapInstance.current, marker);
-  }, []);
+    // 모든 기존 마커들 완전히 제거
+    petTourismMarkers.forEach(marker => marker.setMap(null));
+    setPetTourismMarkers([]);
+    
+    // 정확히 17개 공원 키워드에 해당하는 데이터만 필터링
+    const parkPlaces = allPetData.filter(place => 
+      parkKeywords.some(keyword => 
+        place.title?.trim() === keyword.trim()
+      )
+    );
+    
+    console.log(`${parkPlaces.length}개의 공원 마커를 표시합니다.`);
+    console.log('공원 목록:', parkPlaces.map(p => p.title));
+    
+    // 공원 마커만 생성 (다른 데이터 추가 없이)
+    createPetTourismMarkers(parkPlaces);
+    
+    toast.success(`공원 ${parkPlaces.length}개를 지도에 표시했습니다.`);
+  }, [allPetData, petTourismMarkers, parkKeywords, createPetTourismMarkers]);
+
+  // 전체 펫 마커 표시 (순수 반려동물 여행지만)
+  const showAllPetMarkers = useCallback(() => {
+    if (!allPetData.length) return;
+
+    console.log('=== 전체 반려동물 마커 표시 ===');
+    
+    // 모든 기존 마커들 완전히 제거
+    petTourismMarkers.forEach(marker => marker.setMap(null));
+    setPetTourismMarkers([]);
+    
+    // 전체 데이터로 마커 재생성 (추가 데이터 없이 순수 반려동물 여행지만)
+    createPetTourismMarkers(allPetData);
+    
+    toast.success(`전체 반려동물 여행지 ${allPetData.length}개를 지도에 표시했습니다.`);
+  }, [allPetData, petTourismMarkers, createPetTourismMarkers]);
   const convertTourismDataToPlace = useCallback((item: any, source: 'tourism' | 'pet_tourism'): Place => {
     return {
       id: `${source}_${item.contentid || Math.random()}`,
