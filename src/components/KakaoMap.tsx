@@ -633,7 +633,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     infoWindow.current.open(mapInstance.current, marker);
   }, []);
 
-  // 반려동물 여행지 마커 로드
+  // 반려동물 여행지 마커 로드 (정확히 101개만)
   const loadPetTourismMarkers = useCallback(async () => {
     if (!mapInstance.current || isPetDataLoaded) return;
 
@@ -665,30 +665,27 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       if (petPlaces && petPlaces.length > 0) {
         console.log(`${petPlaces.length}개의 반려동물 여행지 데이터를 받았습니다.`);
         
-        // 전체 데이터 저장
+        // 전체 데이터 저장 (정확히 101개 유지)
         setAllPetData(petPlaces);
         
-        // 마커 생성
+        // 마커 생성 (추가 데이터 없이 순수 반려동물 여행지만)
         createPetTourismMarkers(petPlaces);
         setIsPetDataLoaded(true);
-        
-        // 일반 관광지 중 반려동물 동반 가능한 곳들도 로드
-        loadGeneralTourismAsPet();
         
         toast.success(`반려동물 동반 여행지 ${petPlaces.length}개를 지도에 표시했습니다.`);
       } else {
         console.warn('반려동물 여행지 데이터가 없습니다.');
         toast.warning('반려동물 여행지를 찾을 수 없습니다.');
-        setIsPetDataLoaded(true); // 실패해도 재시도 방지
+        setIsPetDataLoaded(true);
       }
     } catch (error) {
       console.error('반려동물 여행지 로딩 실패:', error);
       toast.error('반려동물 여행지 로딩에 실패했습니다.');
-      setIsPetDataLoaded(true); // 실패해도 재시도 방지
+      setIsPetDataLoaded(true);
     }
   }, [isPetDataLoaded]);
 
-  // 공원 마커만 필터링해서 표시
+  // 공원 마커만 필터링해서 표시 (정확히 17개 공원만)
   const filterParkMarkers = useCallback(() => {
     if (!allPetData.length) return;
 
@@ -696,9 +693,8 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     
     // 기존 마커들 제거
     petTourismMarkers.forEach(marker => marker.setMap(null));
-    generalAsPetMarkers.forEach(marker => marker.setMap(null));
     
-    // 공원 키워드에 해당하는 데이터만 필터링
+    // 정확히 17개 공원 키워드에 해당하는 데이터만 필터링
     const parkPlaces = allPetData.filter(place => 
       parkKeywords.some(keyword => 
         place.title?.trim() === keyword.trim()
@@ -708,13 +704,13 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     console.log(`${parkPlaces.length}개의 공원 마커를 표시합니다.`);
     console.log('공원 목록:', parkPlaces.map(p => p.title));
     
-    // 공원 마커만 생성
+    // 공원 마커만 생성 (다른 데이터 추가 없이)
     createPetTourismMarkers(parkPlaces);
     
-    toast.success(`${parkKeywords.length}개 공원을 지도에 표시했습니다.`);
-  }, [allPetData, petTourismMarkers, generalAsPetMarkers, parkKeywords]);
+    toast.success(`공원 ${parkPlaces.length}개를 지도에 표시했습니다.`);
+  }, [allPetData, petTourismMarkers, parkKeywords]);
 
-  // 전체 펫 마커 표시
+  // 전체 펫 마커 표시 (순수 반려동물 여행지만)
   const showAllPetMarkers = useCallback(() => {
     if (!allPetData.length) return;
 
@@ -723,13 +719,10 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     // 기존 마커들 제거
     petTourismMarkers.forEach(marker => marker.setMap(null));
     
-    // 전체 데이터로 마커 재생성
+    // 전체 데이터로 마커 재생성 (추가 데이터 없이 순수 반려동물 여행지만)
     createPetTourismMarkers(allPetData);
     
-    // 일반 관광지 마커도 다시 표시
-    loadGeneralTourismAsPet();
-    
-    toast.success('전체 반려동물 여행지를 지도에 표시했습니다.');
+    toast.success(`전체 반려동물 여행지 ${allPetData.length}개를 지도에 표시했습니다.`);
   }, [allPetData, petTourismMarkers]);
 
   // 반려동물 여행지 마커 생성
@@ -754,19 +747,19 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       const imageSize = new window.kakao.maps.Size(30, 30);
       const imageOption = { offset: new window.kakao.maps.Point(15, 30) };
       
-      // 강아지 아이콘 이미지 (SVG를 base64로 인코딩)
-      const dogIconSvg = `data:image/svg+xml;base64,${btoa(`
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FF6B6B" width="30" height="30">
-          <circle cx="12" cy="12" r="10" fill="#FFE5E5" stroke="#FF6B6B" stroke-width="2"/>
-          <path d="M8 10c0-1.1.9-2 2-2s2 .9 2 2-2 3-2 3-2-1.9-2-3zm6 0c0-1.1.9-2 2-2s2 .9 2 2-2 3-2 3-2-1.9-2-3z" fill="#FF6B6B"/>
-          <circle cx="10" cy="10" r="1.5" fill="#333"/>
-          <circle cx="14" cy="10" r="1.5" fill="#333"/>
-          <path d="M12 13c-1 0-2 .5-2 1s1 1 2 1 2-.5 2-1-.5-1-2-1z" fill="#333"/>
+      // 빨간 마커 아이콘 (SVG를 base64로 인코딩)
+      const redMarkerSvg = `data:image/svg+xml;base64,${btoa(`
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#DC2626" width="30" height="30">
+          <circle cx="12" cy="12" r="10" fill="#DC2626" stroke="#FFFFFF" stroke-width="2"/>
+          <path d="M8 10c0-1.1.9-2 2-2s2 .9 2 2-2 3-2 3-2-1.9-2-3zm6 0c0-1.1.9-2 2-2s2 .9 2 2-2 3-2 3-2-1.9-2-3z" fill="#FFFFFF"/>
+          <circle cx="10" cy="10" r="1.5" fill="#000"/>
+          <circle cx="14" cy="10" r="1.5" fill="#000"/>
+          <path d="M12 13c-1 0-2 .5-2 1s1 1 2 1 2-.5 2-1-.5-1-2-1z" fill="#000"/>
         </svg>
       `)}`;
       
       const markerImage = new window.kakao.maps.MarkerImage(
-        dogIconSvg,
+        redMarkerSvg,
         imageSize,
         imageOption
       );
@@ -797,7 +790,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       <div style="padding: 15px; min-width: 250px; max-width: 300px; font-family: 'Malgun Gothic', sans-serif;">
         <div style="display: flex; align-items: center; margin-bottom: 8px;">
           <span style="font-size: 20px; margin-right: 8px;">🐕</span>
-          <div style="font-weight: bold; font-size: 14px; color: #FF6B6B;">${place.title}</div>
+          <div style="font-weight: bold; font-size: 14px; color: #DC2626;">${place.title}</div>
         </div>
         <div style="font-size: 12px; color: #666; margin-bottom: 3px; background: #FFE5E5; padding: 2px 6px; border-radius: 10px; display: inline-block;">반려동물 동반 여행지</div>
         <div style="font-size: 11px; color: #888; margin-bottom: 3px; line-height: 1.4;">${place.addr1 || ''}</div>
