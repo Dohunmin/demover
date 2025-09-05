@@ -557,7 +557,6 @@ serve(async (req) => {
         console.error(petTourismError);
       }
       }
-      }
     }
 
     // 결과 확인 및 응답 구성
