@@ -396,7 +396,8 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         await new Promise<void>((resolve, reject) => {
           const timeout = setTimeout(() => {
             script.remove();
-            reject(new Error('스크립트 로드 타임아웃 (15초)'));
+            console.error('카카오 지도 로딩 타임아웃 - 도메인 등록을 확인하세요');
+            reject(new Error('카카오 지도 로딩 타임아웃'));
           }, 15000);
 
           script.onload = () => {
@@ -429,52 +430,9 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           script.onerror = (event) => {
             clearTimeout(timeout);
             script.remove();
-            console.error('스크립트 로드 오류:', event);
-            
-            // HTTP로 재시도
-            const retryScript = document.createElement('script');
-            retryScript.type = 'text/javascript';
-            retryScript.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JS_KEY}&autoload=false&libraries=services,clusterer`;
-            
-            const retryTimeout = setTimeout(() => {
-              retryScript.remove();
-              reject(new Error('재시도 스크립트 로드 타임아웃'));
-            }, 10000);
-            
-            retryScript.onload = () => {
-              clearTimeout(retryTimeout);
-              console.log('카카오 스크립트 재시도 성공');
-              
-              const checkKakaoRetry = () => {
-                if (window.kakao && window.kakao.maps) {
-                  console.log('카카오 지도 재시도 초기화 시작');
-                  try {
-                    window.kakao.maps.load(() => {
-                      if (isMounted) {
-                        initializeMap();
-                        setIsMapLoaded(true);
-                        resolve();
-                      }
-                    });
-                  } catch (error) {
-                    console.error('카카오 지도 재시도 초기화 오류:', error);
-                    reject(error);
-                  }
-                } else {
-                  setTimeout(checkKakaoRetry, 100);
-                }
-              };
-              
-              checkKakaoRetry();
-            };
-            
-            retryScript.onerror = () => {
-              clearTimeout(retryTimeout);
-              retryScript.remove();
-              reject(new Error('재시도 스크립트 로드 실패'));
-            };
-            
-            document.head.appendChild(retryScript);
+            console.error('카카오 지도 스크립트 로드 실패 - 카카오 개발자 콘솔에서 도메인 등록을 확인하세요:', window.location.origin);
+            toast.error('카카오 지도를 불러올 수 없습니다. 도메인 등록을 확인해주세요.');
+            reject(new Error('도메인 미등록으로 인한 카카오 지도 로드 실패'));
           };
 
           document.head.appendChild(script);
