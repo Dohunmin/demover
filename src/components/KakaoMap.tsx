@@ -68,6 +68,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
   const [generalAsPetMarkers, setGeneralAsPetMarkers] = useState<any[]>([]); // 일반 관광지를 반려동물 동반으로 표시하는 마커들
   const [showPetMarkers, setShowPetMarkers] = useState(true); // 반려동물 마커 표시 여부
   const [bookmarkMarkers, setBookmarkMarkers] = useState<any[]>([]); // 북마크 마커들
+  const [isPetDataLoaded, setIsPetDataLoaded] = useState(false); // 반려동물 데이터 로딩 상태
 
   // 반려동물 동반 가능한 일반 관광지 키워드 목록
   const petFriendlyKeywords = [
@@ -431,10 +432,10 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
   // 지도 초기화 후 반려동물 여행지 마커 로드 (한 번만 실행)
   useEffect(() => {
-    if (isMapLoaded) {
+    if (isMapLoaded && !isPetDataLoaded) {
       loadPetTourismMarkers();
     }
-  }, [isMapLoaded]);
+  }, [isMapLoaded, isPetDataLoaded]);
 
   // 북마크 마커는 별도로 관리 (북마크가 변경될 때만 업데이트)
   useEffect(() => {
@@ -610,12 +611,17 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         
         createPetTourismMarkers(petPlaces);
         toast.success(`${petPlaces.length}개의 반려동물 동반 여행지를 지도에 표시했습니다.`);
+        
+        // 데이터 로딩 완료 표시
+        setIsPetDataLoaded(true);
       } else {
         console.log('반려동물 여행지 데이터가 없습니다.');
+        setIsPetDataLoaded(true); // 데이터가 없어도 로딩 완료로 표시
       }
     } catch (error) {
       console.error('반려동물 여행지 로드 오류:', error);
       toast.error('반려동물 여행지 로드에 실패했습니다.');
+      setIsPetDataLoaded(true); // 오류가 발생해도 재시도 방지
     }
   }, []);
 
