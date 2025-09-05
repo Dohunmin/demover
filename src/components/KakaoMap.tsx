@@ -168,185 +168,95 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     'The Park Guest House'
   ];
 
-  // 카카오 지도 SDK 로드 (더 안정적인 로직)
+  // 카카오 지도 SDK 로드 (간소화된 안정적인 로직)
   useEffect(() => {
     let isMounted = true;
-    let retryCount = 0;
-    const maxRetries = 3;
-    let retryTimeout: NodeJS.Timeout;
-    let loadTimeout: NodeJS.Timeout;
-
+    
     const loadKakaoMap = async () => {
-      if (!isMounted) return;
-      
       try {
-        // Supabase에서 카카오 JavaScript 키 가져오기
+        // 이미 로드되어 있는 경우 바로 초기화
+        if (window.kakao && window.kakao.maps) {
+          console.log('카카오 지도가 이미 로드되어 있습니다.');
+          window.kakao.maps.load(() => {
+            if (isMounted) {
+              initializeMap();
+              setIsMapLoaded(true);
+            }
+          });
+          return;
+        }
+
+        // API 키 가져오기
+        console.log('카카오 API 키 가져오는 중...');
         const { data, error } = await supabase.functions.invoke('test-api-key');
         
         if (error || !data?.kakaoJsKey) {
-          console.error('카카오 JS API 키를 가져올 수 없습니다:', error);
-          if (isMounted) {
-            toast.error('카카오 지도 API 키를 가져올 수 없습니다.');
-          }
+          console.error('카카오 API 키 조회 실패:', error);
+          toast.error('카카오 지도 API 키를 가져올 수 없습니다.');
           return;
         }
 
         const KAKAO_JS_KEY = data.kakaoJsKey;
-        console.log('카카오 지도 로드 시작... (시도:', retryCount + 1, '/', maxRetries, ')');
-        console.log('사용할 카카오 API 키 (앞 10자리):', KAKAO_JS_KEY?.substring(0, 10) + '...');
+        console.log('카카오 지도 스크립트 로딩 시작...');
         
-        // 이미 로드된 경우 바로 초기화
-        if (window.kakao && window.kakao.maps && window.kakao.maps.LatLng && typeof window.kakao.maps.load === 'function') {
-          console.log('카카오 지도 이미 로드됨');
-          if (isMounted) {
-            window.kakao.maps.load(() => {
-              if (isMounted) {
-                initializeMap();
-                setIsMapLoaded(true);
-              }
-            });
-          }
-          return;
+        // 기존 스크립트 제거
+        const existingScript = document.querySelector('script[src*="dapi.kakao.com"]');
+        if (existingScript) {
+          existingScript.remove();
+          console.log('기존 카카오 스크립트 제거됨');
         }
 
-        // 로딩 중인 스크립트가 있는지 확인
-        const existingScript = document.querySelector('script[src*="dapi.kakao.com"]');
-        if (existingScript && !window.kakao) {
-          console.log('기존 스크립트 로딩 중... 기다립니다.');
-          // 기존 스크립트 로딩 완료를 기다림
-          let waitCount = 0;
-          const checkInterval = setInterval(() => {
-            waitCount++;
-            if (window.kakao && window.kakao.maps) {
-              clearInterval(checkInterval);
-              if (isMounted) {
+        // window.kakao 정리
+        if (window.kakao) {
+          delete window.kakao;
+        }
+
+        // 새 스크립트 로드
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JS_KEY}&autoload=false&libraries=services,clusterer`;
+        
+        await new Promise<void>((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error('스크립트 로드 타임아웃 (10초)'));
+          }, 10000);
+
+          script.onload = () => {
+            clearTimeout(timeout);
+            console.log('카카오 스크립트 로드 성공');
+            
+            // kakao 객체가 준비될 때까지 대기
+            const checkKakao = () => {
+              if (window.kakao && window.kakao.maps) {
+                console.log('카카오 지도 초기화 시작');
                 window.kakao.maps.load(() => {
                   if (isMounted) {
                     initializeMap();
                     setIsMapLoaded(true);
+                    resolve();
                   }
                 });
-              }
-            } else if (waitCount > 20) { // 10초 대기 후 포기
-              clearInterval(checkInterval);
-              console.log('기존 스크립트 로딩이 완료되지 않아 새로 로드합니다.');
-              loadNewScript();
-            }
-          }, 500);
-          return;
-        }
-
-        loadNewScript();
-
-        function loadNewScript() {
-          if (!isMounted) return;
-          
-          // 기존 스크립트들 완전 제거
-          const allScripts = document.querySelectorAll('script[src*="dapi.kakao.com"]');
-          allScripts.forEach(script => {
-            script.remove();
-            console.log('기존 스크립트 제거됨:', (script as HTMLScriptElement).src);
-          });
-
-          // window.kakao 객체 정리
-          if (window.kakao) {
-            delete window.kakao;
-            console.log('기존 window.kakao 객체 제거됨');
-          }
-
-          // 카카오 지도 SDK 직접 로드
-          console.log('카카오 지도 SDK 새로 로드 시작');
-          
-          const script = document.createElement('script');
-          script.type = 'text/javascript';
-          script.async = true;
-          script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JS_KEY}&autoload=false&libraries=services,clusterer`;
-          
-          let scriptLoaded = false;
-          
-          const onScriptLoad = () => {
-            if (!isMounted) return;
-            console.log('카카오 SDK 스크립트 로드 성공');
-            scriptLoaded = true;
-            
-            // kakao 객체 초기화 대기 (더 관대한 타이밍)
-            const initKakao = () => {
-              if (!isMounted) return;
-              
-              if (window.kakao && window.kakao.maps && typeof window.kakao.maps.load === 'function') {
-                try {
-                  window.kakao.maps.load(() => {
-                    if (isMounted) {
-                      console.log('카카오 지도 API 초기화 완료');
-                      initializeMap();
-                      setIsMapLoaded(true);
-                      retryCount = 0;
-                    }
-                  });
-                } catch (error) {
-                  console.error('카카오 지도 초기화 중 오류:', error);
-                  handleLoadError('지도 초기화 오류');
-                }
               } else {
-                console.error('window.kakao.maps 객체가 생성되지 않음');
-                handleLoadError('카카오 지도 객체 초기화 실패');
+                setTimeout(checkKakao, 100);
               }
             };
+            
+            checkKakao();
+          };
 
-            // 여러 번 시도하여 초기화
-            setTimeout(initKakao, 300);
-            setTimeout(() => {
-              if (!window.kakao || !window.kakao.maps) {
-                initKakao();
-              }
-            }, 800);
+          script.onerror = () => {
+            clearTimeout(timeout);
+            reject(new Error('스크립트 로드 실패'));
           };
-          
-          const onScriptError = (error: any) => {
-            if (!isMounted) return;
-            console.error('카카오 SDK 스크립트 로드 실패:', error);
-            handleLoadError('스크립트 로드 실패');
-          };
-          
-          script.onload = onScriptLoad;
-          script.onerror = onScriptError;
-          
+
           document.head.appendChild(script);
-          
-          // 타임아웃 설정 (15초로 증가)
-          loadTimeout = setTimeout(() => {
-            if (!scriptLoaded && isMounted) {
-              console.error('카카오 지도 스크립트 로드 타임아웃');
-              handleLoadError('스크립트 로드 타임아웃');
-            }
-          }, 15000);
-        }
+        });
         
       } catch (error) {
-        console.error('카카오 지도 로드 중 예외 발생:', error);
+        console.error('카카오 지도 로드 실패:', error);
         if (isMounted) {
-          handleLoadError(error.message || '알 수 없는 오류');
+          toast.error(`지도 로드 실패: ${error.message}. 페이지를 새로고침해주세요.`);
         }
-      }
-    };
-
-    const handleLoadError = (errorReason = '알 수 없는 오류') => {
-      if (!isMounted) return;
-      
-      retryCount++;
-      console.error(`카카오 지도 로드 실패 (${retryCount}/${maxRetries}):`, errorReason);
-      
-      if (retryCount < maxRetries) {
-        console.log(`재시도 예정 (${retryCount}/${maxRetries}) - ${errorReason}`);
-        const delay = 2000 + (retryCount * 1000); // 2초, 3초, 4초로 점진적 증가
-        console.log(`${delay/1000}초 후 재시도`);
-        retryTimeout = setTimeout(() => {
-          loadKakaoMap();
-        }, delay);
-      } else {
-        console.error('카카오 지도 로드 최대 재시도 횟수 초과. 최종 실패 원인:', errorReason);
-        toast.error(`카카오 지도 로드 실패: ${errorReason}. 페이지를 새로고침해 주세요.`);
-        setIsMapLoaded(false);
       }
     };
 
@@ -354,14 +264,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
     return () => {
       isMounted = false;
-      if (retryTimeout) {
-        clearTimeout(retryTimeout);
-      }
-      if (loadTimeout) {
-        clearTimeout(loadTimeout);
-      }
     };
-
   }, []);
 
   // 북마크 마커 생성
