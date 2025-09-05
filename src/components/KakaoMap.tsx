@@ -643,7 +643,8 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       const response = await supabase.functions.invoke('combined-tour-api', {
         body: {
           activeTab: 'pet',
-          areaCode: '6' // 부산
+          areaCode: '6', // 부산
+          loadAllPetKeywords: true // 95개 키워드로 모든 데이터 로드
         }
       });
 
@@ -654,12 +655,11 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       
       if (response.data?.petTourismData?.response?.body?.items?.item) {
         // 표준 API 응답 구조
-        petPlaces = response.data.petTourismData.response.body.items.item;
-      } else if (response.data?.petTourismData && Array.isArray(response.data.petTourismData)) {
-        // 직접 배열로 온 경우
-        petPlaces = response.data.petTourismData;
+        petPlaces = Array.isArray(response.data.petTourismData.response.body.items.item) 
+          ? response.data.petTourismData.response.body.items.item
+          : [response.data.petTourismData.response.body.items.item];
       } else {
-        console.warn('반려동물 여행지 데이터 구조를 인식할 수 없습니다:', response.data);
+        console.warn('반려동물 여행지 데이터를 찾을 수 없습니다:', response.data);
       }
 
       if (petPlaces && petPlaces.length > 0) {
@@ -675,7 +675,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         // 일반 관광지 중 반려동물 동반 가능한 곳들도 로드
         loadGeneralTourismAsPet();
         
-        toast.success('반려동물 동반 여행지를 지도에 표시했습니다.');
+        toast.success(`반려동물 동반 여행지 ${petPlaces.length}개를 지도에 표시했습니다.`);
       } else {
         console.warn('반려동물 여행지 데이터가 없습니다.');
         toast.warning('반려동물 여행지를 찾을 수 없습니다.');
@@ -1115,7 +1115,29 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         </div>
       )}
 
-      {/* 반려동물 필터 (Records 페이지용) */}
+      {/* 반려동물 필터 버튼들 */}
+      <div className="bg-white border-b p-3">
+        <div className="flex gap-2 overflow-x-auto">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={showAllPetMarkers}
+            className="whitespace-nowrap"
+          >
+            전체 ({allPetData.length})
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={filterParkMarkers}
+            className="whitespace-nowrap"
+          >
+            공원 ({parkKeywords.length})
+          </Button>
+        </div>
+      </div>
+
+      {/* Records 페이지 전용 필터 */}
       {showPetFilter && (
         <div className="bg-white border-b p-3">
           <div className="flex items-center justify-between">
