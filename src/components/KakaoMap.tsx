@@ -1232,19 +1232,21 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           
           {/* 반려동물 탭인 경우 카테고리 탭 표시 */}
           {showPetFilter && (
-            <div className="mt-4 flex gap-1 overflow-x-auto pb-2 scrollbar-hide">
-              {categories.map(({ id, label, icon: Icon }) => (
-                <Button
-                  key={id}
-                  variant={selectedCategory === id ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => handleCategorySelect(id)}
-                  className="flex items-center gap-1 whitespace-nowrap text-xs px-2 py-1 flex-shrink-0"
-                >
-                  <Icon className="w-3 h-3" />
-                  {label}
-                </Button>
-              ))}
+            <div className="mt-4 overflow-x-auto">
+              <div className="flex gap-1 pb-2 min-w-max px-1">
+                {categories.map(({ id, label, icon: Icon }) => (
+                  <Button
+                    key={id}
+                    variant={selectedCategory === id ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleCategorySelect(id)}
+                    className="flex items-center gap-1 whitespace-nowrap text-xs px-2 py-1 flex-shrink-0 min-w-fit"
+                  >
+                    <Icon className="w-3 h-3" />
+                    {label}
+                  </Button>
+                ))}
+              </div>
             </div>
           )}
           
@@ -1301,26 +1303,6 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           </Button>
         </div>
       </div>
-
-      {/* Records 페이지 전용 필터 */}
-      {showPetFilter && (
-        <div className="bg-white border-b p-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <PawPrint className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium">반려동물 동반 여행지</span>
-            </div>
-            <Button
-              variant={showPetMarkers ? "default" : "outline"}
-              size="sm"
-              onClick={togglePetMarkers}
-              className="text-xs px-3 py-1"
-            >
-              {showPetMarkers ? "숨기기" : "보이기"}
-            </Button>
-          </div>
-        </div>
-      )}
 
         {!hideCategoryGrid && !showPetFilter && (
           <div className="mb-4">
