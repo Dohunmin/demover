@@ -213,37 +213,36 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         // 잠시 대기 후 스크립트 로드
         await new Promise(resolve => setTimeout(resolve, 300));
 
-        // 먼저 네트워크 접근성 테스트
+        // 카카오 지도 SDK를 프록시를 통해 로드
+        console.log('프록시를 통한 카카오 지도 SDK 로드 시작');
+        
         try {
-          const testResponse = await fetch('https://dapi.kakao.com/favicon.ico', { 
-            method: 'HEAD',
-            mode: 'no-cors'
-          });
-          console.log('카카오 도메인 접근성 테스트 완료');
-        } catch (networkError) {
-          console.error('카카오 도메인 접근 불가:', networkError);
-          throw new Error('네트워크 연결 문제가 있습니다. 인터넷 연결을 확인해주세요.');
-        }
-
-        const script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.async = false; // 동기식으로 변경하여 로딩 순서 보장
-        script.defer = false;
-        script.crossOrigin = 'anonymous';
-        script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JS_KEY}&autoload=false&libraries=services,clusterer`;
-        
-        let scriptLoaded = false;
-        
-        script.onload = () => {
-          if (scriptLoaded) return;
-          scriptLoaded = true;
-          console.log('카카오 지도 스크립트 로드 성공');
-          console.log('window.kakao 존재 여부:', !!window.kakao);
+          // 프록시를 통해 스크립트 내용 가져오기
+          const { data: scriptContent, error: proxyError } = await supabase.functions.invoke('kakao-map-proxy');
           
-          // 스크립트 로드 후 잠시 대기
+          if (proxyError || !scriptContent) {
+            console.error('카카오 지도 프록시 오류:', proxyError);
+            throw new Error('카카오 지도 프록시 로드 실패');
+          }
+
+          console.log('프록시를 통한 스크립트 로드 성공, 크기:', scriptContent.length, 'bytes');
+
+          // 스크립트를 동적으로 실행
+          const script = document.createElement('script');
+          script.type = 'text/javascript';
+          script.text = scriptContent;
+          
+          // 스크립트가 실행되었는지 확인하기 위한 플래그
+          let scriptExecuted = false;
+        
+          // 스크립트 실행 후 잠시 대기하여 window.kakao 객체 초기화 확인
+          document.head.appendChild(script);
+          
           setTimeout(() => {
             if (window.kakao && window.kakao.maps) {
               console.log('window.kakao.maps 확인됨, 초기화 시작');
+              scriptExecuted = true;
+              
               window.kakao.maps.load(() => {
                 console.log('카카오 지도 API 초기화 완료');
                 initializeMap();
@@ -251,44 +250,25 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
                 retryCount = 0; // 성공시 재시도 카운터 리셋
               });
             } else {
-              console.error('window.kakao.maps 객체가 없습니다. window.kakao:', window.kakao);
-              handleLoadError('카카오 지도 객체 초기화 실패');
+              console.error('window.kakao.maps 객체가 생성되지 않음. window.kakao:', window.kakao);
+              if (!scriptExecuted) {
+                handleLoadError('카카오 지도 객체 초기화 실패');
+              }
             }
-          }, 500);
-        };
-        
-        script.onerror = (event) => {
-          if (scriptLoaded) return;
-          scriptLoaded = true;
-          console.error('카카오 지도 스크립트 로드 실패 상세 정보:', {
-            event,
-            src: script.src,
-            readyState: (script as any).readyState,
-            error: event
-          });
-          handleLoadError('스크립트 로드 실패');
-        };
+          }, 1000); // 1초 대기
 
-        // 타임아웃 설정 (15초로 증가)
-        const timeout = setTimeout(() => {
-          if (scriptLoaded) return;
-          scriptLoaded = true;
-          console.error('카카오 지도 스크립트 로드 타임아웃 (15초)');
-          script.remove();
-          handleLoadError('로드 타임아웃');
-        }, 15000);
+          // 타임아웃 설정 (10초)
+          setTimeout(() => {
+            if (!scriptExecuted) {
+              console.error('카카오 지도 초기화 타임아웃');
+              handleLoadError('초기화 타임아웃');
+            }
+          }, 10000);
 
-        const clearTimeoutAndCleanup = () => {
-          clearTimeout(timeout);
-        };
-
-        script.addEventListener('load', clearTimeoutAndCleanup);
-        script.addEventListener('error', clearTimeoutAndCleanup);
-        
-        document.head.appendChild(script);
-        console.log('카카오 지도 스크립트 태그 추가됨:', script.src);
-        console.log('현재 도메인:', window.location.hostname);
-        console.log('현재 프로토콜:', window.location.protocol);
+        } catch (proxyFetchError) {
+          console.error('프록시 fetch 오류:', proxyFetchError);
+          handleLoadError(`프록시 오류: ${proxyFetchError.message}`);
+        }
         
       } catch (error) {
         console.error('카카오 지도 로드 중 예외 발생:', error);
