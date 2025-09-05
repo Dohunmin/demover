@@ -384,23 +384,46 @@ serve(async (req) => {
             console.log(`   - ${category}: ${count}개`);
           });
           
-          // 응답 형태로 구성
-          petTourismData = {
-            response: {
-              header: {
-                resultCode: "0000",
-                resultMsg: "OK"
-              },
-              body: {
-                totalCount: uniqueResults.length,
-                numOfRows: uniqueResults.length,
-                pageNo: 1,
-                items: {
-                  item: uniqueResults
-                }
-              }
-            }
-          };
+           // 응답 형태로 구성 - 필요한 필드만 추출하여 단순화
+           const simplifiedResults = uniqueResults.map(item => ({
+             contentid: item.contentid || '',
+             contenttypeid: item.contenttypeid || '',
+             title: item.title || '',
+             addr1: item.addr1 || '',
+             addr2: item.addr2 || '',
+             zipcode: item.zipcode || '',
+             tel: item.tel || '',
+             mapx: item.mapx || '',
+             mapy: item.mapy || '',
+             firstimage: item.firstimage || '',
+             firstimage2: item.firstimage2 || '',
+             areacode: item.areacode || '',
+             sigungucode: item.sigungucode || '',
+             cat1: item.cat1 || '',
+             cat2: item.cat2 || '',
+             cat3: item.cat3 || '',
+             createdtime: item.createdtime || '',
+             modifiedtime: item.modifiedtime || '',
+             mlevel: item.mlevel || '',
+             searchKeyword: item.searchKeyword || ''
+           }));
+           
+           petTourismData = {
+             response: {
+               header: {
+                 resultCode: "0000",
+                 resultMsg: "OK"
+               },
+               body: {
+                 totalCount: simplifiedResults.length,
+                 numOfRows: simplifiedResults.length,
+                 pageNo: 1,
+                 items: {
+                   item: simplifiedResults
+                 }
+               }
+             }
+           };
           
           console.log('=== 반려동물 여행지 키워드 검색 완료 ===');
           

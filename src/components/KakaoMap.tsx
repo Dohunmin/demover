@@ -548,6 +548,10 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     try {
       const { data, error } = await supabase.functions.invoke('combined-tour-api', {
         body: {
+          areaCode: '6',
+          numOfRows: '10',
+          pageNo: '1',
+          keyword: '',
           activeTab: 'pet',
           loadAllPetKeywords: true
         }
@@ -561,12 +565,11 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
       console.log('API 응답 구조:', data);
 
-      // 새로운 응답 구조 처리: data.data에 직접 배열이 담겨있음
-      if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
-        const processedData = data.data.map((item: any) => ({
-          ...item,
-          searchKeyword: item.searchKeyword || '반려동물 여행지'
-        }));
+      if (data.petTourismData && !data.petTourismData.error && 
+          data.petTourismData.response?.header?.resultCode === "0000" &&
+          data.petTourismData.response?.body?.items?.item) {
+        const items = data.petTourismData.response.body.items.item;
+        const processedData = Array.isArray(items) ? items : [items];
         
         console.log(`🎉 ${processedData.length}개의 반려동물 여행지 로딩 완료`);
         
