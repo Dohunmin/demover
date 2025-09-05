@@ -216,6 +216,7 @@ serve(async (req) => {
       }
     }
 
+    if (activeTab === "pet") {
       // 2. 한국관광공사 반려동물 동반 여행지 서비스 호출 (반려동물만)
       if (loadAllPetKeywords) {
         // 캐시 확인
@@ -486,7 +487,7 @@ serve(async (req) => {
         
       } else {
         // 기존 방식: 단일 API 호출
-      try {
+        try {
         // API 키 디코딩 시도 (중복 인코딩 문제 해결)
         let decodedApiKey = apiKey;
         try {
@@ -554,6 +555,7 @@ serve(async (req) => {
       } catch (error) {
         petTourismError = `Pet Tourism API error: ${error.message}`;
         console.error(petTourismError);
+      }
       }
       }
     }
