@@ -526,13 +526,17 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     }
   }, []);
 
-  // 지도 초기화 후 반려동물 여행지 마커 로드 및 북마크 마커 생성
+  // 지도 초기화 후 반려동물 여행지 마커 로드 (한 번만 실행)
   useEffect(() => {
     if (isMapLoaded) {
       loadPetTourismMarkers();
-      if (bookmarkedPlaces.length > 0) {
-        createBookmarkMarkers();
-      }
+    }
+  }, [isMapLoaded]);
+
+  // 북마크 마커는 별도로 관리 (북마크가 변경될 때만 업데이트)
+  useEffect(() => {
+    if (isMapLoaded && bookmarkedPlaces.length > 0) {
+      createBookmarkMarkers();
     }
   }, [isMapLoaded, bookmarkedPlaces, createBookmarkMarkers]);
 
