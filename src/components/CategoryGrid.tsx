@@ -137,6 +137,9 @@ const CategoryGrid = () => {
   const handleCategoryClick = (categoryId: string) => {
     if (categoryId === 'hospital') {
       navigate('/animal-hospitals');
+    } else if (categoryId === 'park') {
+      // 공원 필터 이벤트 발생
+      window.dispatchEvent(new CustomEvent('parkFilterToggle'));
     }
     // 다른 카테고리들은 나중에 구현
   };

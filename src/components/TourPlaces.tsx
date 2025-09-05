@@ -12,7 +12,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { MapPin, Phone, Search, Heart, PawPrint, Map, ChevronsLeft, ChevronsRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { MapPin, Phone, Search, Heart, PawPrint, Map, ChevronsLeft, ChevronsRight, ChevronLeft, ChevronRight, TreePine } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -48,6 +48,28 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
   const [generalCurrentPage, setGeneralCurrentPage] = useState(1);
   const [petCurrentPage, setPetCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [parkFilter, setParkFilter] = useState(false); // 공원 필터 상태
+  
+  // 공원 키워드 목록
+  const parkKeywords = [
+    '부산시민공원',
+    '센텀 APEC나루공원',
+    '신호공원',
+    '온천천시민공원',
+    '대저생태공원',
+    '대저수문 생태공원',
+    '맥도생태공원',
+    '민락수변공원',
+    '부산 암남공원',
+    '부산북항 친수공원',
+    '부산어린이대공원',
+    '삼락생태공원',
+    '스포원파크',
+    '아미르공원',
+    '용소웰빙공원',
+    '을숙도 공원',
+    '회동수원지'
+  ];
   const [activeTab, setActiveTab] = useState<"general" | "pet">("pet");
   const [userAreaCode, setUserAreaCode] = useState<string>('');
   const [selectedPlace, setSelectedPlace] = useState<TourPlace | null>(null);
@@ -81,6 +103,25 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
     getUserDataAndBookmarks();
   }, [user]);
 
+  // 공원 필터 이벤트 리스너
+  useEffect(() => {
+    const handleParkFilter = () => {
+      setParkFilter(!parkFilter);
+      
+      if (activeTab === "general") {
+        setGeneralCurrentPage(1);
+      } else {
+        setPetCurrentPage(1);
+      }
+    };
+
+    window.addEventListener('parkFilterToggle', handleParkFilter);
+    
+    return () => {
+      window.removeEventListener('parkFilterToggle', handleParkFilter);
+    };
+  }, [parkFilter, activeTab]);
+
   useEffect(() => {
     if (userAreaCode) {
       if (activeTab === "general") {
@@ -95,7 +136,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
         }
       }
     }
-  }, [generalCurrentPage, petCurrentPage, userAreaCode, activeTab]);
+  }, [generalCurrentPage, petCurrentPage, userAreaCode, activeTab, parkFilter]);
 
   // 반려동물 여행지 데이터 로딩 (한 번에 전체 로딩)
   const loadAllPetPlaces = async () => {
@@ -167,7 +208,8 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
     console.log('=== 캐시된 데이터 처리 ===', { 
       totalCached: dataToUse.length, 
       searchKeyword: keywordToUse, 
-      page: pageToUse 
+      page: pageToUse,
+      parkFilter: parkFilter
     });
     
     // 검색 필터링
@@ -176,6 +218,15 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
       filteredData = dataToUse.filter((place: any) => 
         place.title?.toLowerCase().includes(keywordToUse.toLowerCase()) ||
         place.addr1?.toLowerCase().includes(keywordToUse.toLowerCase())
+      );
+    }
+    
+    // 공원 필터링 (반려동물 탭에서)
+    if (parkFilter) {
+      filteredData = filteredData.filter((place: any) => 
+        parkKeywords.some(parkKeyword => 
+          place.title?.trim() === parkKeyword.trim()
+        )
       );
     }
     
@@ -222,7 +273,16 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
             data.tourismData.response?.header?.resultCode === "0000" &&
             data.tourismData.response?.body?.items?.item) {
           const items = data.tourismData.response.body.items.item;
-          const processedData = Array.isArray(items) ? items : items ? [items] : [];
+          let processedData = Array.isArray(items) ? items : items ? [items] : [];
+          
+          // 공원 필터링 (일반 탭에서)
+          if (parkFilter) {
+            processedData = processedData.filter((item: any) => 
+              parkKeywords.some(parkKeyword => 
+                item.title?.trim() === parkKeyword.trim()
+              )
+            );
+          }
           
           setTourPlaces(processedData.map((item: any) => ({
             contentId: item.contentid,
@@ -239,7 +299,8 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
             sigungucode: item.sigungucode || ''
           })));
           
-          setTotalCount(data.tourismData.response.body.totalCount || 0);
+          const totalAfterFilter = parkFilter ? processedData.length : (data.tourismData.response.body.totalCount || 0);
+          setTotalCount(totalAfterFilter);
           toast.success("일반 관광지를 불러왔습니다!");
         } else {
           console.warn('일반 관광지 데이터 없음:', data.tourismData?.error || 'No data or API error');
@@ -553,8 +614,30 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
         </Card>
       </div>
 
-      {/* 탭 영역 */}
-      <div className="px-5">
+      {/* 공원 필터 및 탭 영역 */}
+      <div className="px-5 space-y-3">
+        {/* 공원 필터 버튼 */}
+        {parkFilter && (
+          <div className="flex items-center justify-between bg-green-50 p-3 rounded-xl border border-green-200">
+            <div className="flex items-center gap-2">
+              <TreePine className="w-4 h-4 text-green-600" />
+              <span className="text-sm font-medium text-green-700">공원만 보기</span>
+              <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
+                {parkKeywords.length}개 공원
+              </Badge>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setParkFilter(false)}
+              className="text-green-700 hover:text-green-800 hover:bg-green-100 text-xs"
+            >
+              전체 보기
+            </Button>
+          </div>
+        )}
+        
+        {/* 탭 영역 */}
         <div className="flex bg-gray-100 rounded-xl p-1">
           <button
             onClick={() => handleTabChange("general")}
