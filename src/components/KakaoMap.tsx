@@ -495,7 +495,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           });
           
           createGeneralTourismAsPetMarkers(matchedPlaces);
-          toast.success(`${matchedPlaces.length}개의 일반 관광지를 반려동물 동반 여행지로 추가 표시했습니다.`);
+          toast.success('일반 관광지를 반려동물 동반 여행지로 추가 표시했습니다.');
         } else {
           console.log('매칭되는 관광지가 없습니다.');
           toast.warning('키워드와 매칭되는 관광지를 찾을 수 없습니다.');
@@ -610,7 +610,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         console.log(`${petPlaces.length}개의 반려동물 여행지 데이터를 가져왔습니다.`);
         
         createPetTourismMarkers(petPlaces);
-        toast.success(`${petPlaces.length}개의 반려동물 동반 여행지를 지도에 표시했습니다.`);
+        toast.success('반려동물 동반 여행지를 지도에 표시했습니다.');
         
         // 데이터 로딩 완료 표시
         setIsPetDataLoaded(true);
@@ -826,7 +826,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         const moveLatLng = new window.kakao.maps.LatLng(firstPlace.y, firstPlace.x);
         mapInstance.current.panTo(moveLatLng);
         
-        toast.success(`${allPlaces.length}개의 장소를 찾았습니다.`);
+        toast.success('장소를 찾았습니다.');
       } else {
         setPlaces([]);
         clearMarkers();

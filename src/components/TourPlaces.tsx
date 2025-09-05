@@ -135,7 +135,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
         // 첫 페이지 표시
         processCachedPetPlaces(processedData, petSearchKeyword, 1);
         
-        toast.success(`${processedData.length}개의 반려동물 여행지를 불러왔습니다!`);
+        toast.success('반려동물 여행지를 불러왔습니다!');
       } else {
         console.warn('반려동물 여행지 데이터 없음:', data.petTourismData?.error || 'No data');
         setAllPetPlacesCache([]);
@@ -235,7 +235,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
           })));
           
           setTotalCount(data.tourismData.response.body.totalCount || 0);
-          toast.success("여행지 정보를 성공적으로 불러왔습니다!");
+          toast.success("일반 관광지를 불러왔습니다!");
         } else {
           console.warn('일반 관광지 데이터 없음:', data.tourismData?.error || 'No data or API error');
           setTourPlaces([]);
