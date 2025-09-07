@@ -267,67 +267,28 @@ const BeachStatus = () => {
           </Card>
         </div>
       ) : (
-        // 해수욕장 목록 - 모바일 친화적 레이아웃
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        // 해수욕장 목록 - 이름만 표시 (3x2 그리드)
+        <div className="grid grid-cols-3 gap-3">
           {beaches.map((beach, index) => (
             <Card 
               key={index} 
-              className="relative p-4 bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-100 shadow-sm hover:shadow-lg transition-all cursor-pointer hover:scale-105 group"
+              className="relative p-4 bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-100 shadow-sm hover:shadow-lg transition-all cursor-pointer hover:scale-105 group min-h-[120px] flex flex-col justify-between"
               onClick={() => setSelectedBeach(beach)}
             >
-              {/* 상단 - 해수욕장 이름과 상태 */}
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-2">
+              {/* 해수욕장 아이콘과 이름 */}
+              <div className="text-center flex-1 flex flex-col justify-center">
+                <div className="w-10 h-10 bg-blue-600/10 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Waves className="w-5 h-5 text-blue-600" strokeWidth={1.5} />
-                  <h4 className="font-semibold text-gray-900 text-base">
-                    {beach.name.replace(' 해수욕장', '')}
-                  </h4>
                 </div>
-                <Badge 
-                  className={`${beach.statusColor} text-white text-xs px-3 py-1.5 border-0 shadow-sm rounded-full`}
-                >
-                  {beach.status}
-                </Badge>
-              </div>
-
-              {/* 중앙 - 하늘 상태 (큰 텍스트) */}
-              <div className="text-center mb-4">
-                <div className="text-sm text-gray-500 mb-1">하늘상태</div>
-                <div className="text-2xl font-bold text-gray-800 mb-2">{beach.sky}</div>
-              </div>
-
-              {/* 기온과 수온 (좌우 배치) */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="text-center">
-                  <div className="text-sm text-gray-500 mb-1">기온</div>
-                  <div className="text-xl font-bold text-gray-800">{beach.temperature}</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-sm text-gray-500 mb-1">수온</div>
-                  <div className="text-xl font-bold text-gray-800">{beach.waterTemp}</div>
-                </div>
-              </div>
-
-              {/* 파도높이, 일출, 일몰 (3개 컬럼) */}
-              <div className="grid grid-cols-3 gap-2 mb-4 text-center">
-                <div>
-                  <div className="text-xs text-gray-500 mb-1">파도높이</div>
-                  <div className="text-sm font-medium text-gray-700">{beach.waveHeight}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-gray-500 mb-1">일출</div>
-                  <div className="text-sm font-medium text-gray-700">{beach.sunrise}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-gray-500 mb-1">일몰</div>
-                  <div className="text-sm font-medium text-gray-700">{beach.sunset}</div>
-                </div>
+                <h4 className="font-semibold text-gray-900 text-sm leading-tight">
+                  {beach.name.replace(' 해수욕장', '')}
+                </h4>
               </div>
 
               {/* 상세보기 안내 */}
-              <div className="text-center pt-2 border-t border-blue-200/50">
-                <span className="text-sm text-blue-600 font-medium group-hover:text-blue-700 transition-colors">
-                  상세보기 →
+              <div className="text-center mt-3 pt-2 border-t border-blue-200/50">
+                <span className="text-xs text-blue-600 font-medium group-hover:text-blue-700 transition-colors">
+                  상세보기
                 </span>
               </div>
 
