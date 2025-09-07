@@ -159,13 +159,12 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
         setTimeout(() => reject(new Error('요청 시간 초과')), 30000)
       );
       
-      const apiCall = supabase.functions.invoke('combined-tour-api', {
+      const apiCall = supabase.functions.invoke('pet-tour-api', {
         body: {
           areaCode: userAreaCode,
           numOfRows: '10', // 사용되지 않음
           pageNo: '1', // 사용되지 않음
           keyword: '',
-          activeTab: 'pet',
           loadAllPetKeywords: true // 95개 키워드로 전체 로딩
         }
       });
@@ -183,10 +182,10 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
         return false;
       }
 
-      if (data?.petTourismData && !data.petTourismData.error && 
-          data.petTourismData.response?.header?.resultCode === "0000" &&
-          data.petTourismData.response?.body?.items?.item) {
-        const items = data.petTourismData.response.body.items.item;
+      if (data && !data.error && 
+          data.response?.header?.resultCode === "0000" &&
+          data.response?.body?.items?.item) {
+        const items = data.response.body.items.item;
         const processedData = Array.isArray(items) ? items : [items];
         
         console.log(`${processedData.length}개의 반려동물 여행지 로딩 완료`);
@@ -200,7 +199,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
         toast.success('반려동물 여행지를 불러왔습니다!');
         return true;
       } else {
-        console.warn('반려동물 여행지 데이터 없음:', data?.petTourismData?.error || 'No data');
+        console.warn('반려동물 여행지 데이터 없음:', data?.error || 'No data');
         setAllPetPlacesCache([]);
         setPetCacheLoaded(true);
         setPetTourPlaces([]);
