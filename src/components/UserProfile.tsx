@@ -23,6 +23,7 @@ interface Profile {
   kakao_id?: string;
   created_at?: string;
   updated_at?: string;
+  mbti_result?: string;
 }
 
 const UserProfile = () => {
@@ -370,6 +371,13 @@ const UserProfile = () => {
                       `${user.email.substring(0, 18)}...` : 
                       user.email
                   ) : '이메일 정보 없음'}
+                  {profile?.mbti_result && (
+                    <div className="mt-1">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                        {profile.mbti_result}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
               <div style={{ color: 'var(--text-disabled)' }} className="flex-shrink-0">

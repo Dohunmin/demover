@@ -120,6 +120,7 @@ export type Database = {
           gender: string | null
           id: string
           kakao_id: string | null
+          mbti_result: string | null
           pet_age: number | null
           pet_breed: string | null
           pet_gender: string | null
@@ -139,6 +140,7 @@ export type Database = {
           gender?: string | null
           id: string
           kakao_id?: string | null
+          mbti_result?: string | null
           pet_age?: number | null
           pet_breed?: string | null
           pet_gender?: string | null
@@ -158,6 +160,7 @@ export type Database = {
           gender?: string | null
           id?: string
           kakao_id?: string | null
+          mbti_result?: string | null
           pet_age?: number | null
           pet_breed?: string | null
           pet_gender?: string | null

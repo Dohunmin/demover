@@ -6,6 +6,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ArrowLeft, PawPrint, Heart, MapPin, Compass, Mountain } from "lucide-react";
 import AdBanner from "@/components/AdBanner";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useEffect } from "react";
 
 
 // 4가지 평가차원 데이터
@@ -442,6 +446,7 @@ const travelTypes = [
 
 const MbtiTest = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [isTestStarted, setIsTestStarted] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
@@ -449,6 +454,38 @@ const MbtiTest = () => {
   const [result, setResult] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  // 멍BTI 결과 저장 함수
+  const saveMbtiResult = async (mbtiResult: string) => {
+    if (!user) return;
+    
+    try {
+      const profileData = {
+        id: user.id,
+        user_id: user.id,
+        mbti_result: mbtiResult,
+        email: user.email,
+        full_name: user.user_metadata?.full_name || null,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await (supabase as any)
+        .from('profiles')
+        .upsert(profileData, { 
+          onConflict: 'id',
+          ignoreDuplicates: false 
+        });
+
+      if (error) {
+        console.error('멍BTI 결과 저장 오류:', error);
+      } else {
+        console.log('멍BTI 결과 저장 성공:', mbtiResult);
+        toast.success("멍BTI 결과가 저장되었습니다!");
+      }
+    } catch (error) {
+      console.error('멍BTI 저장 실패:', error);
+    }
+  };
 
   const handleTypeClick = (typeCode: string) => {
     setSelectedType(typeCode);
@@ -502,6 +539,11 @@ const MbtiTest = () => {
 
     const mbtiResult = energy + social + sense + vibe;
     setResult(mbtiResult);
+    
+    // 결과를 데이터베이스에 저장
+    if (user) {
+      saveMbtiResult(mbtiResult);
+    }
   };
 
   const handleRetakeTest = () => {
