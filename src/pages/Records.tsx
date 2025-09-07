@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AdBanner from "@/components/AdBanner";
+import PlaceSearch from "@/components/PlaceSearch";
 
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -71,6 +72,8 @@ const Records = () => {
   const [newRecord, setNewRecord] = useState({
     location_name: "",
     location_address: "",
+    latitude: null as number | null,
+    longitude: null as number | null,
     visit_date: "",
     memo: "",
     images: [] as File[]
@@ -237,6 +240,8 @@ const Records = () => {
           user_id: user.id,
           location_name: newRecord.location_name,
           location_address: newRecord.location_address,
+          latitude: newRecord.latitude,
+          longitude: newRecord.longitude,
           visit_date: newRecord.visit_date,
           memo: newRecord.memo,
           images: imageUrls
@@ -253,6 +258,8 @@ const Records = () => {
       setNewRecord({
         location_name: "",
         location_address: "",
+        latitude: null,
+        longitude: null,
         visit_date: "",
         memo: "",
         images: []
@@ -269,6 +276,21 @@ const Records = () => {
     if (files) {
       setNewRecord({ ...newRecord, images: Array.from(files) });
     }
+  };
+
+  const handlePlaceSelect = (place: {
+    name: string;
+    address: string;
+    latitude: number;
+    longitude: number;
+  }) => {
+    setNewRecord({
+      ...newRecord,
+      location_name: place.name,
+      location_address: place.address,
+      latitude: place.latitude,
+      longitude: place.longitude
+    });
   };
 
   const removeBookmark = async (bookmarkId: string) => {
@@ -699,22 +721,36 @@ const Records = () => {
                     </DialogHeader>
                     <div className="space-y-4">
                       <div>
-                        <Label htmlFor="location">위치명 *</Label>
-                        <Input
-                          id="location"
-                          placeholder="방문한 장소를 입력해주세요"
-                          value={newRecord.location_name}
-                          onChange={(e) => setNewRecord({ ...newRecord, location_name: e.target.value })}
+                        <Label htmlFor="location">위치 검색</Label>
+                        <PlaceSearch
+                          onPlaceSelect={handlePlaceSelect}
+                          initialValue={newRecord.location_name}
                         />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          장소명을 검색하면 자동으로 주소가 입력됩니다
+                        </p>
                       </div>
-                      <div>
-                        <Label htmlFor="address">주소</Label>
-                        <Input
-                          id="address"
-                          placeholder="상세 주소 (선택사항)"
-                          value={newRecord.location_address}
-                          onChange={(e) => setNewRecord({ ...newRecord, location_address: e.target.value })}
-                        />
+                      
+                      {/* 수동 입력 옵션 */}
+                      <div className="space-y-3 pt-2 border-t">
+                        <div>
+                          <Label htmlFor="manual-location">위치명 (수동 입력)</Label>
+                          <Input
+                            id="manual-location"
+                            placeholder="직접 입력하기"
+                            value={newRecord.location_name}
+                            onChange={(e) => setNewRecord({ ...newRecord, location_name: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="manual-address">주소 (수동 입력)</Label>
+                          <Input
+                            id="manual-address"
+                            placeholder="상세 주소 입력"
+                            value={newRecord.location_address}
+                            onChange={(e) => setNewRecord({ ...newRecord, location_address: e.target.value })}
+                          />
+                        </div>
                       </div>
                       <div>
                         <Label htmlFor="date">방문 날짜 *</Label>
