@@ -1,9 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
 import { MapPin } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+
+// Kakao Maps API 타입 정의
+declare global {
+  interface Window {
+    kakao: any;
+  }
+}
 
 interface TravelRecord {
   id: string;
@@ -13,6 +16,7 @@ interface TravelRecord {
   longitude?: number;
   visit_date: string;
   memo?: string;
+  rating?: number;
 }
 
 interface TravelRecordsMapProps {
@@ -22,68 +26,80 @@ interface TravelRecordsMapProps {
 
 const TravelRecordsMap: React.FC<TravelRecordsMapProps> = ({ records, onRecordClick }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const [mapboxToken, setMapboxToken] = useState<string>('');
-  const [needsToken, setNeedsToken] = useState(false);
-  const markers = useRef<mapboxgl.Marker[]>([]);
+  const mapRef = useRef<any>(null);
+  const markersRef = useRef<any[]>([]);
+  const [isKakaoLoaded, setIsKakaoLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Check for Mapbox token on mount
+  // Kakao Maps API 로드
   useEffect(() => {
-    const checkToken = async () => {
-      try {
-        // Try to get token from edge function or environment
-        const response = await fetch('/api/mapbox-token');
-        if (response.ok) {
-          const data = await response.json();
-          setMapboxToken(data.token);
-        } else {
-          setNeedsToken(true);
-        }
-      } catch (error) {
-        setNeedsToken(true);
+    const loadKakaoMaps = () => {
+      if (window.kakao && window.kakao.maps) {
+        setIsKakaoLoaded(true);
+        setIsLoading(false);
+        return;
       }
+
+      const script = document.createElement('script');
+      script.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=c7cf9e7ecec81ad0090f5b7881b89e97&autoload=false';
+      script.async = true;
+      script.onload = () => {
+        window.kakao.maps.load(() => {
+          setIsKakaoLoaded(true);
+          setIsLoading(false);
+        });
+      };
+      script.onerror = () => {
+        console.error('Failed to load Kakao Maps API');
+        setIsLoading(false);
+      };
+      document.head.appendChild(script);
     };
-    
-    checkToken();
+
+    loadKakaoMaps();
   }, []);
 
-  // Initialize map when token is available
+  // 지도 초기화
   useEffect(() => {
-    if (!mapContainer.current || !mapboxToken) return;
+    if (!isKakaoLoaded || !mapContainer.current) return;
 
-    mapboxgl.accessToken = mapboxToken;
-    
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/light-v11',
-      center: [127.9778, 37.5665], // Seoul coordinates as default
-      zoom: 10,
-      pitch: 0,
-    });
-
-    // Add navigation controls
-    map.current.addControl(
-      new mapboxgl.NavigationControl({
-        visualizePitch: true,
-      }),
-      'top-right'
+    const validRecords = records.filter(record => 
+      record.latitude && record.longitude
     );
 
-    // Cleanup function
-    return () => {
-      if (map.current) {
-        map.current.remove();
-      }
+    // 기본 중심점 (부산)
+    let centerLat = 35.1796;
+    let centerLng = 129.0756;
+    let level = 8;
+
+    // 기록이 있으면 첫 번째 기록을 중심으로
+    if (validRecords.length > 0) {
+      centerLat = validRecords[0].latitude!;
+      centerLng = validRecords[0].longitude!;
+      level = validRecords.length === 1 ? 3 : 6;
+    }
+
+    const mapOption = {
+      center: new window.kakao.maps.LatLng(centerLat, centerLng),
+      level: level,
     };
-  }, [mapboxToken]);
 
-  // Add markers for travel records
+    // 지도 생성
+    mapRef.current = new window.kakao.maps.Map(mapContainer.current, mapOption);
+
+    // 줌 컨트롤 추가
+    const zoomControl = new window.kakao.maps.ZoomControl();
+    mapRef.current.addControl(zoomControl, window.kakao.maps.ControlPosition.RIGHT);
+
+  }, [isKakaoLoaded, records]);
+
+  // 마커 추가
   useEffect(() => {
-    if (!map.current || !records.length) return;
+    if (!isKakaoLoaded || !mapRef.current) return;
 
-    // Clear existing markers
-    markers.current.forEach(marker => marker.remove());
-    markers.current = [];
+    // 기존 마커 제거
+    markersRef.current.forEach(marker => marker.setMap(null));
+    markersRef.current = [];
 
     const validRecords = records.filter(record => 
       record.latitude && record.longitude
@@ -91,115 +107,130 @@ const TravelRecordsMap: React.FC<TravelRecordsMapProps> = ({ records, onRecordCl
 
     if (validRecords.length === 0) return;
 
-    // Add markers for each record
-    validRecords.forEach(record => {
-      // Create custom marker element
-      const markerElement = document.createElement('div');
-      markerElement.className = 'custom-marker';
-      markerElement.innerHTML = `
-        <div style="
-          background-color: #000000;
-          color: white;
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-          cursor: pointer;
-          border: 2px solid white;
-        ">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-          </svg>
+    const bounds = new window.kakao.maps.LatLngBounds();
+
+    validRecords.forEach((record, index) => {
+      const position = new window.kakao.maps.LatLng(record.latitude!, record.longitude!);
+      
+      // 커스텀 마커 이미지 생성
+      const markerImageSrc = `data:image/svg+xml;base64,${btoa(`
+        <svg width="40" height="50" viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 0C8.954 0 0 8.954 0 20c0 15 20 30 20 30s20-15 20-30C40 8.954 31.046 0 20 0z" fill="#FF6B6B"/>
+          <circle cx="20" cy="20" r="8" fill="white"/>
+          <text x="20" y="25" text-anchor="middle" fill="#FF6B6B" font-size="10" font-weight="bold">${index + 1}</text>
+        </svg>
+      `)}`;
+      
+      const imageSize = new window.kakao.maps.Size(40, 50);
+      const imageOption = { offset: new window.kakao.maps.Point(20, 50) };
+      const markerImage = new window.kakao.maps.MarkerImage(markerImageSrc, imageSize, imageOption);
+
+      // 마커 생성
+      const marker = new window.kakao.maps.Marker({
+        position: position,
+        image: markerImage,
+      });
+
+      marker.setMap(mapRef.current);
+
+      // 정보창 생성
+      const infoContent = `
+        <div style="padding: 12px; min-width: 200px; font-family: inherit;">
+          <div style="font-weight: bold; color: #333; margin-bottom: 8px; font-size: 14px;">
+            ${record.location_name}
+          </div>
+          ${record.location_address ? `
+            <div style="color: #666; font-size: 12px; margin-bottom: 4px;">
+              📍 ${record.location_address}
+            </div>
+          ` : ''}
+          <div style="color: #666; font-size: 12px; margin-bottom: 4px;">
+            📅 ${new Date(record.visit_date).toLocaleDateString('ko-KR')}
+          </div>
+          ${record.rating ? `
+            <div style="color: #FFB800; font-size: 12px; margin-bottom: 4px;">
+              ${'⭐'.repeat(record.rating)} (${record.rating}/5)
+            </div>
+          ` : ''}
+          ${record.memo ? `
+            <div style="color: #444; font-size: 12px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee;">
+              💭 ${record.memo.length > 50 ? record.memo.substring(0, 50) + '...' : record.memo}
+            </div>
+          ` : ''}
         </div>
       `;
 
-      // Create marker
-      const marker = new mapboxgl.Marker(markerElement)
-        .setLngLat([record.longitude!, record.latitude!])
-        .addTo(map.current!);
+      const infoWindow = new window.kakao.maps.InfoWindow({
+        content: infoContent,
+      });
 
-      // Create popup
-      const popup = new mapboxgl.Popup({ offset: 25 })
-        .setHTML(`
-          <div style="padding: 8px; min-width: 200px;">
-            <h3 style="margin: 0 0 8px 0; font-weight: bold; color: #222;">${record.location_name}</h3>
-            ${record.location_address ? `<p style="margin: 0 0 4px 0; font-size: 12px; color: #666;">${record.location_address}</p>` : ''}
-            <p style="margin: 0 0 4px 0; font-size: 12px; color: #666;">방문일: ${new Date(record.visit_date).toLocaleDateString('ko-KR')}</p>
-            ${record.memo ? `<p style="margin: 4px 0 0 0; font-size: 12px; color: #444;">${record.memo}</p>` : ''}
-          </div>
-        `);
-
-      // Add click event
-      markerElement.addEventListener('click', () => {
+      // 마커 클릭 이벤트
+      window.kakao.maps.event.addListener(marker, 'click', () => {
+        // 다른 정보창 닫기
+        markersRef.current.forEach(m => {
+          if (m.infoWindow) {
+            m.infoWindow.close();
+          }
+        });
+        
+        infoWindow.open(mapRef.current, marker);
+        
         if (onRecordClick) {
           onRecordClick(record);
         }
       });
 
-      marker.setPopup(popup);
-      markers.current.push(marker);
+      // 마커와 정보창 저장
+      marker.infoWindow = infoWindow;
+      markersRef.current.push(marker);
+      bounds.extend(position);
     });
 
-    // Fit map to show all markers
+    // 모든 마커가 보이도록 지도 범위 조정
     if (validRecords.length > 1) {
-      const bounds = new mapboxgl.LngLatBounds();
-      validRecords.forEach(record => {
-        bounds.extend([record.longitude!, record.latitude!]);
-      });
-      
-      map.current.fitBounds(bounds, {
-        padding: { top: 50, bottom: 50, left: 50, right: 50 }
-      });
+      mapRef.current.setBounds(bounds);
     } else if (validRecords.length === 1) {
-      const record = validRecords[0];
-      map.current.setCenter([record.longitude!, record.latitude!]);
-      map.current.setZoom(14);
+      mapRef.current.setCenter(new window.kakao.maps.LatLng(validRecords[0].latitude!, validRecords[0].longitude!));
+      mapRef.current.setLevel(3);
     }
-  }, [records, onRecordClick]);
 
-  if (needsToken) {
+  }, [isKakaoLoaded, records, onRecordClick]);
+
+  if (isLoading) {
     return (
-      <div className="p-6 text-center bg-muted rounded-lg">
-        <MapPin className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-        <h3 className="text-lg font-semibold mb-2">Mapbox 토큰이 필요합니다</h3>
-        <p className="text-sm text-muted-foreground mb-4">
-          지도를 표시하려면 Mapbox 토큰을 입력해주세요.<br />
-          <a href="https://mapbox.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-            mapbox.com
-          </a>에서 토큰을 발급받을 수 있습니다.
-        </p>
-        <div className="flex gap-2">
-          <Input
-            placeholder="Mapbox 토큰을 입력하세요"
-            value={mapboxToken}
-            onChange={(e) => setMapboxToken(e.target.value)}
-            type="password"
-          />
-          <Button 
-            onClick={() => setNeedsToken(false)}
-            disabled={!mapboxToken.trim()}
-            className="button-primary"
-          >
-            적용
-          </Button>
+      <div className="relative w-full h-80 rounded-lg overflow-hidden shadow-md bg-muted flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+          <p className="text-sm text-muted-foreground">지도를 불러오는 중...</p>
         </div>
       </div>
     );
   }
 
+  const validRecordsCount = records.filter(r => r.latitude && r.longitude).length;
+
   return (
     <div className="relative w-full h-80 rounded-lg overflow-hidden shadow-md">
-      <div ref={mapContainer} className="absolute inset-0" />
-      {records.filter(r => r.latitude && r.longitude).length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center bg-muted/50">
-          <div className="text-center">
-            <MapPin className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+      <div ref={mapContainer} className="absolute inset-0 bg-muted" />
+      
+      {validRecordsCount === 0 && (
+        <div className="absolute inset-0 flex items-center justify-center bg-muted/80 backdrop-blur-sm">
+          <div className="text-center p-6">
+            <MapPin className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-lg font-semibold mb-2">위치 정보가 없습니다</h3>
             <p className="text-sm text-muted-foreground">
-              위치 정보가 있는 여행 기록이 없습니다
+              여행 기록에 위치 정보를 추가하면<br />
+              지도에서 확인할 수 있습니다
             </p>
+          </div>
+        </div>
+      )}
+
+      {validRecordsCount > 0 && (
+        <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <MapPin className="w-4 h-4 text-primary" />
+            <span>{validRecordsCount}개의 여행 기록</span>
           </div>
         </div>
       )}
