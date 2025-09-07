@@ -97,10 +97,14 @@ const Index = () => {
         <header className="header p-6">
           <div className="flex justify-between items-start mb-6">
             <div>
-              <div className="flex items-center space-x-2 mb-2">
-                <PawPrint className="w-6 h-6" style={{ color: 'var(--text-primary)' }} />
-                <h1 className="header-title">멍멍! 일단 출발해!</h1>
-              </div>
+            <div className="flex items-center space-x-2 mb-2">
+              <img 
+                src="/lovable-uploads/cda9196c-6bda-4f6d-b9de-457dc88de528.png" 
+                alt="멍멍! 일단 출발해! 로고"
+                className="w-8 h-8 rounded-lg"
+              />
+              <h1 className="header-title">멍멍! 일단 출발해!</h1>
+            </div>
               <p className="header-subtitle">반려견과 함께하는 스마트한 여행</p>
             </div>
             <Button 
@@ -171,7 +175,11 @@ const Index = () => {
         <div className="flex justify-between items-start mb-4">
           <div className="flex-1">
             <div className="flex items-center space-x-2 mb-2">
-              <PawPrint className="w-6 h-6" style={{ color: 'var(--text-primary)' }} />
+              <img 
+                src="/lovable-uploads/cda9196c-6bda-4f6d-b9de-457dc88de528.png" 
+                alt="멍멍! 일단 출발해! 로고"
+                className="w-8 h-8 rounded-lg"
+              />
               <h1 className="header-title">멍멍! 일단 출발해!</h1>
             </div>
             <p className="header-subtitle">반려견과 함께하는 스마트한 여행</p>
