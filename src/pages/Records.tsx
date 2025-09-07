@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, BookOpen, Calendar, Tag, Trash2, Heart, Plus, Camera, MapPin, Edit, Map, Eye } from "lucide-react";
+import { ArrowLeft, BookOpen, Calendar, Tag, Trash2, Heart, Plus, Camera, MapPin, Edit, Map, Eye, Globe, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -330,6 +330,38 @@ const Records = () => {
 
   const handleRecordUpdate = () => {
     fetchTravelRecords(); // 목록 새로고침
+  };
+
+  const togglePublicStatus = async (recordId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('travel_records')
+        .update({
+          is_public: !currentStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', recordId);
+
+      if (error) {
+        console.error('Error updating public status:', error);
+        toast.error('공개 설정 변경에 실패했습니다.');
+        return;
+      }
+
+      // 로컬 상태 업데이트
+      setTravelRecords(prev => 
+        prev.map(record => 
+          record.id === recordId 
+            ? { ...record, is_public: !currentStatus }
+            : record
+        )
+      );
+
+      toast.success(!currentStatus ? '기록이 공개되었습니다.' : '기록이 비공개로 변경되었습니다.');
+    } catch (error) {
+      console.error('Error updating public status:', error);
+      toast.error('공개 설정 변경에 실패했습니다.');
+    }
   };
 
   const removeBookmark = async (bookmarkId: string) => {
@@ -960,11 +992,23 @@ const Records = () => {
                                 방문: {new Date(record.visit_date).toLocaleDateString('ko-KR')}
                               </span>
                               <div className="flex items-center gap-2">
-                                {record.is_public && (
-                                  <span className="text-xs text-primary bg-primary/10 px-2 py-1 rounded-full">
-                                    공개
-                                  </span>
-                                )}
+                                {/* 공개/비공개 토글 버튼 */}
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className={`p-1 h-6 w-6 ${record.is_public ? 'text-green-600 hover:bg-green-50' : 'text-gray-500 hover:bg-gray-50'}`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    togglePublicStatus(record.id, record.is_public || false);
+                                  }}
+                                  title={record.is_public ? '공개 → 비공개로 변경' : '비공개 → 공개로 변경'}
+                                >
+                                  {record.is_public ? (
+                                    <Globe className="w-3 h-3" />
+                                  ) : (
+                                    <Lock className="w-3 h-3" />
+                                  )}
+                                </Button>
                                 {record.images.length > 1 && (
                                   <span className="text-xs text-primary">
                                     +{record.images.length - 1}장
