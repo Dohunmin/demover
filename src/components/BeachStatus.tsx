@@ -198,7 +198,7 @@ const BeachStatus = () => {
           </div>
           
           <Card className="p-4 sm:p-6 bg-white border-gray-100 shadow-sm">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-lg flex items-center justify-center">
                   <Waves className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" strokeWidth={1.5} />
@@ -213,6 +213,13 @@ const BeachStatus = () => {
               >
                 {selectedBeach.status}
               </Badge>
+            </div>
+            
+            {/* 기준 시간 표시 */}
+            <div className="text-center mb-4">
+              <p className="text-xs text-gray-400">
+                {new Date().getHours()}시 기준
+              </p>
             </div>
             
             {/* 중앙 하늘상태 (큰 표시) */}
