@@ -268,28 +268,71 @@ const BeachStatus = () => {
         </div>
       ) : (
         // 해수욕장 목록 (3x2 그리드)
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-4">
           {beaches.map((beach, index) => (
             <Card 
               key={index} 
-              className="p-4 bg-white border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer hover:bg-gray-50"
+              className="relative p-6 bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-100 shadow-sm hover:shadow-lg transition-all cursor-pointer hover:scale-105 group"
               onClick={() => setSelectedBeach(beach)}
             >
-              <div className="text-center">
-                <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mx-auto mb-3">
-                  <Waves className="w-6 h-6 text-blue-600" strokeWidth={1.5} />
+              {/* 상단 해수욕장 이름과 상태 */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-2">
+                  <Waves className="w-5 h-5 text-blue-600" strokeWidth={1.5} />
+                  <h4 className="font-semibold text-gray-900 text-sm">
+                    {beach.name.replace(' 해수욕장', '')}
+                  </h4>
                 </div>
-                <h4 className="font-medium text-gray-900 text-sm leading-tight">
-                  {beach.name.replace(' 해수욕장', '')}
-                </h4>
-                <div className="mt-2">
-                  <Badge 
-                    className={`${beach.statusColor} text-white text-xs px-2 py-1 border-0`}
-                  >
-                    {beach.status}
-                  </Badge>
+                <Badge 
+                  className={`${beach.statusColor} text-white text-xs px-3 py-1 border-0 shadow-sm`}
+                >
+                  {beach.status}
+                </Badge>
+              </div>
+
+              {/* 중앙 하늘 상태 */}
+              <div className="text-center mb-4">
+                <div className="text-xs text-gray-500 mb-1">하늘상태</div>
+                <div className="text-lg font-bold text-gray-800 mb-2">{beach.sky}</div>
+              </div>
+
+              {/* 기온과 수온 */}
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="bg-white/60 rounded-lg p-3 text-center">
+                  <div className="text-xs text-gray-500 mb-1">기온</div>
+                  <div className="font-bold text-gray-800">{beach.temperature}</div>
+                </div>
+                <div className="bg-white/60 rounded-lg p-3 text-center">
+                  <div className="text-xs text-gray-500 mb-1">수온</div>
+                  <div className="font-bold text-gray-800">{beach.waterTemp}</div>
                 </div>
               </div>
+
+              {/* 하단 정보 - 파도, 일출, 일몰 */}
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                <div className="bg-white/40 rounded-lg p-2 text-center">
+                  <div className="text-xs text-gray-500 mb-1">파도높이</div>
+                  <div className="text-xs font-medium text-gray-700">{beach.waveHeight}</div>
+                </div>
+                <div className="bg-white/40 rounded-lg p-2 text-center">
+                  <div className="text-xs text-gray-500 mb-1">일출</div>
+                  <div className="text-xs font-medium text-gray-700">{beach.sunrise}</div>
+                </div>
+                <div className="bg-white/40 rounded-lg p-2 text-center">
+                  <div className="text-xs text-gray-500 mb-1">일몰</div>
+                  <div className="text-xs font-medium text-gray-700">{beach.sunset}</div>
+                </div>
+              </div>
+
+              {/* 상세보기 안내 */}
+              <div className="text-center">
+                <span className="text-xs text-gray-500 group-hover:text-blue-600 transition-colors">
+                  상세보기 →
+                </span>
+              </div>
+
+              {/* 호버 효과 */}
+              <div className="absolute inset-0 bg-blue-600/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
             </Card>
           ))}
         </div>
