@@ -6,10 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card } from "@/components/ui/card";
 import { User, Camera, Edit, Save, X, Trash2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { travelTypes, mbtiImages, mbtiBackgrounds } from "@/pages/MbtiTest";
 
 interface Profile {
   id?: string;
@@ -38,6 +40,7 @@ const UserProfile = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
+  const [mbtiModalOpen, setMbtiModalOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -345,6 +348,9 @@ const UserProfile = () => {
     return age ? `${age}살` : '미설정';
   };
 
+  // 멍BTI 결과 데이터 찾기
+  const mbtiResultData = profile?.mbti_result ? travelTypes.find(type => type.code === profile.mbti_result) : null;
+
   return (
     <>
       <Dialog>
@@ -373,9 +379,15 @@ const UserProfile = () => {
                   ) : '이메일 정보 없음'}
                   {profile?.mbti_result && (
                     <div className="mt-1">
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMbtiModalOpen(true);
+                        }}
+                        className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors cursor-pointer"
+                      >
                         {profile.mbti_result}
-                      </span>
+                      </button>
                     </div>
                   )}
                 </div>
@@ -643,6 +655,139 @@ const UserProfile = () => {
               <X className="w-4 h-4" />
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 멍BTI 결과 모달 */}
+      <Dialog open={mbtiModalOpen} onOpenChange={setMbtiModalOpen}>
+        <DialogContent className="sm:max-w-md max-w-[95vw] max-h-[90vh] overflow-y-auto bg-white border border-gray-200 shadow-2xl rounded-lg p-6">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-xl font-bold text-gray-900 text-center">
+              멍BTI 결과
+            </DialogTitle>
+          </DialogHeader>
+          
+          {mbtiResultData && (
+            <div className="space-y-4">
+              {/* 결과 헤더 */}
+              <div className="text-center">
+                <div className="text-4xl mb-3">{mbtiResultData.icon}</div>
+                <div className="text-xl font-bold text-gray-900 mb-1">
+                  {profile?.mbti_result}
+                </div>
+                <div className="text-lg font-semibold text-gray-700">
+                  {mbtiResultData.title}
+                </div>
+              </div>
+
+              {/* 결과 카드 */}
+              <Card className={`p-4 bg-gradient-to-br ${mbtiBackgrounds[profile?.mbti_result || ""] || "from-orange-400 to-orange-500"} rounded-xl shadow-lg text-gray-800`}>
+                {/* 캐릭터 이미지 */}
+                {mbtiImages[profile?.mbti_result || ""] && (
+                  <div className="flex justify-center mb-4">
+                    <img 
+                      src={mbtiImages[profile?.mbti_result || ""]} 
+                      alt={`${profile?.mbti_result} 캐릭터`}
+                      className="w-24 h-24 object-contain"
+                    />
+                  </div>
+                )}
+                
+                <p className="text-sm leading-relaxed text-center">
+                  {mbtiResultData.description}
+                </p>
+              </Card>
+
+              {/* Tags */}
+              <div className="flex flex-wrap gap-2 justify-center">
+                {mbtiResultData.tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+
+              {/* 닫기 버튼 */}
+              <div className="flex justify-center pt-2">
+                <Button
+                  onClick={() => setMbtiModalOpen(false)}
+                  variant="outline"
+                  className="px-6"
+                >
+                  닫기
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+      {/* 멍BTI 결과 모달 */}
+      <Dialog open={mbtiModalOpen} onOpenChange={setMbtiModalOpen}>
+        <DialogContent className="sm:max-w-md max-w-[95vw] max-h-[90vh] overflow-y-auto bg-white border border-gray-200 shadow-2xl rounded-lg p-6">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-xl font-bold text-gray-900 text-center">
+              멍BTI 결과
+            </DialogTitle>
+          </DialogHeader>
+          
+          {mbtiResultData && (
+            <div className="space-y-4">
+              {/* 결과 헤더 */}
+              <div className="text-center">
+                <div className="text-4xl mb-3">{mbtiResultData.icon}</div>
+                <div className="text-xl font-bold text-gray-900 mb-1">
+                  {profile?.mbti_result}
+                </div>
+                <div className="text-lg font-semibold text-gray-700">
+                  {mbtiResultData.title}
+                </div>
+              </div>
+
+              {/* 결과 카드 */}
+              <Card className={`p-4 bg-gradient-to-br ${mbtiBackgrounds[profile?.mbti_result || ""] || "from-orange-400 to-orange-500"} rounded-xl shadow-lg text-gray-800`}>
+                {/* 캐릭터 이미지 */}
+                {mbtiImages[profile?.mbti_result || ""] && (
+                  <div className="flex justify-center mb-4">
+                    <img 
+                      src={mbtiImages[profile?.mbti_result || ""]} 
+                      alt={`${profile?.mbti_result} 캐릭터`}
+                      className="w-24 h-24 object-contain"
+                    />
+                  </div>
+                )}
+                
+                <p className="text-sm leading-relaxed text-center">
+                  {mbtiResultData.description}
+                </p>
+              </Card>
+
+              {/* Tags */}
+              <div className="flex flex-wrap gap-2 justify-center">
+                {mbtiResultData.tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+
+              {/* 닫기 버튼 */}
+              <div className="flex justify-center pt-2">
+                <Button
+                  onClick={() => setMbtiModalOpen(false)}
+                  variant="outline"
+                  className="px-6"
+                >
+                  닫기
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </>

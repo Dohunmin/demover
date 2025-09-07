@@ -290,7 +290,7 @@ const questions = [
 ];
 
 // 16가지 성향 데이터와 이미지 매핑
-const mbtiImages: { [key: string]: string } = {
+export const mbtiImages: { [key: string]: string } = {
   "ESVF": "/lovable-uploads/053c625b-da0b-490a-86c2-5c4ae4c71fe1.png",
   "ESVB": "/lovable-uploads/13aa0338-6e00-4fe2-a46c-8f0bcf6c50dc.png", 
   "ESNF": "/lovable-uploads/d8ca4f20-1e83-4629-8b07-84f381d631f2.png",
@@ -310,7 +310,7 @@ const mbtiImages: { [key: string]: string } = {
 };
 
 // 각 성향별 배경색 매핑
-const mbtiBackgrounds: { [key: string]: string } = {
+export const mbtiBackgrounds: { [key: string]: string } = {
   "ESVF": "from-cyan-300 to-cyan-400", // 밝은 청록색
   "ESVB": "from-gray-300 to-gray-400", // 회색
   "ESNF": "from-green-200 to-green-300", // 연한 초록
@@ -329,7 +329,7 @@ const mbtiBackgrounds: { [key: string]: string } = {
   "CONB": "from-yellow-200 to-yellow-300" // 노란색
 };
 
-const travelTypes = [
+export const travelTypes = [
   { 
     code: "ESVF", 
     title: "에너자이저 여행 유튜버",
