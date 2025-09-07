@@ -43,7 +43,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import CategoryGrid from "@/components/CategoryGrid";
+
 import PlaceReviewModal from "@/components/PlaceReviewModal";
 import { mbtiData } from "@/data/mbti-data";
 
@@ -1447,11 +1447,6 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         )}
       </div>
 
-      {!hideCategoryGrid && !showPetFilter && (
-        <div className="bg-white border-t p-4">
-          <CategoryGrid />
-        </div>
-      )}
 
       {/* 평점/후기 모달 */}
       {selectedPlaceForReview && (
