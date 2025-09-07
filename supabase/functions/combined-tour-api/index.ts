@@ -396,7 +396,7 @@ serve(async (req) => {
               // 각 청크를 병렬 처리
               const chunkPromise = Promise.all(
                 chunk.map(async (keywordItem, index) => {
-                  const searchUrl = `https://apis.data.go.kr/B551011/KorService2/searchKeyword2?serviceKey=${encodeURIComponent(
+                  const searchUrl = `https://apis.data.go.kr/B551011/KorService2/searchKeyword2?arrange=O&serviceKey=${encodeURIComponent(
                     decodedApiKey
                   )}&MobileOS=ETC&MobileApp=PetTravelApp&keyword=${encodeURIComponent(
                     keywordItem
@@ -443,10 +443,11 @@ serve(async (req) => {
                         );
 
                         if (parsedData?.response?.body?.items?.item) {
+                          // 다건 응답 시 첫 번째 아이템만 사용
                           const items = Array.isArray(
                             parsedData.response.body.items.item
                           )
-                            ? parsedData.response.body.items.item
+                            ? [parsedData.response.body.items.item[0]] // 첫 번째만 선택
                             : [parsedData.response.body.items.item];
 
                           const mappedItems = items.map((item) => ({
