@@ -23,7 +23,7 @@ const BeachStatus = () => {
   const fetchBeachData = async () => {
     try {
       setLoading(true);
-      const beachNames = ["송도", "해운대", "송정", "광안리", "임랑", "다대포", "일광"];
+      const beachNames = ["송도", "해운대", "송정", "광안리", "다대포", "일광"];
       
       // 모든 해수욕장 데이터를 동시에 요청
       const promises = beachNames.map(async (beachName) => {
@@ -67,7 +67,6 @@ const BeachStatus = () => {
         { name: "해운대 해수욕장", status: "정보없음", temperature: "-", crowd: "-", statusColor: "bg-gray-500" },
         { name: "송정 해수욕장", status: "정보없음", temperature: "-", crowd: "-", statusColor: "bg-gray-500" },
         { name: "광안리 해수욕장", status: "정보없음", temperature: "-", crowd: "-", statusColor: "bg-gray-500" },
-        { name: "임랑 해수욕장", status: "정보없음", temperature: "-", crowd: "-", statusColor: "bg-gray-500" },
         { name: "다대포 해수욕장", status: "정보없음", temperature: "-", crowd: "-", statusColor: "bg-gray-500" },
         { name: "일광 해수욕장", status: "정보없음", temperature: "-", crowd: "-", statusColor: "bg-gray-500" },
       ]);
