@@ -14,7 +14,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import TravelRecordsMap from "@/components/TravelRecordsMap";
-import KakaoMap from "@/components/KakaoMap";
 
 interface TravelRecord {
   id: string;
@@ -660,27 +659,6 @@ const Records = () => {
                 </div>
               </div>
             )}
-
-            {/* Kakao Map Section */}
-            <div className="mt-8">
-              <h2 className="card-title text-lg mb-4">지도에서 찾기</h2>
-              <div className="h-96 rounded-lg overflow-hidden">
-                <KakaoMap 
-                  onBack={() => {}} 
-                  hideCategoryGrid={true} 
-                  hideSearchBar={true}
-                  showPetFilter={true}
-                  userProfileImage={userProfile?.avatar_url || userProfile?.pet_image_url}
-                  bookmarkedPlaces={travelBookmarks.map(bookmark => ({
-                    content_id: bookmark.content_id,
-                    title: bookmark.title,
-                    mapx: bookmark.mapx || '',
-                    mapy: bookmark.mapy || '',
-                    bookmark_type: bookmark.bookmark_type
-                  }))}
-                />
-              </div>
-            </div>
           </TabsContent>
 
 
