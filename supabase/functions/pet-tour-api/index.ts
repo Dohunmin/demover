@@ -1,583 +1,129 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-// 인메모리 캐시 (24시간 TTL)
-const cache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_TTL = 24 * 60 * 60 * 1000; // 24시간
-
-function getCached(key: string) {
-  const cached = cache.get(key);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    console.log(`🎯 캐시에서 데이터 로드: ${key}`);
-    return cached.data;
-  }
-  cache.delete(key);
-  return null;
-}
-
-function setCache(key: string, data: any) {
-  cache.set(key, { data, timestamp: Date.now() });
-  console.log(`💾 캐시에 데이터 저장: ${key} (${data.length}개)`);
-}
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type"
 };
 
-// XML을 JSON으로 변환하는 간단한 파서
-function parseXmlToJson(xmlText: string) {
-  try {
-    console.log("Parsing XML content:", xmlText.substring(0, 500));
-
-    // SERVICE ERROR 체크
-    if (
-      xmlText.includes("SERVICE ERROR") ||
-      xmlText.includes("NO_OPENAPI_SERVICE_ERROR")
-    ) {
-      const errorMatch = xmlText.match(/<errMsg>(.*?)<\/errMsg>/);
-      const errorMsg = errorMatch ? errorMatch[1] : "Unknown service error";
-      console.error("API Service Error:", errorMsg);
-      return {
-        error: true,
-        message: errorMsg,
-      };
-    }
-
-    // 정상 응답 파싱
-    const result: any = {};
-
-    // resultCode 추출
-    const resultCodeMatch = xmlText.match(/<resultCode>(\d+)<\/resultCode>/);
-    const resultMsgMatch = xmlText.match(/<resultMsg>([^<]*)<\/resultMsg>/);
-    const totalCountMatch = xmlText.match(/<totalCount>(\d+)<\/totalCount>/);
-    const numOfRowsMatch = xmlText.match(/<numOfRows>(\d+)<\/numOfRows>/);
-    const pageNoMatch = xmlText.match(/<pageNo>(\d+)<\/pageNo>/);
-
-    const header = {
-      resultCode: resultCodeMatch ? resultCodeMatch[1] : "99",
-      resultMsg: resultMsgMatch ? resultMsgMatch[1] : "UNKNOWN ERROR",
-    };
-
-    const body: any = {
-      totalCount: totalCountMatch ? parseInt(totalCountMatch[1]) : 0,
-      numOfRows: numOfRowsMatch ? parseInt(numOfRowsMatch[1]) : 0,
-      pageNo: pageNoMatch ? parseInt(pageNoMatch[1]) : 1,
-    };
-
-    // items 파싱 - item 태그들을 찾아서 배열로 변환
-    const itemRegex = /<item>(.*?)<\/item>/gs;
-    const items = [];
-    let itemMatch;
-
-    while ((itemMatch = itemRegex.exec(xmlText)) !== null) {
-      const itemContent = itemMatch[1];
-      const item: any = {};
-
-      // 각 item 내의 필드들 파싱
-      const fieldRegex = /<(\w+)>([^<]*)<\/\1>/g;
-      let fieldMatch;
-
-      while ((fieldMatch = fieldRegex.exec(itemContent)) !== null) {
-        const [, fieldName, fieldValue] = fieldMatch;
-        item[fieldName] = fieldValue;
-      }
-
-      if (Object.keys(item).length > 0) {
-        items.push(item);
-      }
-    }
-
-    if (items.length > 0) {
-      body.items = { item: items };
-    }
-
-    result.response = { header, body };
-
-    console.log("Parsed XML result:", JSON.stringify(result, null, 2));
-    return result;
-  } catch (error) {
-    console.error("XML parsing error:", error);
-    return {
-      error: true,
-      message: `XML parsing failed: ${error.message}`,
-    };
-  }
-}
-
-// 반려동물 동반 가능한 키워드 목록
-const petFriendlyKeywords = [
-  "롯데프리미엄아울렛 동부산점",
-  "몽작",
-  "부산시민공원",
-  "센텀 APEC나루공원",
-  "신호공원",
-  "오르디",
-  "온천천시민공원",
-  "칠암만장",
-  "카페 만디",
-  "포레스트3002",
-  "홍법사(부산)",
-  "감나무집",
-  "광안리해변 테마거리",
-  "광안리해수욕장",
-  "구덕포끝집고기",
-  "구포시장",
-  "국립부산과학관",
-  "그림하우스",
-  "금강사(부산)",
-  "다대포 꿈의 낙조분수",
-  "다대포해수욕장",
-  "대보름",
-  "대저생태공원",
-  "대저수문 생태공원",
-  "더웨이브",
-  "더펫텔프리미엄스위트",
-  "덕미",
-  "듀스포레",
-  "드림서프라운지",
-  "만달리",
-  "맥도생태공원",
-  "모닝듀 게스트 하우스(모닝듀)",
-  "무명일기",
-  "문탠로드",
-  "민락수변공원",
-  "밀락더마켓",
-  "부산 감천문화마을",
-  "부산 송도해상케이블카",
-  "부산 송도해수욕장",
-  "부산 암남공원",
-  "부산북항 친수공원",
-  "부산 어린이대공원",
-  "불란서그로서리",
-  "브리타니",
-  "비아조",
-  "빅토리아 베이커리 가든",
-  "삼락생태공원",
-  "성안집",
-  "송도 구름산책로",
-  "송정물총칼국수",
-  "송정해수욕장",
-  "스노잉클라우드",
-  "스포원파크",
-  "신세계사이먼 부산 프리미엄 아울렛",
-  "아르반호텔[한국관광 품질인증/Korea Quality]",
-  "아미르공원",
-  "알로이삥삥",
-  "옐로우라이트하우스",
-  "오구카페",
-  "용소웰빙공원",
-  "원시학",
-  "웨스턴챔버",
-  "웨이브온 커피",
-  "윙민박",
-  "유정1995 기장 본점",
-  "을숙도 공원",
-  "이바구캠프",
-  "장림포구",
-  "절영해안산책로",
-  "죽성드림세트장",
-  "카페베이스",
-  "카페윤",
-  "캐빈스위트광안",
-  "캔버스",
-  "캔버스 블랙",
-  "태종대",
-  "팝콘 호스텔 해운대점",
-  "프루터리포레스트",
-  "해동용궁사",
-  "해운대 달맞이길",
-  "해운대 동백섬",
-  "해운대 블루라인파크",
-  "해운대 영무파라드호텔",
-  "해운대해수욕장",
-  "해월전망대",
-  "형제가든",
-  "황령산",
-  "황령산 전망대",
-  "황령산레포츠공원",
-  "회동수원지",
-  "회동수원지 둘레길",
-  "AJ하우스(AJ House)",
-  "EL16.52",
-  "JSTAY",
-  "The Park Guest House",
-];
-
-serve(async (req) => {
-  // Handle CORS preflight requests
+Deno.serve(async (req) => {
+  // CORS 프리플라이트 처리
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    console.log("[OPTIONS] pet-tour-api CORS preflight");
+    return new Response("ok", { headers: corsHeaders });
   }
 
+  const debugId = crypto.randomUUID();
+  
   try {
-    const {
-      areaCode = "6",
-      numOfRows = "10",
-      pageNo = "1",
-      keyword = "",
-      loadAllPetKeywords = false,
-      testMatchRate = false, // 매칭률 테스트용 플래그
-    } = await req.json().catch(() => ({}));
-
-    const apiKey = Deno.env.get("KOREA_TOUR_API_KEY");
-    if (!apiKey) {
-      throw new Error("KOREA_TOUR_API_KEY not found in environment variables");
+    console.log("[START] pet-tour-api", debugId, "Method:", req.method);
+    console.log("[REQUEST] pet-tour-api", debugId, "URL:", req.url);
+    
+    // 요청 본문 파싱
+    const body = req.method === "GET" ? {} : await req.json();
+    console.log("[BODY] pet-tour-api", debugId, JSON.stringify(body));
+    
+    // 파라미터 추출
+    const operation = body.op || 'areaBasedList1';
+    const pageNo = body.pageNo || 1;
+    const numOfRows = body.numOfRows || 100;
+    const keyword = body.keyword || null;
+    const areaCode = body.areaCode || null;
+    const sigunguCode = body.sigunguCode || null;
+    
+    console.log("[PARAMS] pet-tour-api", debugId, { operation, pageNo, numOfRows, keyword, areaCode, sigunguCode });
+    
+    // API 키 가져오기
+    const SERVICE_KEY_RAW = Deno.env.get('KOREA_TOUR_API_KEY');
+    if (!SERVICE_KEY_RAW) {
+      throw new Error('KOREA_TOUR_API_KEY not found in environment');
     }
-
-    console.log("Pet Tourism API 호출 시작:", {
-      areaCode,
-      numOfRows,
-      pageNo,
-      keyword,
-      loadAllPetKeywords,
-      testMatchRate,
-    });
-
-    // 매칭률 테스트
-    if (testMatchRate) {
-      console.log("=== 반려동물 API 매칭률 테스트 시작 ===");
-      
-      let decodedApiKey = apiKey;
-      try {
-        decodedApiKey = decodeURIComponent(apiKey);
-      } catch (e) {
-        decodedApiKey = apiKey;
-      }
-
-      // 1. 실제 반려동물 API에서 전체 데이터 조회
-      const petApiUrl = `https://apis.data.go.kr/B551011/KorPetTourService/areaBasedList2?serviceKey=${encodeURIComponent(
-        decodedApiKey
-      )}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=100&pageNo=1&_type=xml`;
-      
-      console.log("실제 반려동물 API 호출:", petApiUrl);
-      
-      try {
-        const response = await fetch(petApiUrl).catch(async (httpsError) => {
-          const httpUrl = petApiUrl.replace("https://", "http://");
-          return await fetch(httpUrl);
-        });
-
-        if (response.ok) {
-          const responseText = await response.text();
-          const petApiData = parseXmlToJson(responseText);
-          
-          if (petApiData?.response?.body?.items?.item) {
-            const actualPetPlaces = Array.isArray(petApiData.response.body.items.item)
-              ? petApiData.response.body.items.item
-              : [petApiData.response.body.items.item];
-            
-            console.log(`실제 반려동물 API에서 ${actualPetPlaces.length}개 장소 발견`);
-            
-            // 2. 95개 키워드와 매칭 확인
-            let matchCount = 0;
-            let exactMatches = [];
-            let noMatches = [];
-            
-            for (const keyword of petFriendlyKeywords) {
-              const found = actualPetPlaces.find(place => 
-                place.title && place.title.includes(keyword.trim()) ||
-                keyword.includes(place.title?.trim())
-              );
-              
-              if (found) {
-                matchCount++;
-                exactMatches.push({ keyword, matched: found.title });
-                console.log(`✅ 매칭: "${keyword}" → "${found.title}"`);
-              } else {
-                noMatches.push(keyword);
-                console.log(`❌ 매칭 실패: "${keyword}"`);
-              }
-            }
-            
-            console.log("=== 매칭률 테스트 결과 ===");
-            console.log(`총 키워드: ${petFriendlyKeywords.length}개`);
-            console.log(`매칭 성공: ${matchCount}개`);
-            console.log(`매칭 실패: ${noMatches.length}개`);
-            console.log(`매칭률: ${((matchCount / petFriendlyKeywords.length) * 100).toFixed(1)}%`);
-            
-            return new Response(JSON.stringify({
-              testType: "matchRate",
-              totalKeywords: petFriendlyKeywords.length,
-              actualPetPlaces: actualPetPlaces.length,
-              matchedCount: matchCount,
-              unmatchedCount: noMatches.length,
-              matchRate: ((matchCount / petFriendlyKeywords.length) * 100).toFixed(1) + "%",
-              exactMatches: exactMatches.slice(0, 10), // 처음 10개만 샘플
-              noMatches: noMatches.slice(0, 10), // 처음 10개만 샘플
-              actualPetPlacesSample: actualPetPlaces.slice(0, 5).map(p => ({ 
-                title: p.title, 
-                contentid: p.contentid 
-              }))
-            }), {
-              status: 200,
-              headers: {
-                ...corsHeaders,
-                "Content-Type": "application/json",
-              },
-            });
-          } else {
-            console.log("실제 반려동물 API에서 데이터 없음");
-            return new Response(JSON.stringify({
-              testType: "matchRate",
-              error: "실제 반려동물 API에서 데이터를 찾을 수 없습니다.",
-              apiResponse: petApiData
-            }), {
-              status: 200,
-              headers: {
-                ...corsHeaders,
-                "Content-Type": "application/json",
-              },
-            });
-          }
-        } else {
-          console.log("실제 반려동물 API 호출 실패:", response.status);
-          return new Response(JSON.stringify({
-            testType: "matchRate",
-            error: `실제 반려동물 API 호출 실패: ${response.status}`,
-            responseText: await response.text()
-          }), {
-            status: 500,
-            headers: {
-              ...corsHeaders,
-              "Content-Type": "application/json",
-            },
-          });
-        }
-      } catch (error) {
-        console.error("매칭률 테스트 실패:", error);
-        return new Response(JSON.stringify({
-          testType: "matchRate",
-          error: error.message
-        }), {
-          status: 500,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        });
-      }
+    // 공백 문자 제거
+    const SERVICE_KEY = SERVICE_KEY_RAW.trim();
+    console.log("[KEY] pet-tour-api", debugId, "Service key length:", SERVICE_KEY.length);
+    
+    // 반려동물 동반 여행지 API 올바른 엔드포인트 사용
+    const BASE_URL = "https://apis.data.go.kr/B551011/KorPetTourService";
+    let finalUrl = `${BASE_URL}/areaBasedList2?serviceKey=${encodeURIComponent(SERVICE_KEY)}&_type=xml&MobileOS=ETC&MobileApp=PetTravelApp&pageNo=${pageNo}&numOfRows=${numOfRows}`;
+    
+    if (areaCode) {
+      finalUrl += `&areaCode=${areaCode}`;
     }
-
-    let petTourismData = null;
-
-    if (loadAllPetKeywords) {
-      // 캐시 확인
-      const cacheKey = "pet_friendly_places_busan_v3";
-      const cachedData = getCached(cacheKey);
-
-      if (cachedData) {
-        console.log(`🎯 캐시에서 데이터 사용: ${cachedData.length}개`);
-        petTourismData = {
-          response: {
-            header: {
-              resultCode: "0000",
-              resultMsg: "OK",
-            },
-            body: {
-              totalCount: cachedData.length,
-              numOfRows: cachedData.length,
-              pageNo: 1,
-              items: {
-                item: cachedData,
-              },
-            },
-          },
-        };
-      } else {
-        console.log("=== 반려동물 여행지 전체 로딩 시작 ===");
-        
-        try {
-          let decodedApiKey = apiKey;
-          try {
-            decodedApiKey = decodeURIComponent(apiKey);
-          } catch (e) {
-            decodedApiKey = apiKey;
-          }
-
-          const allResults = [];
-          let successCount = 0;
-          let errorCount = 0;
-
-          // 키워드를 20개씩 청크로 나누어 병렬 처리 (더 빠른 속도)
-          const chunkSize = 20;
-
-          for (let i = 0; i < petFriendlyKeywords.length; i += chunkSize) {
-            const chunk = petFriendlyKeywords.slice(i, i + chunkSize);
-            const chunkIndex = Math.floor(i / chunkSize) + 1;
-            const totalChunks = Math.ceil(petFriendlyKeywords.length / chunkSize);
-
-            console.log(`📦 청크 ${chunkIndex}/${totalChunks} 처리 중... (키워드 ${i + 1}-${Math.min(i + chunkSize, petFriendlyKeywords.length)})`);
-
-            // 각 청크를 병렬 처리
-            const chunkPromises = chunk.map(async (keywordItem, index) => {
-              const searchUrl = `https://apis.data.go.kr/B551011/KorService2/searchKeyword2?serviceKey=${encodeURIComponent(
-                decodedApiKey
-              )}&MobileOS=ETC&MobileApp=PetTravelApp&keyword=${encodeURIComponent(
-                keywordItem
-              )}&areaCode=${areaCode}&numOfRows=20&pageNo=1&_type=xml`;
-
-              try {
-                console.log(`🔍 [${i + index + 1}/${petFriendlyKeywords.length}] "${keywordItem}" 검색 중...`);
-
-                const response = await fetch(searchUrl).catch(async (httpsError) => {
-                  const httpUrl = searchUrl.replace("https://", "http://");
-                  return await fetch(httpUrl);
-                });
-
-                if (response.ok) {
-                  const responseText = await response.text();
-                  const parsedData = parseXmlToJson(responseText);
-
-                  if (parsedData?.response?.body?.items?.item) {
-                    const items = Array.isArray(parsedData.response.body.items.item)
-                      ? parsedData.response.body.items.item
-                      : [parsedData.response.body.items.item];
-
-                    const mappedItems = items.map((item) => ({
-                      ...item,
-                      searchKeyword: keywordItem,
-                    }));
-
-                    console.log(`✅ "${keywordItem}": ${mappedItems.length}개 결과 찾음`);
-                    successCount++;
-                    return mappedItems;
-                  } else {
-                    successCount++;
-                    return [];
-                  }
-                } else {
-                  console.log(`❌ "${keywordItem}": HTTP ${response.status} 오류`);
-                  errorCount++;
-                  return [];
-                }
-              } catch (error) {
-                console.log(`💥 "${keywordItem}" 검색 실패: ${error.message}`);
-                errorCount++;
-                return [];
-              }
-            });
-
-            const chunkResults = await Promise.all(chunkPromises);
-
-            // 결과 집계
-            for (const items of chunkResults) {
-              if (items && items.length > 0) {
-                allResults.push(...items);
-              }
-            }
-
-            // 청크 간 짧은 간격 (API Rate Limiting 방지)
-            if (chunkIndex < totalChunks) {
-              await new Promise((resolve) => setTimeout(resolve, 500));
-            }
-          }
-
-          console.log(`=== 반려동물 여행지 검색 완료 ===`);
-          console.log(`검색된 키워드: ${successCount}개`);
-          console.log(`실패한 키워드: ${errorCount}개`);
-          console.log(`수집된 장소: ${allResults.length}개`);
-
-          // 중복 제거 (contentid 기준)
-          const uniqueResults = allResults.reduce((acc, current) => {
-            const exists = acc.find((item) => item.contentid === current.contentid);
-            if (!exists) {
-              acc.push(current);
-            }
-            return acc;
-          }, []);
-
-          console.log(`중복 제거 후 최종 장소: ${uniqueResults.length}개`);
-
-          // 캐시에 저장
-          setCache(cacheKey, uniqueResults);
-
-          petTourismData = {
-            response: {
-              header: {
-                resultCode: "0000",
-                resultMsg: "OK",
-              },
-              body: {
-                totalCount: uniqueResults.length,
-                numOfRows: uniqueResults.length,
-                pageNo: 1,
-                items: {
-                  item: uniqueResults,
-                },
-              },
-            },
-          };
-        } catch (error) {
-          console.error("반려동물 여행지 검색 실패:", error);
-          throw error;
-        }
-      }
-    } else {
-      // 개별 키워드 검색 또는 일반 목록 조회
-      let decodedApiKey = apiKey;
-      try {
-        decodedApiKey = decodeURIComponent(apiKey);
-      } catch (e) {
-        decodedApiKey = apiKey;
-      }
-
-      let searchUrl;
-      if (keyword && keyword.trim()) {
-        searchUrl = `https://apis.data.go.kr/B551011/KorService2/searchKeyword2?serviceKey=${encodeURIComponent(
-          decodedApiKey
-        )}&MobileOS=ETC&MobileApp=PetTravelApp&keyword=${encodeURIComponent(
-          keyword.trim()
-        )}&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}&_type=xml`;
-      } else {
-        searchUrl = `https://apis.data.go.kr/B551011/KorService2/areaBasedList2?serviceKey=${encodeURIComponent(
-          decodedApiKey
-        )}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=${numOfRows}&pageNo=${pageNo}&_type=xml`;
-      }
-
-      console.log("Pet Search URL:", searchUrl);
-
-      const response = await fetch(searchUrl).catch(async (httpsError) => {
-        console.log("HTTPS failed, trying HTTP:", httpsError.message);
-        const httpUrl = searchUrl.replace("https://", "http://");
-        return await fetch(httpUrl);
+    if (sigunguCode) {
+      finalUrl += `&sigunguCode=${sigunguCode}`;
+    }
+    if (keyword) {
+      finalUrl += `&keyword=${encodeURIComponent(keyword)}`;
+    }
+    
+    console.log("[URL] pet-tour-api", debugId, finalUrl);
+    
+    // 외부 API 호출 (HTTPS 실패 시 HTTP로 재시도)
+    let response;
+    try {
+      response = await fetch(finalUrl, {
+        method: 'GET',
+        headers: {
+          "Accept": "application/xml, text/xml, */*",
+          "User-Agent": "PetTravelApp/1.0",
+          "Connection": "keep-alive"
+        },
+        redirect: "follow"
       });
-
-      if (response.ok) {
-        const responseText = await response.text();
-        petTourismData = parseXmlToJson(responseText);
-        
-        if (petTourismData?.error) {
-          throw new Error(`Pet Tourism API service error: ${petTourismData.message}`);
-        }
-      } else {
-        const responseText = await response.text();
-        throw new Error(`Pet Tourism API failed with status: ${response.status}, body: ${responseText}`);
-      }
+    } catch (httpsError) {
+      console.log("[HTTPS_FAILED] pet-tour-api", debugId, httpsError.message);
+      // HTTP로 재시도
+      const httpUrl = finalUrl.replace('https://', 'http://');
+      console.log("[HTTP_RETRY] pet-tour-api", debugId, httpUrl);
+      response = await fetch(httpUrl, {
+        method: 'GET',
+        headers: {
+          "Accept": "application/xml, text/xml, */*",
+          "User-Agent": "PetTravelApp/1.0",
+          "Connection": "keep-alive"
+        },
+        redirect: "follow"
+      });
     }
-
+    
+    console.log("[STATUS] pet-tour-api", debugId, response.status, response.statusText);
+    
+    const responseText = await response.text();
+    console.log("[RESPONSE_LENGTH] pet-tour-api", debugId, responseText.length);
+    console.log("[RESPONSE_PREVIEW] pet-tour-api", debugId, responseText.substring(0, 200));
+    
+    // XML 응답을 그대로 반환하거나 에러 확인
+    if (responseText.includes('SERVICE ERROR') || responseText.includes('INVALID_REQUEST_PARAMETER_ERROR')) {
+      const errorMatch = responseText.match(/<errMsg>(.*?)<\/errMsg>/);
+      const errorMsg = errorMatch ? errorMatch[1] : 'Unknown API error';
+      throw new Error(`Pet Tourism API Error: ${errorMsg}`);
+    }
+    
     // 응답 반환
-    return new Response(JSON.stringify(petTourismData), {
-      status: 200,
+    return new Response(responseText, {
+      status: response.status,
       headers: {
         ...corsHeaders,
-        "Content-Type": "application/json",
-      },
+        "Content-Type": "application/xml"
+      }
     });
-
+    
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error("Pet Tourism API error:", errorMessage);
+    console.error("[ERROR] pet-tour-api", debugId, errorMessage);
+    console.error("[ERROR_STACK] pet-tour-api", debugId, error instanceof Error ? error.stack : "No stack");
     
     return new Response(JSON.stringify({
-      error: true,
-      message: errorMessage
+      ok: false,
+      func: "pet-tour-api",
+      debugId: debugId,
+      error: errorMessage
     }), {
       status: 500,
       headers: {
         ...corsHeaders,
-        "Content-Type": "application/json",
-      },
+        "Content-Type": "application/json"
+      }
     });
+  } finally {
+    console.log("[END] pet-tour-api", debugId);
   }
 });

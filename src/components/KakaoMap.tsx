@@ -961,7 +961,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           searchQuery,
           (data: any[], status: any) => {
             if (status === window.kakao.maps.services.Status.OK) {
-              const places = data.map((place: any) => ({
+              const places = data.map((place: unknown) => ({
                 id: place.id,
                 place_name: place.place_name,
                 category_name: place.category_name,
@@ -1021,7 +1021,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         if (error) throw error;
 
         const places =
-          data.documents?.map((place: any) => ({
+          data.documents?.map((place: unknown) => ({
             ...place,
             source: "kakao",
           })) || [];

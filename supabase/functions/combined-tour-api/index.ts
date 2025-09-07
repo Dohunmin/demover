@@ -236,8 +236,11 @@ serve(async (req) => {
 
     // 응답 데이터 초기화
     let tourismData = null;
+    let petTourismData = null;
+    let tourismError = null;
+    let petTourismError = null;
 
-    // 일반 관광지 API만 호출
+    // activeTab에 따라 해당하는 API만 호출
     if (activeTab === "general") {
       // 1. 한국관광공사 국문 관광정보 서비스 호출 (일반 관광지만)
       try {
@@ -304,7 +307,8 @@ serve(async (req) => {
           // 항상 XML로 파싱 시도 (API가 XML을 반환함)
           tourismData = parseXmlToJson(responseText);
           if (tourismData?.error) {
-            throw new Error(`Tourism API service error: ${tourismData.message}`);
+            tourismError = `Tourism API service error: ${tourismData.message}`;
+            tourismData = null;
           }
 
           if (tourismData) {
@@ -312,34 +316,21 @@ serve(async (req) => {
           }
         } else {
           const responseText = await tourismResponse.text();
-          throw new Error(`Tourism API failed with status: ${tourismResponse.status}, body: ${responseText}`);
+          tourismError = `Tourism API failed with status: ${tourismResponse.status}, body: ${responseText}`;
+          console.error(tourismError);
         }
       } catch (error) {
-        console.error(`Tourism API error: ${error.message}`);
-        throw error;
+        tourismError = `Tourism API error: ${error.message}`;
+        console.error(tourismError);
       }
     }
-
-    // 최종 응답 반환 (일반 관광지만)
-    return new Response(
-      JSON.stringify({
-        tourismData,
-        petTourismData: null, // 반려동물 데이터는 별도 API로 분리
-        tourismError: null,
-        petTourismError: null,
-      }),
-      {
-        status: 200,
-        headers: corsHeaders,
-      }
-    );
 
     if (activeTab === "pet") {
       // 2. 한국관광공사 반려동물 동반 여행지 서비스 호출 (반려동물만)
       if (loadAllPetKeywords) {
         // 캐시 확인 (캐시 무효화하여 최신 데이터 수집)
         const cacheKey = "pet_friendly_places_busan_v2"; // 새 버전으로 캐시 키 변경
-        const cachedData = getCached(cacheKey);
+        const cachedData = null; // 캐시 무시하고 항상 새로 수집
 
         if (cachedData) {
           console.log(`🎯 캐시에서 데이터 사용: ${cachedData.length}개`);
@@ -800,22 +791,51 @@ serve(async (req) => {
       }
     }
 
-    // 최종 응답 반환 (일반 관광지만)
-    return new Response(
-      JSON.stringify({
-        tourismData,
-        petTourismData: null, // 반려동물 데이터는 별도 API로 분리
-        tourismError: null,
-        petTourismError: null,
-      }),
-      {
-        status: 200,
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    // 결과 확인 및 응답 구성
+    if (activeTab === "general" && !tourismData) {
+      throw new Error(`General Tourism API failed: ${tourismError}`);
+    }
+
+    if (activeTab === "pet" && !petTourismData) {
+      throw new Error(`Pet Tourism API failed: ${petTourismError}`);
+    }
+
+    // 요청된 탭에 따라 해당 데이터만 반환
+    const combinedData = {
+      tourismData:
+        activeTab === "general" ? tourismData || { error: tourismError } : null,
+      petTourismData:
+        activeTab === "pet"
+          ? petTourismData || { error: petTourismError }
+          : null,
+      requestParams: { areaCode, numOfRows, pageNo, activeTab },
+      timestamp: new Date().toISOString(),
+      status: {
+        tourism:
+          activeTab === "general"
+            ? tourismData
+              ? "success"
+              : "failed"
+            : "not_requested",
+        petTourism:
+          activeTab === "pet"
+            ? petTourismData
+              ? "success"
+              : "failed"
+            : "not_requested",
+      },
+    };
+
+    console.log("Final response prepared:", {
+      activeTab,
+      tourismSuccess: activeTab === "general" ? !!tourismData : "not_requested",
+      petTourismSuccess:
+        activeTab === "pet" ? !!petTourismData : "not_requested",
+    });
+
+    return new Response(JSON.stringify(combinedData), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error) {
     console.error("Error in combined-tour-api function:", error);
 
