@@ -94,26 +94,29 @@ const BeachStatus = () => {
     try {
       console.log(`Processing data for ${beachName}:`, apiData);
       
-      // API 응답에서 각각의 데이터 추출
-      const forecastData = apiData.forecast || {};
-      const sunData = apiData.sun || {};
-      const tempData = apiData.waterTemp || {};
+      // API 응답 구조 확인
+      if (!apiData?.response?.body?.items?.item || !Array.isArray(apiData.response.body.items.item)) {
+        throw new Error('Invalid API response structure');
+      }
       
-      // 기온 정보
-      const temperature = forecastData.tmp ? `${forecastData.tmp}°C` : '-';
+      const items = apiData.response.body.items.item;
+      const firstItem = items[0]; // 첫 번째 아이템에 모든 통합 정보가 있음
+      
+      // 기온 정보 (이미 통합된 tmp 사용)
+      const temperature = firstItem?.tmp ? `${firstItem.tmp}°C` : '-';
       
       // 하늘 상태 (1: 맑음, 3: 구름많음, 4: 흐림)
       let skyCondition = '-';
-      if (forecastData.sky) {
-        const skyCode = parseInt(forecastData.sky);
+      if (firstItem?.sky) {
+        const skyCode = parseInt(firstItem.sky);
         if (skyCode === 1) skyCondition = '맑음';
         else if (skyCode === 3) skyCondition = '구름많음';
         else if (skyCode === 4) skyCondition = '흐림';
-        else skyCondition = forecastData.sky;
+        else skyCondition = firstItem.sky;
       }
       
-      // 파도 높이
-      const waveHeight = forecastData.wav || '0';
+      // 파도 높이 (이미 통합된 wav 사용)
+      const waveHeight = firstItem?.wav || '0';
       const waveHeightNum = parseFloat(waveHeight);
       
       // 상태 판정 (파도 높이 기준)
@@ -131,12 +134,12 @@ const BeachStatus = () => {
         statusColor = "bg-red-500";
       }
       
-      // 일출/일몰 시간
-      const sunrise = sunData.sunrise || '-';
-      const sunset = sunData.sunset || '-';
+      // 일출/일몰 시간 (이미 통합된 sunrise, sunset 사용)
+      const sunrise = firstItem?.sunrise || '-';
+      const sunset = firstItem?.sunset || '-';
       
-      // 수온
-      const waterTemp = tempData.tw ? `${tempData.tw}°C` : '-';
+      // 수온 (이미 통합된 tw 사용)
+      const waterTemp = firstItem?.tw ? `${firstItem.tw}°C` : '-';
       
       // 혼잡도는 임의로 설정 (실제 API에서 제공하지 않음)
       const crowdLevels = ["여유", "보통", "혼잡"];
