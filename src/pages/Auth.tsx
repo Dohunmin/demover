@@ -340,7 +340,11 @@ const Auth = () => {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-2 mb-4">
             <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <PawPrint className="w-6 h-6 text-white" />
+              <img 
+                src="/lovable-uploads/cda9196c-6bda-4f6d-b9de-457dc88de528.png" 
+                alt="멍멍! 일단 출발해! 로고"
+                className="w-8 h-8 rounded-lg"
+              />
             </div>
             <h1 className="text-2xl font-bold text-gray-900">멍멍! 일단 출발해!</h1>
           </div>
