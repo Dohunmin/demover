@@ -188,108 +188,85 @@ const BeachStatus = () => {
         // 선택된 해수욕장 상세 정보
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-xl font-semibold text-gray-900">{selectedBeach.name}</h4>
+            <h4 className="text-lg sm:text-xl font-semibold text-gray-900">{selectedBeach.name}</h4>
             <button
               onClick={() => setSelectedBeach(null)}
               className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
             >
-              <X className="w-5 h-5 text-gray-600" />
+              <X className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
             </button>
           </div>
           
-          <Card className="p-6 bg-white border-gray-100 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
+          <Card className="p-4 sm:p-6 bg-white border-gray-100 shadow-sm">
+            <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
-                  <Waves className="w-6 h-6 text-blue-600" strokeWidth={1.5} />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-lg flex items-center justify-center">
+                  <Waves className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" strokeWidth={1.5} />
                 </div>
                 <div>
-                  <h5 className="font-semibold text-gray-900 text-lg">{selectedBeach.name}</h5>
-                  <p className="text-sm text-gray-500">실시간 현황</p>
+                  <h5 className="font-semibold text-gray-900 text-base sm:text-lg">{selectedBeach.name}</h5>
+                  <p className="text-xs sm:text-sm text-gray-500">실시간 현황</p>
                 </div>
               </div>
               <Badge 
-                className={`${selectedBeach.statusColor} text-white text-sm px-4 py-2 border-0`}
+                className={`${selectedBeach.statusColor} text-white text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 border-0`}
               >
                 {selectedBeach.status}
               </Badge>
             </div>
             
-            {/* 상단 정보 - 기온, 하늘상태, 수온 */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
-              <div className="flex items-center space-x-3 bg-orange-50 rounded-lg px-4 py-3">
-                <Thermometer className="w-5 h-5 text-orange-500" />
-                <div>
-                  <div className="text-sm text-gray-500">기온</div>
-                  <div className="font-semibold text-lg text-gray-800">{selectedBeach.temperature}</div>
-                </div>
+            {/* 중앙 하늘상태 (큰 표시) */}
+            <div className="text-center mb-6 py-4 bg-blue-50/50 rounded-lg">
+              <div className="text-sm text-gray-500 mb-2">하늘상태</div>
+              <div className="text-3xl sm:text-4xl font-bold text-gray-800">{selectedBeach.sky}</div>
+            </div>
+            
+            {/* 기온과 수온 (좌우 배치) */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="bg-orange-50 rounded-lg p-4 text-center">
+                <div className="text-sm text-gray-500 mb-2">기온</div>
+                <div className="text-2xl sm:text-3xl font-bold text-gray-800">{selectedBeach.temperature}</div>
               </div>
-              <div className="flex items-center space-x-3 bg-blue-50 rounded-lg px-4 py-3">
-                <Cloud className="w-5 h-5 text-blue-500" />
-                <div>
-                  <div className="text-sm text-gray-500">하늘상태</div>
-                  <div className="font-semibold text-lg text-gray-800">{selectedBeach.sky}</div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3 bg-cyan-50 rounded-lg px-4 py-3">
-                <Waves className="w-5 h-5 text-cyan-500" />
-                <div>
-                  <div className="text-sm text-gray-500">수온</div>
-                  <div className="font-semibold text-lg text-gray-800">{selectedBeach.waterTemp}</div>
-                </div>
+              <div className="bg-cyan-50 rounded-lg p-4 text-center">
+                <div className="text-sm text-gray-500 mb-2">수온</div>
+                <div className="text-2xl sm:text-3xl font-bold text-gray-800">{selectedBeach.waterTemp}</div>
               </div>
             </div>
             
             {/* 하단 정보 - 파도높이, 일출, 일몰 */}
-            <div className="grid grid-cols-3 gap-4">
-              <div className="flex items-center space-x-3 bg-gray-50 rounded-lg px-4 py-3">
-                <Waves className="w-5 h-5 text-blue-400" />
-                <div>
-                  <div className="text-sm text-gray-500">파도높이</div>
-                  <div className="font-semibold text-lg text-gray-700">{selectedBeach.waveHeight}</div>
-                </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-yellow-50 rounded-lg p-3 text-center">
+                <div className="text-xs text-gray-500 mb-1">파도높이</div>
+                <div className="font-semibold text-gray-700 text-sm">{selectedBeach.waveHeight}</div>
               </div>
-              <div className="flex items-center space-x-3 bg-yellow-50 rounded-lg px-4 py-3">
-                <Sun className="w-5 h-5 text-yellow-500" />
-                <div>
-                  <div className="text-sm text-gray-500">일출</div>
-                  <div className="font-semibold text-lg text-gray-700">{selectedBeach.sunrise}</div>
-                </div>
+              <div className="bg-yellow-50 rounded-lg p-3 text-center">
+                <div className="text-xs text-gray-500 mb-1">일출</div>
+                <div className="font-semibold text-gray-700 text-sm">{selectedBeach.sunrise}</div>
               </div>
-              <div className="flex items-center space-x-3 bg-orange-50 rounded-lg px-4 py-3">
-                <Sunset className="w-5 h-5 text-orange-500" />
-                <div>
-                  <div className="text-sm text-gray-500">일몰</div>
-                  <div className="font-semibold text-lg text-gray-700">{selectedBeach.sunset}</div>
-                </div>
+              <div className="bg-yellow-50 rounded-lg p-3 text-center">
+                <div className="text-xs text-gray-500 mb-1">일몰</div>
+                <div className="font-semibold text-gray-700 text-sm">{selectedBeach.sunset}</div>
               </div>
             </div>
           </Card>
         </div>
       ) : (
-        // 해수욕장 목록 - 이름만 표시 (3x2 그리드)
-        <div className="grid grid-cols-3 gap-3">
+        // 해수욕장 목록 - 이름만 표시 (3x2 그리드, 모바일 최적화)
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
           {beaches.map((beach, index) => (
             <Card 
               key={index} 
-              className="relative p-4 bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-100 shadow-sm hover:shadow-lg transition-all cursor-pointer hover:scale-105 group min-h-[120px] flex flex-col justify-between"
+              className="relative p-3 bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-100 shadow-sm hover:shadow-lg transition-all cursor-pointer hover:scale-105 group h-24 sm:h-28 flex flex-col justify-center"
               onClick={() => setSelectedBeach(beach)}
             >
               {/* 해수욕장 아이콘과 이름 */}
-              <div className="text-center flex-1 flex flex-col justify-center">
-                <div className="w-10 h-10 bg-blue-600/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Waves className="w-5 h-5 text-blue-600" strokeWidth={1.5} />
+              <div className="text-center">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-600/10 rounded-full flex items-center justify-center mx-auto mb-1 sm:mb-2">
+                  <Waves className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" strokeWidth={1.5} />
                 </div>
-                <h4 className="font-semibold text-gray-900 text-sm leading-tight">
+                <h4 className="font-medium text-gray-900 text-xs sm:text-sm leading-tight px-1">
                   {beach.name.replace(' 해수욕장', '')}
                 </h4>
-              </div>
-
-              {/* 상세보기 안내 */}
-              <div className="text-center mt-3 pt-2 border-t border-blue-200/50">
-                <span className="text-xs text-blue-600 font-medium group-hover:text-blue-700 transition-colors">
-                  상세보기
-                </span>
               </div>
 
               {/* 호버 효과 오버레이 */}
