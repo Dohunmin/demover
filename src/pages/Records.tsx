@@ -725,11 +725,11 @@ const Records = () => {
                       새 기록 추가
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-md">
+                  <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>새 여행 기록 추가</DialogTitle>
                     </DialogHeader>
-                    <div className="space-y-4">
+                    <div className="space-y-4 pr-2">
                       <div>
                         <Label htmlFor="location">위치 검색</Label>
                         <PlaceSearch

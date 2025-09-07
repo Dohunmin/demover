@@ -43,33 +43,19 @@ const PlaceSearch: React.FC<PlaceSearchProps> = ({ onPlaceSelect, initialValue =
       if (window.kakao && window.kakao.maps) {
         setIsKakaoLoaded(true);
       } else {
-        try {
-          // Get Kakao API key from Supabase secrets
-          const response = await fetch('/api/get-kakao-key');
-          const data = await response.json();
-          const apiKey = data.key || 'c7cf9e7ecec81ad0090f5b7881b89e97'; // fallback key
-          
-          // Load Kakao SDK if not already loaded
-          const script = document.createElement('script');
-          script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&libraries=services&autoload=false`;
-          script.onload = () => {
-            window.kakao.maps.load(() => {
-              setIsKakaoLoaded(true);
-            });
-          };
-          document.head.appendChild(script);
-        } catch (error) {
-          console.error('Failed to load Kakao API:', error);
-          // Use fallback key
-          const script = document.createElement('script');
-          script.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=c7cf9e7ecec81ad0090f5b7881b89e97&libraries=services&autoload=false';
-          script.onload = () => {
-            window.kakao.maps.load(() => {
-              setIsKakaoLoaded(true);
-            });
-          };
-          document.head.appendChild(script);
-        }
+        // Load Kakao SDK with API key
+        const apiKey = 'c7cf9e7ecec81ad0090f5b7881b89e97';
+        const script = document.createElement('script');
+        script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&libraries=services&autoload=false`;
+        script.onload = () => {
+          window.kakao.maps.load(() => {
+            setIsKakaoLoaded(true);
+          });
+        };
+        script.onerror = (error) => {
+          console.error('Failed to load Kakao Maps SDK:', error);
+        };
+        document.head.appendChild(script);
       }
     };
 
