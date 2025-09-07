@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, BookOpen, Calendar, Tag, Trash2, Heart, Plus, Camera, MapPin, Edit, Map } from "lucide-react";
+import { ArrowLeft, BookOpen, Calendar, Tag, Trash2, Heart, Plus, Camera, MapPin, Edit, Map, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -12,6 +12,8 @@ import { Switch } from "@/components/ui/switch";
 import AdBanner from "@/components/AdBanner";
 import PlaceSearch from "@/components/PlaceSearch";
 import StarRating from "@/components/StarRating";
+import TravelRecordDetailModal from "@/components/TravelRecordDetailModal";
+import TravelRecordEditModal from "@/components/TravelRecordEditModal";
 
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -73,6 +75,9 @@ const Records = () => {
   const [activeTab, setActiveTab] = useState("bookmarks");
   const [travelViewMode, setTravelViewMode] = useState<"list" | "map">("list");
   const [isAddingRecord, setIsAddingRecord] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<TravelRecord | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [newRecord, setNewRecord] = useState({
     location_name: "",
     location_address: "",
@@ -301,6 +306,30 @@ const Records = () => {
       latitude: place.latitude,
       longitude: place.longitude
     });
+  };
+
+  const handleRecordClick = (record: TravelRecord) => {
+    setSelectedRecord(record);
+    setShowDetailModal(true);
+  };
+
+  const handleEditClick = (record: TravelRecord) => {
+    setSelectedRecord(record);
+    setShowEditModal(true);
+  };
+
+  const closeDetailModal = () => {
+    setShowDetailModal(false);
+    setSelectedRecord(null);
+  };
+
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setSelectedRecord(null);
+  };
+
+  const handleRecordUpdate = () => {
+    fetchTravelRecords(); // 목록 새로고침
   };
 
   const removeBookmark = async (bookmarkId: string) => {
@@ -891,7 +920,10 @@ const Records = () => {
                   <div className="space-y-4">
                     {travelRecords.map((record) => (
                       <div key={record.id} className="card">
-                        <div className="flex gap-4">
+                        <div 
+                          className="flex gap-4 cursor-pointer"
+                          onClick={() => handleRecordClick(record)}
+                        >
                           {record.images.length > 0 && (
                             <div className="w-20 h-20 bg-muted rounded-lg overflow-hidden flex-shrink-0">
                               <img 
@@ -908,7 +940,7 @@ const Records = () => {
                                 {record.location_name}
                               </h4>
                               {record.rating && (
-                                <div className="flex items-center gap-1 ml-auto">
+                                <div className="flex items-center gap-1">
                                   <StarRating rating={record.rating} readonly size="sm" />
                                 </div>
                               )}
@@ -941,23 +973,44 @@ const Records = () => {
                               </div>
                             </div>
                           </div>
-                          <div className="flex flex-col gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="p-2 h-auto text-primary hover:text-primary/80 hover:bg-primary/10"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="p-2 h-auto text-red-600 hover:text-red-700 hover:bg-red-50"
-                              onClick={() => removeTravelRecord(record.id)}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
+                        </div>
+                        <div className="flex gap-2 mt-3 pt-3 border-t">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1 text-primary hover:text-primary/80 hover:bg-primary/10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRecordClick(record);
+                            }}
+                          >
+                            <Eye className="w-4 h-4 mr-2" />
+                            자세히 보기
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditClick(record);
+                            }}
+                          >
+                            <Edit className="w-4 h-4 mr-2" />
+                            수정
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeTravelRecord(record.id);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            삭제
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -986,6 +1039,21 @@ const Records = () => {
             )}
           </TabsContent>
         </Tabs>
+
+        {/* 상세 보기 모달 */}
+        <TravelRecordDetailModal
+          record={selectedRecord}
+          isOpen={showDetailModal}
+          onClose={closeDetailModal}
+        />
+
+        {/* 수정 모달 */}
+        <TravelRecordEditModal
+          record={selectedRecord}
+          isOpen={showEditModal}
+          onClose={closeEditModal}
+          onUpdate={handleRecordUpdate}
+        />
       </main>
 
       {/* Ad Banner */}
