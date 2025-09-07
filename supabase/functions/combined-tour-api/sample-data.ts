@@ -2,7 +2,7 @@ export const sampleData = [
   {
     title: "롯데프리미엄아울렛 동부산점",
     locationGubun: "쇼핑",
-    mbti: ["ESNF", "EOVF", "CONF", "CONB"],
+    mbti: ["ESVF", "EOVF", "CSVF", "CSVB"],
     holiday: null,
   },
   {
