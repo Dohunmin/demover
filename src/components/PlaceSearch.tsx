@@ -39,64 +39,104 @@ const PlaceSearch: React.FC<PlaceSearchProps> = ({ onPlaceSelect, initialValue =
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
-    const initializeKakao = async () => {
-      if (window.kakao && window.kakao.maps) {
+    const initializeKakao = () => {
+      if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
         setIsKakaoLoaded(true);
-      } else {
-        // Load Kakao SDK with API key
-        const apiKey = 'c7cf9e7ecec81ad0090f5b7881b89e97';
-        const script = document.createElement('script');
-        script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&libraries=services&autoload=false`;
-        script.onload = () => {
+        return;
+      }
+
+      // Kakao Maps JavaScript API 키 (웹 플랫폼용 공개 키)
+      const apiKey = 'c7cf9e7ecec81ad0090f5b7881b89e97';
+      
+      const script = document.createElement('script');
+      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&libraries=services`;
+      script.async = true;
+      script.onload = () => {
+        if (window.kakao && window.kakao.maps) {
           window.kakao.maps.load(() => {
             setIsKakaoLoaded(true);
           });
+        }
+      };
+      script.onerror = (error) => {
+        console.error('Failed to load Kakao Maps SDK:', error);
+        // 대안 키로 재시도
+        const fallbackScript = document.createElement('script');
+        fallbackScript.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=c7cf9e7ecec81ad0090f5b7881b89e97&libraries=services`;
+        fallbackScript.async = true;
+        fallbackScript.onload = () => {
+          if (window.kakao && window.kakao.maps) {
+            window.kakao.maps.load(() => {
+              setIsKakaoLoaded(true);
+            });
+          }
         };
-        script.onerror = (error) => {
-          console.error('Failed to load Kakao Maps SDK:', error);
-        };
-        document.head.appendChild(script);
-      }
+        document.head.appendChild(fallbackScript);
+      };
+      
+      document.head.appendChild(script);
     };
 
     initializeKakao();
   }, []);
 
-  const searchPlaces = async (query: string) => {
-    if (!isKakaoLoaded || !query.trim()) {
+  const searchPlaces = (query: string) => {
+    if (!isKakaoLoaded || !window.kakao?.maps?.services || !query.trim()) {
       setSearchResults([]);
+      setShowResults(false);
       return;
     }
 
     setIsLoading(true);
     
-    const places = new window.kakao.maps.services.Places();
-    
-    places.keywordSearch(query, (result: Place[], status: string) => {
-      setIsLoading(false);
+    try {
+      const places = new window.kakao.maps.services.Places();
       
-      if (status === window.kakao.maps.services.Status.OK) {
-        setSearchResults(result.slice(0, 5)); // 최대 5개 결과만 표시
-        setShowResults(true);
-      } else {
-        setSearchResults([]);
-        setShowResults(false);
-      }
-    });
+      places.keywordSearch(query, (result: Place[], status: string) => {
+        setIsLoading(false);
+        
+        if (status === window.kakao.maps.services.Status.OK && result) {
+          // 부산 지역 결과 우선순위로 정렬
+          const sortedResults = result.sort((a, b) => {
+            const aBusan = a.address_name.includes('부산') || a.road_address_name?.includes('부산');
+            const bBusan = b.address_name.includes('부산') || b.road_address_name?.includes('부산');
+            if (aBusan && !bBusan) return -1;
+            if (!aBusan && bBusan) return 1;
+            return 0;
+          });
+          
+          setSearchResults(sortedResults.slice(0, 8)); // 더 많은 결과 표시
+          setShowResults(true);
+        } else {
+          setSearchResults([]);
+          setShowResults(false);
+        }
+      });
+    } catch (error) {
+      console.error('Search error:', error);
+      setIsLoading(false);
+      setSearchResults([]);
+      setShowResults(false);
+    }
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchQuery(value);
 
-    // 디바운스: 500ms 후에 검색 실행
+    // 디바운스: 300ms로 단축하여 더 빠른 반응
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
 
-    searchTimeoutRef.current = setTimeout(() => {
-      searchPlaces(value);
-    }, 500);
+    if (value.trim().length >= 2) { // 2글자 이상일 때만 검색
+      searchTimeoutRef.current = setTimeout(() => {
+        searchPlaces(value);
+      }, 300);
+    } else {
+      setSearchResults([]);
+      setShowResults(false);
+    }
   };
 
   const handlePlaceSelect = (place: Place) => {
