@@ -105,14 +105,18 @@ const BeachStatus = () => {
       // 기온 정보 (이미 통합된 tmp 사용)
       const temperature = firstItem?.tmp ? `${firstItem.tmp}°C` : '-';
       
-      // 하늘 상태 (1: 맑음, 3: 구름많음, 4: 흐림)
+      // 하늘 상태 - 실제 API 값 그대로 표시하거나 간단한 매핑
       let skyCondition = '-';
       if (firstItem?.sky) {
-        const skyCode = parseInt(firstItem.sky);
-        if (skyCode === 1) skyCondition = '맑음';
-        else if (skyCode === 3) skyCondition = '구름많음';
-        else if (skyCode === 4) skyCondition = '흐림';
-        else skyCondition = firstItem.sky;
+        // 실제 API에서 오는 값 그대로 표시 (일단 확인을 위해)
+        skyCondition = `코드${firstItem.sky}`;
+        
+        // 실제 기상청 SKY 코드에 따른 매핑 (확인 후 적용)
+        // const skyCode = parseInt(firstItem.sky);
+        // if (skyCode === 1) skyCondition = '맑음';
+        // else if (skyCode === 3) skyCondition = '구름많음';
+        // else if (skyCode === 4) skyCondition = '흐림';
+        // else skyCondition = `코드${firstItem.sky}`;
       }
       
       // 파도 높이 (이미 통합된 wav 사용)
