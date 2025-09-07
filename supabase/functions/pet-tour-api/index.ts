@@ -217,6 +217,7 @@ serve(async (req) => {
       pageNo = "1",
       keyword = "",
       loadAllPetKeywords = false,
+      testMatchRate = false, // 매칭률 테스트용 플래그
     } = await req.json().catch(() => ({}));
 
     const apiKey = Deno.env.get("KOREA_TOUR_API_KEY");
@@ -230,7 +231,133 @@ serve(async (req) => {
       pageNo,
       keyword,
       loadAllPetKeywords,
+      testMatchRate,
     });
+
+    // 매칭률 테스트
+    if (testMatchRate) {
+      console.log("=== 반려동물 API 매칭률 테스트 시작 ===");
+      
+      let decodedApiKey = apiKey;
+      try {
+        decodedApiKey = decodeURIComponent(apiKey);
+      } catch (e) {
+        decodedApiKey = apiKey;
+      }
+
+      // 1. 실제 반려동물 API에서 전체 데이터 조회
+      const petApiUrl = `https://apis.data.go.kr/B551011/KorPetTourService/areaBasedList2?serviceKey=${encodeURIComponent(
+        decodedApiKey
+      )}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=100&pageNo=1&_type=xml`;
+      
+      console.log("실제 반려동물 API 호출:", petApiUrl);
+      
+      try {
+        const response = await fetch(petApiUrl).catch(async (httpsError) => {
+          const httpUrl = petApiUrl.replace("https://", "http://");
+          return await fetch(httpUrl);
+        });
+
+        if (response.ok) {
+          const responseText = await response.text();
+          const petApiData = parseXmlToJson(responseText);
+          
+          if (petApiData?.response?.body?.items?.item) {
+            const actualPetPlaces = Array.isArray(petApiData.response.body.items.item)
+              ? petApiData.response.body.items.item
+              : [petApiData.response.body.items.item];
+            
+            console.log(`실제 반려동물 API에서 ${actualPetPlaces.length}개 장소 발견`);
+            
+            // 2. 95개 키워드와 매칭 확인
+            let matchCount = 0;
+            let exactMatches = [];
+            let noMatches = [];
+            
+            for (const keyword of petFriendlyKeywords) {
+              const found = actualPetPlaces.find(place => 
+                place.title && place.title.includes(keyword.trim()) ||
+                keyword.includes(place.title?.trim())
+              );
+              
+              if (found) {
+                matchCount++;
+                exactMatches.push({ keyword, matched: found.title });
+                console.log(`✅ 매칭: "${keyword}" → "${found.title}"`);
+              } else {
+                noMatches.push(keyword);
+                console.log(`❌ 매칭 실패: "${keyword}"`);
+              }
+            }
+            
+            console.log("=== 매칭률 테스트 결과 ===");
+            console.log(`총 키워드: ${petFriendlyKeywords.length}개`);
+            console.log(`매칭 성공: ${matchCount}개`);
+            console.log(`매칭 실패: ${noMatches.length}개`);
+            console.log(`매칭률: ${((matchCount / petFriendlyKeywords.length) * 100).toFixed(1)}%`);
+            
+            return new Response(JSON.stringify({
+              testType: "matchRate",
+              totalKeywords: petFriendlyKeywords.length,
+              actualPetPlaces: actualPetPlaces.length,
+              matchedCount: matchCount,
+              unmatchedCount: noMatches.length,
+              matchRate: ((matchCount / petFriendlyKeywords.length) * 100).toFixed(1) + "%",
+              exactMatches: exactMatches.slice(0, 10), // 처음 10개만 샘플
+              noMatches: noMatches.slice(0, 10), // 처음 10개만 샘플
+              actualPetPlacesSample: actualPetPlaces.slice(0, 5).map(p => ({ 
+                title: p.title, 
+                contentid: p.contentid 
+              }))
+            }), {
+              status: 200,
+              headers: {
+                ...corsHeaders,
+                "Content-Type": "application/json",
+              },
+            });
+          } else {
+            console.log("실제 반려동물 API에서 데이터 없음");
+            return new Response(JSON.stringify({
+              testType: "matchRate",
+              error: "실제 반려동물 API에서 데이터를 찾을 수 없습니다.",
+              apiResponse: petApiData
+            }), {
+              status: 200,
+              headers: {
+                ...corsHeaders,
+                "Content-Type": "application/json",
+              },
+            });
+          }
+        } else {
+          console.log("실제 반려동물 API 호출 실패:", response.status);
+          return new Response(JSON.stringify({
+            testType: "matchRate",
+            error: `실제 반려동물 API 호출 실패: ${response.status}`,
+            responseText: await response.text()
+          }), {
+            status: 500,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json",
+            },
+          });
+        }
+      } catch (error) {
+        console.error("매칭률 테스트 실패:", error);
+        return new Response(JSON.stringify({
+          testType: "matchRate",
+          error: error.message
+        }), {
+          status: 500,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        });
+      }
+    }
 
     let petTourismData = null;
 
