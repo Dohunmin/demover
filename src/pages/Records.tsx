@@ -8,8 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import AdBanner from "@/components/AdBanner";
 import PlaceSearch from "@/components/PlaceSearch";
+import StarRating from "@/components/StarRating";
 
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +28,8 @@ interface TravelRecord {
   visit_date: string;
   memo?: string;
   images: string[];
+  rating?: number;
+  is_public?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -76,7 +80,9 @@ const Records = () => {
     longitude: null as number | null,
     visit_date: "",
     memo: "",
-    images: [] as File[]
+    images: [] as File[],
+    rating: 0,
+    is_public: false
   });
 
   useEffect(() => {
@@ -244,7 +250,9 @@ const Records = () => {
           longitude: newRecord.longitude,
           visit_date: newRecord.visit_date,
           memo: newRecord.memo,
-          images: imageUrls
+          images: imageUrls,
+          rating: newRecord.rating || null,
+          is_public: newRecord.is_public
         });
 
       if (error) {
@@ -262,7 +270,9 @@ const Records = () => {
         longitude: null,
         visit_date: "",
         memo: "",
-        images: []
+        images: [],
+        rating: 0,
+        is_public: false
       });
       fetchTravelRecords();
     } catch (error) {
@@ -806,6 +816,36 @@ const Records = () => {
                           </div>
                         )}
                       </div>
+                      
+                      {/* 별점 평가 */}
+                      <div>
+                        <Label>이 장소는 어떠셨나요?</Label>
+                        <div className="mt-2">
+                          <StarRating
+                            rating={newRecord.rating}
+                            onRatingChange={(rating) => setNewRecord({ ...newRecord, rating })}
+                            showLabel={true}
+                          />
+                        </div>
+                      </div>
+
+                      {/* 공개 설정 */}
+                      <div className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <Label htmlFor="public-toggle" className="text-sm font-medium">
+                            다른 사용자와 리뷰 공유
+                          </Label>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            공개하면 다른 사용자들이 이 장소에서 여러분의 리뷰를 볼 수 있습니다
+                          </p>
+                        </div>
+                        <Switch
+                          id="public-toggle"
+                          checked={newRecord.is_public}
+                          onCheckedChange={(checked) => setNewRecord({ ...newRecord, is_public: checked })}
+                        />
+                      </div>
+
                       <div className="flex gap-2">
                         <Button
                           type="button"
@@ -867,6 +907,11 @@ const Records = () => {
                               <h4 className="card-title font-semibold line-clamp-1">
                                 {record.location_name}
                               </h4>
+                              {record.rating && (
+                                <div className="flex items-center gap-1 ml-auto">
+                                  <StarRating rating={record.rating} readonly size="sm" />
+                                </div>
+                              )}
                             </div>
                             {record.location_address && (
                               <p className="text-xs text-muted-foreground mb-1">
@@ -882,11 +927,18 @@ const Records = () => {
                               <span className="text-xs text-muted-foreground">
                                 방문: {new Date(record.visit_date).toLocaleDateString('ko-KR')}
                               </span>
-                              {record.images.length > 1 && (
-                                <span className="text-xs text-primary">
-                                  +{record.images.length - 1}장
-                                </span>
-                              )}
+                              <div className="flex items-center gap-2">
+                                {record.is_public && (
+                                  <span className="text-xs text-primary bg-primary/10 px-2 py-1 rounded-full">
+                                    공개
+                                  </span>
+                                )}
+                                {record.images.length > 1 && (
+                                  <span className="text-xs text-primary">
+                                    +{record.images.length - 1}장
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                           <div className="flex flex-col gap-2">

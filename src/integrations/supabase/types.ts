@@ -234,11 +234,13 @@ export type Database = {
           created_at: string
           id: string
           images: Json | null
+          is_public: boolean | null
           latitude: number | null
           location_address: string | null
           location_name: string
           longitude: number | null
           memo: string | null
+          rating: number | null
           updated_at: string
           user_id: string
           visit_date: string
@@ -247,11 +249,13 @@ export type Database = {
           created_at?: string
           id?: string
           images?: Json | null
+          is_public?: boolean | null
           latitude?: number | null
           location_address?: string | null
           location_name: string
           longitude?: number | null
           memo?: string | null
+          rating?: number | null
           updated_at?: string
           user_id: string
           visit_date: string
@@ -260,11 +264,13 @@ export type Database = {
           created_at?: string
           id?: string
           images?: Json | null
+          is_public?: boolean | null
           latitude?: number | null
           location_address?: string | null
           location_name?: string
           longitude?: number | null
           memo?: string | null
+          rating?: number | null
           updated_at?: string
           user_id?: string
           visit_date?: string

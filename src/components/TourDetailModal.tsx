@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { X, MapPin, Phone, Clock, Globe, Camera } from "lucide-react";
+import { X, MapPin, Phone, Clock, Globe, Camera, Star, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import PlaceReviewsModal from "@/components/PlaceReviewsModal";
 
 interface TourDetailModalProps {
   contentId: string;
@@ -32,6 +33,7 @@ const TourDetailModal: React.FC<TourDetailModalProps> = ({
   const [detailData, setDetailData] = useState<DetailData | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [showReviewsModal, setShowReviewsModal] = useState(false);
 
   useEffect(() => {
     if (isOpen && contentId) {
@@ -96,14 +98,25 @@ const TourDetailModal: React.FC<TourDetailModalProps> = ({
             <DialogTitle className="text-xl font-bold text-gray-900 pr-8">
               {title}
             </DialogTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="h-8 w-8 p-0 hover:bg-gray-100"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowReviewsModal(true)}
+                className="flex items-center gap-2 text-sm"
+              >
+                <Star className="h-4 w-4" />
+                리뷰 보기
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="h-8 w-8 p-0 hover:bg-gray-100"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </DialogHeader>
 
@@ -303,6 +316,14 @@ const TourDetailModal: React.FC<TourDetailModalProps> = ({
           </div>
         </ScrollArea>
       </DialogContent>
+
+      {/* 리뷰 모달 */}
+      <PlaceReviewsModal
+        isOpen={showReviewsModal}
+        onClose={() => setShowReviewsModal(false)}
+        placeName={title}
+        placeAddress={commonInfo?.addr1}
+      />
     </Dialog>
   );
 };
