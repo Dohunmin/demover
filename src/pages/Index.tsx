@@ -116,23 +116,35 @@ const Index = () => {
         <main className="pb-20 -mt-4">
           {/* Welcome Section */}
           <div className="px-5 py-6">
-            <div className="card text-center">
-              <div className="w-16 h-16 bg-white border border-gray-100 text-primary p-2 rounded-xl mx-auto mb-4 flex items-center justify-center shadow-[0_2px_6px_rgba(0,0,0,0.05)]">
-                <Sparkles className="w-8 h-8" style={{ color: 'var(--primary-color)' }} />
+            <div className="card">
+              {/* Section Title */}
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-white border border-gray-100 text-primary p-2 rounded-xl mx-auto mb-4 flex items-center justify-center shadow-[0_2px_6px_rgba(0,0,0,0.05)]">
+                  <Sparkles className="w-8 h-8" style={{ color: 'var(--primary-color)' }} />
+                </div>
+                <h2 className="card-title text-lg mb-2">
+                  반려견과 함께하는 특별한 여행
+                </h2>
+                <p className="card-subtitle text-sm">
+                  로그인하고 우리 강아지에게 맞는<br />완벽한 여행지를 찾아보세요
+                </p>
               </div>
-              <h2 className="card-title text-lg mb-2">
-                반려견과 함께하는 특별한 여행
-              </h2>
-              <p className="card-subtitle text-sm mb-5 leading-relaxed">
-                로그인하고 우리 강아지에게 맞는<br />완벽한 여행지를 찾아보세요
-              </p>
-              <Button 
-                onClick={() => navigate("/auth")}
-                className="button-primary w-full"
-              >
-                <PawPrint className="w-4 h-4 mr-2" />
-                로그인 / 회원가입
-              </Button>
+
+              {/* Hero Carousel */}
+              <div className="mb-6">
+                <HeroCarousel />
+              </div>
+
+              {/* Login Button */}
+              <div className="text-center">
+                <Button 
+                  onClick={() => navigate("/auth")}
+                  className="button-primary w-full"
+                >
+                  <PawPrint className="w-4 h-4 mr-2" />
+                  로그인 / 회원가입
+                </Button>
+              </div>
             </div>
           </div>
 
