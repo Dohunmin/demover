@@ -289,7 +289,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           // locationGubun 기반 필터링
           const locationGubunMap = {
             restaurant: "식당",
-            shopping: "쇼핑",
+            shopping: "쇼핑", 
             brunch: "브런치",
             cafe: "카페",
             park: "공원",
