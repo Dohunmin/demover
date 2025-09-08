@@ -242,23 +242,23 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           // 전체 카테고리 선택 시 MBTI 필터 무시
           console.log("🔄 전체 카테고리 선택 - MBTI 필터 무시");
         } else {
-          // locationGubun 기반 필터링
-          const locationGubunMap = {
-            restaurant: "식당",
-            shopping: "쇼핑", 
-            brunch: "브런치",
-            cafe: "카페",
-            park: "공원",
-            leisure: "레저",
-            culture: "문화시설",
-            temple: "사찰",
-            accommodation: "숙소",
-            market: "재래시장",
-            "theme-street": "테마거리",
-            trekking: "트레킹",
-            port: "항구",
-            beach: "해수욕장",
-          };
+      // locationGubun 기반 필터링 - sample-data.ts의 실제 값들 사용
+      const locationGubunMap = {
+        restaurant: "식당",
+        shopping: "쇼핑", 
+        brunch: "브런치",
+        cafe: "카페",
+        park: "공원",
+        leisure: "레저",
+        culture: "문화시설",
+        temple: "사찰",
+        accommodation: "숙소",
+        market: "재래시장",
+        "theme-street": "테마거리",
+        trekking: "트레킹",
+        port: "항구",
+        beach: "해수욕장",
+      };
 
           const targetLocationGubun =
             locationGubunMap[categoryId as keyof typeof locationGubunMap];
@@ -486,8 +486,31 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       const targetLocationGubun = locationGubunMap[selectedCategory as keyof typeof locationGubunMap];
       
       if (targetLocationGubun) {
-        filteredPlaces = allPetData.filter(place => place.locationGubun === targetLocationGubun);
-        console.log(`${selectedCategory} 카테고리 필터링: ${filteredPlaces.length}개`);
+        console.log(`🔍 카테고리 매칭:`, {
+          선택한카테고리: selectedCategory,
+          찾는locationGubun: targetLocationGubun,
+          전체데이터수: allPetData.length
+        });
+        
+        filteredPlaces = allPetData.filter(place => {
+          const isMatch = place.locationGubun === targetLocationGubun;
+          if (!isMatch && allPetData.indexOf(place) < 3) {
+            console.log(`❌ 매칭 실패:`, {
+              장소명: place.title,
+              실제locationGubun: place.locationGubun,
+              찾는locationGubun: targetLocationGubun
+            });
+          }
+          return isMatch;
+        });
+        
+        console.log(`✅ ${selectedCategory} 카테고리 필터링: ${filteredPlaces.length}개`);
+        
+        if (filteredPlaces.length === 0) {
+          console.log("⚠️ 필터링 결과가 0개입니다. 실제 데이터의 locationGubun 값들:");
+          const uniqueLocationGubuns = [...new Set(allPetData.map(p => p.locationGubun))];
+          console.log(uniqueLocationGubuns);
+        }
       }
     }
     
@@ -496,11 +519,18 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       console.log(`MBTI 필터 적용: ${selectedMbti}`);
       const beforeCount = filteredPlaces.length;
       filteredPlaces = filteredPlaces.filter((place) => {
+        // place.mbti가 없으면 제외
         if (!place.mbti) return false;
+        
+        // place.mbti가 "all"이면 모든 MBTI에 해당하므로 포함
         if (place.mbti === "all") return true;
+        
+        // place.mbti가 배열이면 selectedMbti가 포함되어 있는지 확인
         if (Array.isArray(place.mbti)) {
           return place.mbti.includes(selectedMbti);
         }
+        
+        // place.mbti가 문자열이면 정확히 매치하는지 확인
         return place.mbti === selectedMbti;
       });
       console.log(`MBTI 필터링: ${beforeCount}개 → ${filteredPlaces.length}개`);
@@ -728,6 +758,25 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       );
       setAllPetData(validData);
       console.log(`✅ Props에서 받은 데이터 ${validData.length}개 설정 완료`);
+      
+      // 데이터 샘플 로그
+      if (validData.length > 0) {
+        console.log("📋 데이터 샘플:", {
+          title: validData[0]?.title,
+          locationGubun: validData[0]?.locationGubun,
+          mbti: validData[0]?.mbti
+        });
+        
+        // 사용 가능한 locationGubun 값들 확인
+        const locationGubuns = [...new Set(validData.map((item: any) => item.locationGubun))];
+        console.log("📍 사용 가능한 locationGubun:", locationGubuns);
+        
+        // 사용 가능한 mbti 값들 확인  
+        const mbtis = [...new Set(validData.flatMap((item: any) => 
+          Array.isArray(item.mbti) ? item.mbti : [item.mbti]
+        ))];
+        console.log("🧠 사용 가능한 MBTI:", mbtis);
+      }
     }
   }, [petTourismData, allPetData.length]);
 
