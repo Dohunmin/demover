@@ -8,6 +8,7 @@ import BottomNavigation from "@/components/BottomNavigation";
 import AdBanner from "@/components/AdBanner";
 import CommunityPostModal from "@/components/CommunityPostModal";
 import CommunityPostDetailModal from "@/components/CommunityPostDetailModal";
+import CommunityPostEditModal from "@/components/CommunityPostEditModal";
 
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -51,8 +52,6 @@ interface CommunityPost {
     full_name?: string;
     avatar_url?: string;
   };
-  likes_count?: number;
-  comments_count?: number;
 }
 
 const News = () => {
@@ -67,6 +66,7 @@ const News = () => {
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'all' | 'events' | 'sales' | 'travel' | 'community'>('all');
   const [showPostModal, setShowPostModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [selectedPost, setSelectedPost] = useState<CommunityPost | null>(null);
   const [showPostDetail, setShowPostDetail] = useState(false);
 
@@ -170,7 +170,13 @@ const News = () => {
     try {
       const { data: postsData, error } = await supabase
         .from('community_posts')
-        .select('*')
+        .select(`
+          *,
+          profiles:user_id (
+            full_name,
+            avatar_url
+          )
+        `)
         .order('created_at', { ascending: false })
         .limit(10);
 
@@ -198,12 +204,10 @@ const News = () => {
           .in('post_id', postIds)
       ]);
 
-      // Combine posts with profiles and counts
+      // Combine posts with profiles
       const postsWithData = postsData?.map(post => ({
         ...post,
-        profiles: profilesData?.find(profile => profile.user_id === post.user_id),
-        likes_count: likesData?.filter(like => like.post_id === post.id).length || 0,
-        comments_count: commentsData?.filter(comment => comment.post_id === post.id).length || 0
+        profiles: profilesData?.find(profile => profile.user_id === post.user_id)
       })) || [];
 
       setCommunityPosts(postsWithData);
@@ -567,14 +571,6 @@ const News = () => {
                           {post.content}
                         </p>
                         <div className="flex items-center space-x-3 text-xs text-muted-foreground">
-                          <div className="flex items-center space-x-1">
-                            <Heart className="w-3 h-3" />
-                            <span>{post.likes_count || 0}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <MessageCircle className="w-3 h-3" />
-                            <span>{post.comments_count || 0}</span>
-                          </div>
                           <span>{new Date(post.created_at).toLocaleDateString('ko-KR')}</span>
                         </div>
                       </div>
@@ -637,16 +633,6 @@ const News = () => {
                         </div>
                       )}
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-                          <div className="flex items-center space-x-1">
-                            <Heart className="w-3 h-3" />
-                            <span>{post.likes_count || 0}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <MessageCircle className="w-3 h-3" />
-                            <span>{post.comments_count || 0}</span>
-                          </div>
-                        </div>
                         <p className="text-xs text-muted-foreground">
                           {new Date(post.created_at).toLocaleDateString('ko-KR')}
                         </p>
@@ -855,6 +841,22 @@ const News = () => {
           setShowPostDetail(false);
           setSelectedPost(null);
         }}
+        onEdit={(post) => {
+          setSelectedPost(post);
+          setShowPostDetail(false);
+          setShowEditModal(true);
+        }}
+        onDelete={fetchAllData}
+      />
+
+      <CommunityPostEditModal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedPost(null);
+        }}
+        onPostUpdated={fetchAllData}
+        post={selectedPost}
       />
 
       <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,13 +10,24 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
-interface CommunityPostModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onPostCreated: () => void;
+interface CommunityPost {
+  id: string;
+  title: string;
+  content: string;
+  image_url?: string;
+  location_name?: string;
+  location_address?: string;
+  post_type: string;
 }
 
-const CommunityPostModal = ({ isOpen, onClose, onPostCreated }: CommunityPostModalProps) => {
+interface CommunityPostEditModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onPostUpdated: () => void;
+  post: CommunityPost | null;
+}
+
+const CommunityPostEditModal = ({ isOpen, onClose, onPostUpdated, post }: CommunityPostEditModalProps) => {
   const { user } = useAuth();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -25,7 +36,20 @@ const CommunityPostModal = ({ isOpen, onClose, onPostCreated }: CommunityPostMod
   const [postType, setPostType] = useState("general");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState("");
+  const [currentImageUrl, setCurrentImageUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (post) {
+      setTitle(post.title);
+      setContent(post.content);
+      setLocationName(post.location_name || "");
+      setLocationAddress(post.location_address || "");
+      setPostType(post.post_type);
+      setCurrentImageUrl(post.image_url || "");
+      setImageUrl(post.image_url || "");
+    }
+  }, [post]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -42,6 +66,7 @@ const CommunityPostModal = ({ isOpen, onClose, onPostCreated }: CommunityPostMod
   const removeImage = () => {
     setImageFile(null);
     setImageUrl("");
+    setCurrentImageUrl("");
   };
 
   const uploadImage = async (file: File): Promise<string | null> => {
@@ -70,10 +95,26 @@ const CommunityPostModal = ({ isOpen, onClose, onPostCreated }: CommunityPostMod
     }
   };
 
+  const deleteOldImage = async (imageUrl: string) => {
+    try {
+      if (imageUrl && imageUrl.includes('community-posts')) {
+        const urlParts = imageUrl.split('/');
+        const fileName = urlParts[urlParts.length - 1];
+        const filePath = `${user?.id}/${fileName}`;
+        
+        await supabase.storage
+          .from('community-posts')
+          .remove([filePath]);
+      }
+    } catch (error) {
+      console.error('Error deleting old image:', error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user) {
+    if (!user || !post) {
       toast.error("로그인이 필요합니다");
       return;
     }
@@ -86,37 +127,50 @@ const CommunityPostModal = ({ isOpen, onClose, onPostCreated }: CommunityPostMod
     setIsSubmitting(true);
 
     try {
-      let uploadedImageUrl = null;
+      let finalImageUrl = currentImageUrl;
+
       if (imageFile) {
-        uploadedImageUrl = await uploadImage(imageFile);
+        // Delete old image if exists
+        if (currentImageUrl) {
+          await deleteOldImage(currentImageUrl);
+        }
+        
+        // Upload new image
+        const uploadedImageUrl = await uploadImage(imageFile);
         if (!uploadedImageUrl) {
           toast.error("이미지 업로드에 실패했습니다");
           return;
         }
+        finalImageUrl = uploadedImageUrl;
+      } else if (!imageUrl && currentImageUrl) {
+        // Image was removed
+        await deleteOldImage(currentImageUrl);
+        finalImageUrl = null;
       }
 
       const { error } = await supabase
         .from('community_posts')
-        .insert({
-          user_id: user.id,
+        .update({
           title: title.trim(),
           content: content.trim(),
           location_name: locationName.trim() || null,
           location_address: locationAddress.trim() || null,
           post_type: postType,
-          image_url: uploadedImageUrl
-        });
+          image_url: finalImageUrl,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', post.id);
 
       if (error) {
         throw error;
       }
 
-      toast.success("글이 작성되었습니다!");
+      toast.success("글이 수정되었습니다!");
       handleClose();
-      onPostCreated();
+      onPostUpdated();
     } catch (error) {
-      console.error('Error creating post:', error);
-      toast.error("글 작성 중 오류가 발생했습니다");
+      console.error('Error updating post:', error);
+      toast.error("글 수정 중 오류가 발생했습니다");
     } finally {
       setIsSubmitting(false);
     }
@@ -130,6 +184,7 @@ const CommunityPostModal = ({ isOpen, onClose, onPostCreated }: CommunityPostMod
     setPostType("general");
     setImageFile(null);
     setImageUrl("");
+    setCurrentImageUrl("");
     onClose();
   };
 
@@ -137,7 +192,7 @@ const CommunityPostModal = ({ isOpen, onClose, onPostCreated }: CommunityPostMod
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-md mx-auto max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>커뮤니티 글 작성</DialogTitle>
+          <DialogTitle>커뮤니티 글 수정</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -250,7 +305,7 @@ const CommunityPostModal = ({ isOpen, onClose, onPostCreated }: CommunityPostMod
               disabled={isSubmitting || !title.trim() || !content.trim()}
               className="flex-1"
             >
-              {isSubmitting ? "작성 중..." : "작성하기"}
+              {isSubmitting ? "수정 중..." : "수정하기"}
             </Button>
           </div>
         </form>
@@ -259,4 +314,4 @@ const CommunityPostModal = ({ isOpen, onClose, onPostCreated }: CommunityPostMod
   );
 };
 
-export default CommunityPostModal;
+export default CommunityPostEditModal;

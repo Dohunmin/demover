@@ -1,9 +1,13 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Heart, MessageCircle, MapPin, Send, Trash2 } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Heart, MessageCircle, MapPin, Calendar, User, Trash2, X, Edit, MoreVertical, Send } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -39,9 +43,11 @@ interface CommunityPostDetailModalProps {
   post: CommunityPost | null;
   isOpen: boolean;
   onClose: () => void;
+  onEdit?: (post: CommunityPost) => void;
+  onDelete?: () => void;
 }
 
-const CommunityPostDetailModal = ({ post, isOpen, onClose }: CommunityPostDetailModalProps) => {
+const CommunityPostDetailModal = ({ post, isOpen, onClose, onEdit, onDelete }: CommunityPostDetailModalProps) => {
   const { user } = useAuth();
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
@@ -50,6 +56,7 @@ const CommunityPostDetailModal = ({ post, isOpen, onClose }: CommunityPostDetail
   const [commentsCount, setCommentsCount] = useState(0);
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [isSubmittingLike, setIsSubmittingLike] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (post && isOpen) {
@@ -219,7 +226,43 @@ const CommunityPostDetailModal = ({ post, isOpen, onClose }: CommunityPostDetail
       case 'recommendation': return '추천';
       case 'question': return '질문';
       case 'review': return '후기';
-      default: return '일반';
+      case 'general': 
+      default: 
+        return '일반';
+    }
+  };
+
+  const handleDeletePost = async () => {
+    if (!post || !user || post.user_id !== user.id) return;
+
+    setIsDeleting(true);
+    try {
+      // Delete associated image if exists
+      if (post.image_url && post.image_url.includes('community-posts')) {
+        const urlParts = post.image_url.split('/');
+        const fileName = urlParts[urlParts.length - 1];
+        const filePath = `${user.id}/${fileName}`;
+        
+        await supabase.storage
+          .from('community-posts')
+          .remove([filePath]);
+      }
+
+      const { error } = await supabase
+        .from('community_posts')
+        .delete()
+        .eq('id', post.id);
+
+      if (error) throw error;
+
+      toast.success("글이 삭제되었습니다!");
+      onClose();
+      if (onDelete) onDelete();
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      toast.error("글 삭제 중 오류가 발생했습니다");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -229,11 +272,55 @@ const CommunityPostDetailModal = ({ post, isOpen, onClose }: CommunityPostDetail
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md mx-auto max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-left">
-            <span className="inline-block bg-primary/10 text-primary px-2 py-1 rounded-full text-xs mr-2">
-              {getPostTypeLabel(post.post_type)}
-            </span>
-            {post.title}
+          <DialogTitle className="text-left flex items-center justify-between">
+            <div>
+              <span className="inline-block bg-primary/10 text-primary px-2 py-1 rounded-full text-xs mr-2">
+                {getPostTypeLabel(post.post_type)}
+              </span>
+              {post.title}
+            </div>
+            <div className="flex items-center gap-2">
+              {user && post && user.id === post.user_id && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <MoreVertical className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => onEdit && onEdit(post)}>
+                      <Edit className="w-4 h-4 mr-2" />
+                      수정
+                    </DropdownMenuItem>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          삭제
+                        </DropdownMenuItem>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>글 삭제</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            이 글을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>취소</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={handleDeletePost}
+                            disabled={isDeleting}
+                          >
+                            {isDeleting ? "삭제 중..." : "삭제"}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
           </DialogTitle>
         </DialogHeader>
 
