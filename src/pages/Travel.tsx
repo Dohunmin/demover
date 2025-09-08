@@ -16,6 +16,7 @@ const Travel = () => {
   const [currentView, setCurrentView] = useState<'places' | 'map'>('places');
   const [activeTab, setActiveTab] = useState<"general" | "pet">("general");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [petTourismData, setPetTourismData] = useState<any[]>([]);
 
   // URL 파라미터에서 카테고리 확인하고 지도로 이동
   useEffect(() => {
@@ -32,6 +33,10 @@ const Travel = () => {
     setCurrentView('map');
   };
   const showPlaces = () => setCurrentView('places');
+
+  const handlePetDataLoaded = (data: any[]) => {
+    setPetTourismData(data);
+  };
 
   // 로그인하지 않은 사용자를 위한 안내
   if (!user) {
@@ -84,7 +89,12 @@ const Travel = () => {
   }
 
   if (currentView === 'map') {
-    return <KakaoMap onBack={showPlaces} showPetFilter={activeTab === 'pet'} initialCategory={selectedCategory} />;
+    return <KakaoMap 
+      onBack={showPlaces} 
+      showPetFilter={activeTab === 'pet'} 
+      initialCategory={selectedCategory}
+      petTourismData={petTourismData}
+    />;
   }
 
   return (
@@ -109,7 +119,7 @@ const Travel = () => {
 
       {/* Main Content */}
       <main className="pt-4">
-        <TourPlaces onShowMap={showMap} />
+        <TourPlaces onShowMap={showMap} onPetDataLoaded={handlePetDataLoaded} />
       </main>
 
       {/* Ad Banner */}

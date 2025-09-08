@@ -74,6 +74,7 @@ interface KakaoMapProps {
   showPetFilter?: boolean;
   userProfileImage?: string;
   initialCategory?: string | null;
+  petTourismData?: any[];
   bookmarkedPlaces?: Array<{
     content_id: string;
     title: string;
@@ -90,6 +91,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
   showPetFilter = false,
   userProfileImage,
   initialCategory = null,
+  petTourismData = [],
   bookmarkedPlaces = [],
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -740,6 +742,134 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     setLoading(true);
 
     try {
+      // Props에서 전달받은 데이터 사용
+      if (petTourismData && petTourismData.length > 0) {
+        console.log("📊 Props에서 전달받은 데이터 사용:");
+        console.log("- 전달받은 데이터 길이:", petTourismData.length);
+
+        // 좌표 없는 데이터 확인
+        const validData = petTourismData.filter(
+          (item: any) => item.mapx && item.mapy && item.mapx !== "0" && item.mapy !== "0"
+        );
+        console.log("- 유효한 좌표 데이터:", validData.length);
+        console.log("- 좌표 없는 데이터:", petTourismData.length - validData.length);
+
+        // 마커 생성
+        const newMarkers: any[] = [];
+
+        validData.forEach((place) => {
+          const position = new window.kakao.maps.LatLng(
+            parseFloat(place.mapy),
+            parseFloat(place.mapx)
+          );
+
+          const marker = new window.kakao.maps.Marker({
+            position,
+            clickable: true,
+          });
+
+          marker.setMap(mapInstance.current);
+
+          // 클릭 이벤트
+          window.kakao.maps.event.addListener(marker, "click", () => {
+            let mbtiDisplay = "";
+            if (place.mbti) {
+              if (Array.isArray(place.mbti)) {
+                mbtiDisplay = place.mbti.join(", ");
+              } else if (place.mbti === "all") {
+                mbtiDisplay = "모든 MBTI";
+              } else {
+                mbtiDisplay = place.mbti;
+              }
+            }
+
+            const content = `
+            <div style="padding: 15px; min-width: 280px; max-width: 320px; font-family: 'Malgun Gothic', sans-serif;">
+              <div style="font-weight: bold; font-size: 16px; margin-bottom: 8px; color: #DC2626;">${
+                place.title
+              }</div>
+              
+              <div style="font-size: 12px; color: #666; margin-bottom: 8px; background: #FEF2F2; padding: 4px 8px; border-radius: 12px; display: inline-block;">
+                🐾 반려동물 동반 가능
+              </div>
+              
+              ${
+                place.locationGubun
+                  ? `<div style="font-size: 12px; color: #666; margin-bottom: 8px; background: #F3F4F6; padding: 4px 8px; border-radius: 12px; display: inline-block;">
+                📍 ${place.locationGubun}
+              </div>`
+                  : ""
+              }
+              
+              ${
+                mbtiDisplay
+                  ? `<div style="font-size: 12px; color: #666; margin-bottom: 8px; background: #EFF6FF; padding: 4px 8px; border-radius: 12px; display: inline-block;">
+                🧠 MBTI: ${mbtiDisplay}
+              </div>`
+                  : ""
+              }
+              
+              ${
+                place.holiday
+                  ? `<div style="font-size: 12px; color: #666; margin-bottom: 8px; background: #FEF3C7; padding: 4px 8px; border-radius: 12px; display: inline-block;">
+                🗓️ 휴무일: ${place.holiday}
+              </div>`
+                  : ""
+              }
+              
+              <div style="font-size: 13px; color: #333; margin-bottom: 6px;">${
+                place.addr1
+              }</div>
+              ${
+                place.addr2
+                  ? `<div style="font-size: 12px; color: #666; margin-bottom: 6px;">${place.addr2}</div>`
+                  : ""
+              }
+              ${
+                place.tel
+                  ? `<div style="font-size: 12px; color: #666; margin-bottom: 8px;">📞 ${place.tel}</div>`
+                  : ""
+              }
+              
+              <div style="text-align: center;">
+                <button id="review-btn-${place.contentid}" 
+                   style="color: #DC2626; font-size: 12px; text-decoration: none; background: #FEF2F2; padding: 6px 12px; border-radius: 8px; display: inline-block; border: 1px solid #FCA5A5; cursor: pointer;">
+                  ⭐ 평점 및 후기
+                </button>
+              </div>
+            </div>
+          `;
+            infoWindow.current.setContent(content);
+            infoWindow.current.open(mapInstance.current, marker);
+
+            // 평점/후기 버튼 이벤트 리스너 추가
+            setTimeout(() => {
+              const reviewBtn = document.getElementById(
+                `review-btn-${place.contentid}`
+              );
+              if (reviewBtn) {
+                reviewBtn.addEventListener("click", () => {
+                  setSelectedPlaceForReview(place);
+                  setIsReviewModalOpen(true);
+                });
+              }
+            }, 100);
+          });
+
+          newMarkers.push(marker);
+        });
+
+        setPetTourismMarkers(newMarkers);
+        setAllPetData(validData);
+        
+        setIsPetDataLoaded(true);
+        console.log("✅ 반려동물 여행지 마커 생성 완료");
+        return;
+      }
+
+      console.log("❌ Props에서 데이터를 전달받지 못함, API 호출로 대체");
+      
+      // 기존 API 호출 방식 (백업용)
       const { data, error } = await supabase.functions.invoke(
         "combined-tour-api",
         {

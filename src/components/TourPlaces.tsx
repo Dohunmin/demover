@@ -35,9 +35,10 @@ interface TourPlace {
 
 interface TourPlacesProps {
   onShowMap?: (activeTab: "general" | "pet") => void;
+  onPetDataLoaded?: (data: any[]) => void;
 }
 
-const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
+const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) => {
   const { user } = useAuth();
   const [tourPlaces, setTourPlaces] = useState<TourPlace[]>([]);
   const [petTourPlaces, setPetTourPlaces] = useState<any[]>([]);
@@ -248,6 +249,11 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
         
         setAllPetPlacesCache(processedData);
         setPetCacheLoaded(true);
+        
+        // 부모 컴포넌트에 데이터 전달
+        if (onPetDataLoaded) {
+          onPetDataLoaded(processedData);
+        }
         
         // 리뷰 통계 로드
         await loadPlaceReviews(processedData);
