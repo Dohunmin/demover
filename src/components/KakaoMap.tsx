@@ -120,6 +120,11 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // 드래그 스크롤을 위한 상태
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, scrollLeft: 0 });
+
   // 지도 초기화
   const initializeMap = useCallback(() => {
     if (!mapRef.current) return;
@@ -147,6 +152,53 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       toast.error("지도 초기화 중 오류가 발생했습니다.");
     }
   }, []);
+
+  // 드래그 스크롤 핸들러
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!categoryScrollRef.current) return;
+    setIsDragging(true);
+    setDragStart({
+      x: e.pageX - categoryScrollRef.current.offsetLeft,
+      scrollLeft: categoryScrollRef.current.scrollLeft,
+    });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !categoryScrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - categoryScrollRef.current.offsetLeft;
+    const walk = (x - dragStart.x) * 2; // 스크롤 속도
+    categoryScrollRef.current.scrollLeft = dragStart.scrollLeft - walk;
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  // 터치 이벤트 핸들러
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!categoryScrollRef.current) return;
+    setIsDragging(true);
+    setDragStart({
+      x: e.touches[0].pageX - categoryScrollRef.current.offsetLeft,
+      scrollLeft: categoryScrollRef.current.scrollLeft,
+    });
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !categoryScrollRef.current) return;
+    const x = e.touches[0].pageX - categoryScrollRef.current.offsetLeft;
+    const walk = (x - dragStart.x) * 1.5; // 터치 스크롤 속도
+    categoryScrollRef.current.scrollLeft = dragStart.scrollLeft - walk;
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
 
   // 카테고리 선택 핸들러 (locationGubun 기반 필터링)
   const handleCategorySelect = useCallback(
@@ -715,14 +767,32 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         <div className="px-5 mb-3">
           <Card className="p-3 bg-white border-0 shadow-lg rounded-xl">
             <h3 className="font-semibold text-sm mb-2 text-gray-900">카테고리 선택</h3>
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+            <div 
+              ref={categoryScrollRef}
+              className={`flex gap-2 overflow-x-auto scrollbar-hide pb-1 cursor-grab ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseLeave}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              style={{ userSelect: 'none' }}
+            >
               {categories.map((category) => {
                 const IconComponent = category.icon;
                 const isSelected = selectedCategory === category.id;
                 return (
                   <button
                     key={category.id}
-                    onClick={() => handleCategorySelect(category.id)}
+                    onClick={(e) => {
+                      // 드래그 중이면 클릭 이벤트 방지
+                      if (isDragging) {
+                        e.preventDefault();
+                        return;
+                      }
+                      handleCategorySelect(category.id);
+                    }}
                     className={`flex items-center gap-1.5 px-3 py-2 rounded-lg whitespace-nowrap transition-all flex-shrink-0 ${
                       isSelected
                         ? "bg-gray-900 text-white"
@@ -735,6 +805,8 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
                 );
               })}
             </div>
+            {/* 스크롤 힌트 */}
+            <div className="text-xs text-gray-400 mt-1 text-center">← 좌우로 드래그하여 더 많은 카테고리를 확인하세요 →</div>
           </Card>
         </div>
       )}
