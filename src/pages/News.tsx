@@ -9,6 +9,7 @@ import AdBanner from "@/components/AdBanner";
 import CommunityPostModal from "@/components/CommunityPostModal";
 import CommunityPostDetailModal from "@/components/CommunityPostDetailModal";
 import CommunityPostEditModal from "@/components/CommunityPostEditModal";
+import TravelRecordDetailModal from "@/components/TravelRecordDetailModal";
 
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,10 +27,14 @@ interface TravelRecord {
   id: string;
   location_name: string;
   location_address?: string;
-  memo?: string;
   rating?: number;
+  memo?: string;
+  latitude?: number;
+  longitude?: number;
+  is_public?: boolean;
   visit_date: string;
   created_at: string;
+  updated_at: string;
   images: string[];
   user_id: string;
   profiles?: {
@@ -70,6 +75,8 @@ const News = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedPost, setSelectedPost] = useState<CommunityPost | null>(null);
   const [showPostDetail, setShowPostDetail] = useState(false);
+  const [selectedTravelRecord, setSelectedTravelRecord] = useState<TravelRecord | null>(null);
+  const [showTravelRecordDetail, setShowTravelRecordDetail] = useState(false);
 
   useEffect(() => {
     fetchAllData();
@@ -212,6 +219,11 @@ const News = () => {
   const handlePostClick = (post: CommunityPost) => {
     setSelectedPost(post);
     setShowPostDetail(true);
+  };
+
+  const handleTravelRecordClick = (record: TravelRecord) => {
+    setSelectedTravelRecord(record);
+    setShowTravelRecordDetail(true);
   };
 
   const getPostTypeLabel = (type: string) => {
@@ -449,7 +461,8 @@ const News = () => {
                   {travelRecords.slice(0, 3).map((record) => (
                     <div 
                       key={record.id}
-                      className="flex items-start p-3 bg-muted/30 rounded-xl hover:bg-green-50 transition-colors"
+                      onClick={() => handleTravelRecordClick(record)}
+                      className="flex items-start p-3 bg-muted/30 rounded-xl hover:bg-green-50 transition-colors cursor-pointer"
                     >
                       <Avatar className="w-8 h-8 mr-3 flex-shrink-0">
                         <AvatarImage src={record.profiles?.avatar_url || ""} />
@@ -472,7 +485,7 @@ const News = () => {
                           <span className="text-xs text-muted-foreground">에 다녀왔어요</span>
                         </div>
                         {record.memo && (
-                          <p className="text-xs text-muted-foreground line-clamp-1">
+                          <p className="text-xs text-muted-foreground line-clamp-2">
                             {record.memo}
                           </p>
                         )}
@@ -854,6 +867,15 @@ const News = () => {
         }}
         onPostUpdated={fetchAllData}
         post={selectedPost}
+      />
+
+      <TravelRecordDetailModal
+        record={selectedTravelRecord}
+        isOpen={showTravelRecordDetail}
+        onClose={() => {
+          setShowTravelRecordDetail(false);
+          setSelectedTravelRecord(null);
+        }}
       />
 
       <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
