@@ -11,6 +11,7 @@ import { Heart, MessageCircle, MapPin, Calendar, User, Trash2, X, Edit, MoreVert
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import CommentEditModal from "./CommentEditModal";
 
 interface CommunityPost {
   id: string;
@@ -22,6 +23,7 @@ interface CommunityPost {
   post_type: string;
   created_at: string;
   user_id: string;
+  is_anonymous?: boolean;
   profiles?: {
     full_name?: string;
     avatar_url?: string;
@@ -33,6 +35,7 @@ interface Comment {
   content: string;
   created_at: string;
   user_id: string;
+  is_anonymous?: boolean;
   profiles?: {
     full_name?: string;
     avatar_url?: string;
@@ -57,6 +60,8 @@ const CommunityPostDetailModal = ({ post, isOpen, onClose, onEdit, onDelete }: C
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [isSubmittingLike, setIsSubmittingLike] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [editingComment, setEditingComment] = useState<Comment | null>(null);
+  const [showCommentEditModal, setShowCommentEditModal] = useState(false);
 
   useEffect(() => {
     if (post && isOpen) {
@@ -143,7 +148,8 @@ const CommunityPostDetailModal = ({ post, isOpen, onClose, onEdit, onDelete }: C
           post_id: post.id,
           post_type: 'community',
           user_id: user.id,
-          content: newComment.trim()
+          content: newComment.trim(),
+          is_anonymous: false // 기본값으로 익명이 아님
         });
 
       if (error) throw error;
@@ -328,14 +334,24 @@ const CommunityPostDetailModal = ({ post, isOpen, onClose, onEdit, onDelete }: C
           {/* 작성자 정보 */}
           <div className="flex items-center space-x-3">
             <Avatar className="w-8 h-8">
-              <AvatarImage src={post.profiles?.avatar_url || ""} />
+              <AvatarImage src={
+                post.is_anonymous 
+                  ? "/placeholder.svg" 
+                  : (post.profiles?.avatar_url || "/placeholder.svg")
+              } />
               <AvatarFallback>
-                {post.profiles?.full_name?.[0] || "?"}
+                {post.is_anonymous 
+                  ? '익' 
+                  : (post.profiles?.full_name?.[0] || "?")
+                }
               </AvatarFallback>
             </Avatar>
             <div>
               <p className="text-sm font-medium">
-                {post.profiles?.full_name || "익명"}
+                {post.is_anonymous 
+                  ? '익명' 
+                  : (post.profiles?.full_name || "익명")
+                }
               </p>
               <p className="text-xs text-muted-foreground">
                 {new Date(post.created_at).toLocaleDateString('ko-KR')}
@@ -395,25 +411,48 @@ const CommunityPostDetailModal = ({ post, isOpen, onClose, onEdit, onDelete }: C
             {comments.map((comment) => (
               <div key={comment.id} className="flex space-x-3">
                 <Avatar className="w-6 h-6 flex-shrink-0">
-                  <AvatarImage src={comment.profiles?.avatar_url || ""} />
+                  <AvatarImage src={
+                    comment.is_anonymous 
+                      ? "/placeholder.svg" 
+                      : (comment.profiles?.avatar_url || "/placeholder.svg")
+                  } />
                   <AvatarFallback className="text-xs">
-                    {comment.profiles?.full_name?.[0] || "?"}
+                    {comment.is_anonymous 
+                      ? '익' 
+                      : (comment.profiles?.full_name?.[0] || "?")
+                    }
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-medium">
-                      {comment.profiles?.full_name || "익명"}
+                      {comment.is_anonymous 
+                        ? '익명' 
+                        : (comment.profiles?.full_name || "익명")
+                      }
                     </p>
                     {user?.id === comment.user_id && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteComment(comment.id)}
-                        className="p-1 h-auto text-muted-foreground hover:text-red-500"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
+                      <div className="flex items-center space-x-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setEditingComment(comment);
+                            setShowCommentEditModal(true);
+                          }}
+                          className="p-1 h-auto text-muted-foreground hover:text-blue-500"
+                        >
+                          <Edit className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteComment(comment.id)}
+                          className="p-1 h-auto text-muted-foreground hover:text-red-500"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground whitespace-pre-wrap">
@@ -450,6 +489,16 @@ const CommunityPostDetailModal = ({ post, isOpen, onClose, onEdit, onDelete }: C
           )}
         </div>
       </DialogContent>
+
+      <CommentEditModal
+        comment={editingComment}
+        isOpen={showCommentEditModal}
+        onClose={() => {
+          setShowCommentEditModal(false);
+          setEditingComment(null);
+        }}
+        onCommentUpdated={fetchComments}
+      />
     </Dialog>
   );
 };

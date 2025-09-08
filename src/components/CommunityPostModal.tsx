@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Camera, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +27,7 @@ const CommunityPostModal = ({ isOpen, onClose, onPostCreated }: CommunityPostMod
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(false);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -104,7 +106,8 @@ const CommunityPostModal = ({ isOpen, onClose, onPostCreated }: CommunityPostMod
           location_name: locationName.trim() || null,
           location_address: locationAddress.trim() || null,
           post_type: postType,
-          image_url: uploadedImageUrl
+          image_url: uploadedImageUrl,
+          is_anonymous: isAnonymous
         });
 
       if (error) {
@@ -130,6 +133,7 @@ const CommunityPostModal = ({ isOpen, onClose, onPostCreated }: CommunityPostMod
     setPostType("general");
     setImageFile(null);
     setImageUrl("");
+    setIsAnonymous(false);
     onClose();
   };
 
@@ -234,6 +238,15 @@ const CommunityPostModal = ({ isOpen, onClose, onPostCreated }: CommunityPostMod
                 </label>
               </div>
             )}
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Label htmlFor="anonymous">익명으로 작성</Label>
+            <Switch
+              id="anonymous"
+              checked={isAnonymous}
+              onCheckedChange={setIsAnonymous}
+            />
           </div>
 
           <div className="flex space-x-2">

@@ -49,6 +49,7 @@ export type Database = {
           created_at: string
           id: string
           image_url: string | null
+          is_anonymous: boolean | null
           location_address: string | null
           location_name: string | null
           post_type: string
@@ -61,6 +62,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          is_anonymous?: boolean | null
           location_address?: string | null
           location_name?: string | null
           post_type?: string
@@ -73,6 +75,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          is_anonymous?: boolean | null
           location_address?: string | null
           location_name?: string | null
           post_type?: string
@@ -153,6 +156,7 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          is_anonymous: boolean | null
           post_id: string
           post_type: string
           updated_at: string
@@ -162,6 +166,7 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          is_anonymous?: boolean | null
           post_id: string
           post_type?: string
           updated_at?: string
@@ -171,6 +176,7 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          is_anonymous?: boolean | null
           post_id?: string
           post_type?: string
           updated_at?: string

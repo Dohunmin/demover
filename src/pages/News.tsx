@@ -48,6 +48,7 @@ interface CommunityPost {
   post_type: string;
   created_at: string;
   user_id: string;
+  is_anonymous?: boolean;
   profiles?: {
     full_name?: string;
     avatar_url?: string;
@@ -532,9 +533,16 @@ const News = () => {
                       className="flex items-start p-3 bg-muted/30 rounded-xl hover:bg-blue-50 transition-colors cursor-pointer"
                     >
                       <Avatar className="w-8 h-8 mr-3 flex-shrink-0">
-                        <AvatarImage src={post.profiles?.avatar_url || ""} />
+                        <AvatarImage src={
+                          post.is_anonymous 
+                            ? "/placeholder.svg" 
+                            : (post.profiles?.avatar_url || "/placeholder.svg")
+                        } />
                         <AvatarFallback>
-                          {post.profiles?.full_name?.[0] || "?"}
+                          {post.is_anonymous 
+                            ? '익' 
+                            : (post.profiles?.full_name?.[0] || "?")
+                          }
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
@@ -589,15 +597,25 @@ const News = () => {
                 <Card key={post.id} className="p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => handlePostClick(post)}>
                   <div className="flex items-start space-x-3">
                     <Avatar className="w-10 h-10 flex-shrink-0">
-                      <AvatarImage src={post.profiles?.avatar_url || ""} />
+                      <AvatarImage src={
+                        post.is_anonymous 
+                          ? "/placeholder.svg" 
+                          : (post.profiles?.avatar_url || "/placeholder.svg")
+                      } />
                       <AvatarFallback>
-                        {post.profiles?.full_name?.[0] || "?"}
+                        {post.is_anonymous 
+                          ? '익' 
+                          : (post.profiles?.full_name?.[0] || "?")
+                        }
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2 mb-2">
                         <span className="text-sm font-medium">
-                          {post.profiles?.full_name || "익명"}
+                          {post.is_anonymous 
+                            ? '익명' 
+                            : (post.profiles?.full_name || "익명")
+                          }
                         </span>
                         <span className="inline-block bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs">
                           {getPostTypeLabel(post.post_type)}

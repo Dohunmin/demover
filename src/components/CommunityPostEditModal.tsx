@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Camera, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +19,7 @@ interface CommunityPost {
   location_name?: string;
   location_address?: string;
   post_type: string;
+  is_anonymous?: boolean;
 }
 
 interface CommunityPostEditModalProps {
@@ -38,6 +40,7 @@ const CommunityPostEditModal = ({ isOpen, onClose, onPostUpdated, post }: Commun
   const [imageUrl, setImageUrl] = useState("");
   const [currentImageUrl, setCurrentImageUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(false);
 
   useEffect(() => {
     if (post) {
@@ -48,6 +51,7 @@ const CommunityPostEditModal = ({ isOpen, onClose, onPostUpdated, post }: Commun
       setPostType(post.post_type);
       setCurrentImageUrl(post.image_url || "");
       setImageUrl(post.image_url || "");
+      setIsAnonymous(post.is_anonymous || false);
     }
   }, [post]);
 
@@ -157,6 +161,7 @@ const CommunityPostEditModal = ({ isOpen, onClose, onPostUpdated, post }: Commun
           location_address: locationAddress.trim() || null,
           post_type: postType,
           image_url: finalImageUrl,
+          is_anonymous: isAnonymous,
           updated_at: new Date().toISOString()
         })
         .eq('id', post.id);
@@ -289,6 +294,15 @@ const CommunityPostEditModal = ({ isOpen, onClose, onPostUpdated, post }: Commun
                 </label>
               </div>
             )}
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Label htmlFor="anonymous-edit">익명으로 작성</Label>
+            <Switch
+              id="anonymous-edit"
+              checked={isAnonymous}
+              onCheckedChange={setIsAnonymous}
+            />
           </div>
 
           <div className="flex space-x-2">
