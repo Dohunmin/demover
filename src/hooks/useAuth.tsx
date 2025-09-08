@@ -86,31 +86,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(null);
       setUser(null);
       
-      // 로컬 스토리지 정리 (세션 정보 삭제)
+      // Supabase 로그아웃을 먼저 수행 (scope: 'global'로 모든 세션 종료)
       try {
-        localStorage.removeItem('supabase.auth.token');
-        localStorage.removeItem('kakaoAuthCode');
-        localStorage.removeItem('kakaoRedirectUri');
-        localStorage.removeItem('forcePasswordReset');
-        
-        // Supabase 관련 localStorage 키들도 정리
-        const keysToRemove = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && key.startsWith('supabase.auth.')) {
-            keysToRemove.push(key);
-          }
-        }
-        keysToRemove.forEach(key => localStorage.removeItem(key));
-        
-        console.log('로컬 스토리지 정리 완료');
-      } catch (storageError) {
-        console.warn('로컬 스토리지 정리 중 오류:', storageError);
-      }
-      
-      // Supabase 로그아웃 시도 (세션이 없어도 괜찮음)
-      try {
-        const { error } = await supabase.auth.signOut();
+        const { error } = await supabase.auth.signOut({ scope: 'global' });
         
         if (error) {
           // 403이나 session not found 오류는 이미 로그아웃된 상태이므로 무시
@@ -122,14 +100,76 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             console.warn('Supabase 로그아웃 경고:', error.message);
           }
         } else {
-          console.log('Supabase 로그아웃 성공');
+          console.log('Supabase 전체 세션 로그아웃 성공');
         }
       } catch (authError) {
-        // 네트워크 오류나 기타 오류는 로그만 남기고 계속 진행
         console.warn('Supabase 로그아웃 중 오류:', authError);
       }
       
-      console.log('로그아웃 완료 - 상태 초기화됨');
+      // 완전한 로컬 스토리지 정리
+      try {
+        // 특정 키들 제거
+        const specificKeys = [
+          'supabase.auth.token',
+          'kakaoAuthCode', 
+          'kakaoRedirectUri',
+          'forcePasswordReset'
+        ];
+        
+        specificKeys.forEach(key => {
+          try {
+            localStorage.removeItem(key);
+          } catch (e) {
+            console.warn(`키 ${key} 제거 실패:`, e);
+          }
+        });
+        
+        // Supabase 관련 모든 키 제거
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (key.startsWith('supabase.auth.') || key.startsWith('sb-'))) {
+            keysToRemove.push(key);
+          }
+        }
+        
+        keysToRemove.forEach(key => {
+          try {
+            localStorage.removeItem(key);
+            console.log(`Supabase 키 제거: ${key}`);
+          } catch (e) {
+            console.warn(`키 ${key} 제거 실패:`, e);
+          }
+        });
+        
+        console.log('로컬 스토리지 완전 정리 완료');
+      } catch (storageError) {
+        console.warn('로컬 스토리지 정리 중 오류:', storageError);
+      }
+      
+      // sessionStorage도 정리
+      try {
+        const sessionKeys = [];
+        for (let i = 0; i < sessionStorage.length; i++) {
+          const key = sessionStorage.key(i);
+          if (key && (key.startsWith('supabase.auth.') || key.startsWith('sb-'))) {
+            sessionKeys.push(key);
+          }
+        }
+        
+        sessionKeys.forEach(key => {
+          try {
+            sessionStorage.removeItem(key);
+            console.log(`세션 스토리지 키 제거: ${key}`);
+          } catch (e) {
+            console.warn(`세션 키 ${key} 제거 실패:`, e);
+          }
+        });
+      } catch (sessionError) {
+        console.warn('세션 스토리지 정리 중 오류:', sessionError);
+      }
+      
+      console.log('로그아웃 완료 - 모든 세션 정보 삭제됨');
       
     } catch (error) {
       console.error('로그아웃 중 예상치 못한 오류:', error);
@@ -137,16 +177,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // 어떤 오류가 발생해도 상태는 반드시 초기화
       setSession(null);
       setUser(null);
-      
-      // 로컬 스토리지 정리
-      try {
-        localStorage.removeItem('supabase.auth.token');
-        localStorage.removeItem('kakaoAuthCode');
-        localStorage.removeItem('kakaoRedirectUri');
-        localStorage.removeItem('forcePasswordReset');
-      } catch (storageError) {
-        console.warn('오류 복구 중 스토리지 정리 실패:', storageError);
-      }
     }
   };
 
