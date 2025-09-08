@@ -396,30 +396,30 @@ export type Database = {
       }
     }
     Views: {
-      public_travel_records_safe: {
-        Row: {
-          created_at: string | null
-          id: string | null
-          images: Json | null
-          is_public: boolean | null
-          latitude: number | null
-          location_address: string | null
-          location_name: string | null
-          longitude: number | null
-          memo: string | null
-          rating: number | null
-          safe_location_data: Json | null
-          updated_at: string | null
-          user_id: string | null
-          visit_date: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       fuzz_coordinates: {
         Args: { lat: number; lng: number; privacy_level?: string }
         Returns: Json
+      }
+      get_public_travel_records_safe: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          created_at: string
+          id: string
+          images: Json
+          is_public: boolean
+          location_name: string
+          memo: string
+          rating: number
+          safe_address: string
+          safe_latitude: number
+          safe_longitude: number
+          updated_at: string
+          user_id: string
+          visit_date: string
+        }[]
       }
       get_safe_location_data: {
         Args: { addr: string; lat: number; lng: number; privacy_level?: string }
