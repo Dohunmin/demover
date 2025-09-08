@@ -1245,13 +1245,14 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
                     <div className="grid grid-cols-4 gap-3 mt-6">
                       {mbtiData.map((mbti, index) => (
-                        <Button
+                         <Button
                           key={mbti.id}
                           variant={
                             selectedMbti === mbti.id ? "default" : "outline"
                           }
                           size="sm"
                           onClick={() => handleMbtiSelect(mbti.id)}
+                          title={mbti.label} // 툴팁으로 전체 이름 표시
                           className={`
                             relative flex items-center justify-center p-4 h-16 text-sm font-bold
                             transition-all duration-200 hover:scale-105 hover:shadow-md
@@ -1267,7 +1268,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
                             <span className="text-xs opacity-70">
                               #{index + 1}
                             </span>
-                            <span className="font-bold">{mbti.label}</span>
+                            <span className="font-bold">{mbti.id}</span>
                           </div>
                           {selectedMbti === mbti.id && (
                             <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
