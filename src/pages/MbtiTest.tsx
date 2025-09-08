@@ -606,6 +606,28 @@ const MbtiTest = () => {
             </Button>
           </div>
 
+          {/* 16가지 여행 성향 설명 */}
+          <div className="card p-6">
+            <h3 className="card-title text-lg mb-4 flex items-center">
+              <MapPin className="w-5 h-5 mr-2" style={{ color: "var(--primary-color)" }} />
+              16가지 여행 성향 설명
+            </h3>
+            <div className="grid grid-cols-4 gap-2">
+              {travelTypes.map((type) => (
+                <button 
+                  key={type.code} 
+                  onClick={() => handleTypeClick(type.code)}
+                  className="tab-item p-3 text-center transition-all duration-200 cursor-pointer hover:shadow-md"
+                >
+                  <div className="text-xs font-bold">{type.code}</div>
+                </button>
+              ))}
+            </div>
+            <p className="card-subtitle text-xs mt-4 text-center">
+              각 성향별 맞춤 여행지를 추천해드립니다
+            </p>
+          </div>
+
           {/* 4가지 차원 소개 */}
           <div className="space-y-4">
             <h3 className="card-title text-lg text-center mb-4">🎯 4가지 평가 차원</h3>
@@ -631,28 +653,6 @@ const MbtiTest = () => {
             </p>
             <p className="card-subtitle text-sm">
               테스트를 시작하고, 아이에게 딱 맞는 여행을 계획해보세요!
-            </p>
-          </div>
-
-          {/* 16가지 여행 성향 설명 */}
-          <div className="card p-6">
-            <h3 className="card-title text-lg mb-4 flex items-center">
-              <MapPin className="w-5 h-5 mr-2" style={{ color: "var(--primary-color)" }} />
-              16가지 여행 성향 설명
-            </h3>
-            <div className="grid grid-cols-4 gap-2">
-              {travelTypes.map((type) => (
-                <button 
-                  key={type.code} 
-                  onClick={() => handleTypeClick(type.code)}
-                  className="tab-item p-3 text-center transition-all duration-200 cursor-pointer hover:shadow-md"
-                >
-                  <div className="text-xs font-bold">{type.code}</div>
-                </button>
-              ))}
-            </div>
-            <p className="card-subtitle text-xs mt-4 text-center">
-              각 성향별 맞춤 여행지를 추천해드립니다
             </p>
           </div>
         </main>
