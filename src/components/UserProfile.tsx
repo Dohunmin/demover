@@ -476,9 +476,22 @@ const UserProfile = () => {
                       <Input
                         id="pet_age"
                         type="number"
+                        min="0"
+                        max="30"
                         value={editData.pet_age || ''}
-                        onChange={(e) => setEditData({...editData, pet_age: parseInt(e.target.value) || undefined})}
-                        placeholder="나이를 입력하세요"
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // 빈 값이거나 숫자인 경우만 허용
+                          if (value === '' || (!isNaN(Number(value)) && Number(value) >= 0)) {
+                            setEditData({...editData, pet_age: value === '' ? undefined : parseInt(value)});
+                          }
+                        }}
+                        onInput={(e) => {
+                          // 숫자 이외의 문자 입력 방지
+                          const target = e.target as HTMLInputElement;
+                          target.value = target.value.replace(/[^0-9]/g, '');
+                        }}
+                        placeholder="나이를 입력하세요 (숫자만)"
                         className="mt-1"
                       />
                     </div>
