@@ -74,6 +74,7 @@ interface KakaoMapProps {
   showPetFilter?: boolean;
   userProfileImage?: string;
   initialCategory?: string | null;
+  selectedCategory?: string | null;
   petTourismData?: any[];
   bookmarkedPlaces?: Array<{
     content_id: string;
@@ -91,6 +92,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
   showPetFilter = false,
   userProfileImage,
   initialCategory = null,
+  selectedCategory: propSelectedCategory = null,
   petTourismData = [],
   bookmarkedPlaces = [],
 }) => {
@@ -513,6 +515,17 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     },
     [showPetFilter, allPetData, selectedMbti]
   );
+
+  // prop으로 받은 selectedCategory 변경 시 내부 상태 업데이트
+  useEffect(() => {
+    if (propSelectedCategory && propSelectedCategory !== selectedCategory) {
+      setSelectedCategory(propSelectedCategory);
+      // 즉시 카테고리 필터링 적용
+      if (showPetFilter && allPetData.length > 0) {
+        handleCategorySelect(propSelectedCategory);
+      }
+    }
+  }, [propSelectedCategory, selectedCategory, showPetFilter, allPetData.length, handleCategorySelect]);
 
   // MBTI 선택 핸들러
   const handleMbtiSelect = useCallback(
