@@ -308,111 +308,119 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         // 🔥 핵심: 새로운 마커들만 생성
         const newMarkers: any[] = [];
 
-        filteredPlaces.forEach((place) => {
+        filteredPlaces.forEach((place, index) => {
+          console.log(`🔍 마커 생성 시도 ${index + 1}: ${place.title} (${place.mapx}, ${place.mapy})`);
+          
           if (
             !place.mapx ||
             !place.mapy ||
             place.mapx === "0" ||
             place.mapy === "0"
-          )
+          ) {
+            console.log(`❌ 좌표 없음: ${place.title}`);
             return;
+          }
 
-          const position = new window.kakao.maps.LatLng(place.mapy, place.mapx);
+          try {
+            const position = new window.kakao.maps.LatLng(place.mapy, place.mapx);
 
-          const imageSize = new window.kakao.maps.Size(30, 30);
-          const imageOption = { offset: new window.kakao.maps.Point(15, 30) };
+            const imageSize = new window.kakao.maps.Size(30, 30);
+            const imageOption = { offset: new window.kakao.maps.Point(15, 30) };
 
-          const redMarkerSvg = `data:image/svg+xml;base64,${btoa(`
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#DC2626" width="30" height="30">
-            <circle cx="12" cy="12" r="11" fill="white" stroke="#DC2626" stroke-width="2"/>
-            <path d="M8 10c0-1.1.9-2 2-2s2 .9 2 2-2 3-2 3-2-1.9-2-3zm6 0c0-1.1.9-2 2-2s2 .9 2 2-2 3-2 3-2-1.9-2-3z" fill="#FFFFFF"/>
-            <circle cx="10" cy="10" r="1.5" fill="#000"/>
-            <circle cx="14" cy="10" r="1.5" fill="#000"/>
-            <path d="M12 13c-1 0-2 .5-2 1s1 1 2 1 2-.5 2-1-.5-1-2-1z" fill="#000"/>
-          </svg>
-        `)}`;
+            const redMarkerSvg = `data:image/svg+xml;base64,${btoa(`
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#DC2626" width="30" height="30">
+              <circle cx="12" cy="12" r="11" fill="white" stroke="#DC2626" stroke-width="2"/>
+              <path d="M8 10c0-1.1.9-2 2-2s2 .9 2 2-2 3-2 3-2-1.9-2-3zm6 0c0-1.1.9-2 2-2s2 .9 2 2-2 3-2 3-2-1.9-2-3z" fill="#FFFFFF"/>
+              <circle cx="10" cy="10" r="1.5" fill="#000"/>
+              <circle cx="14" cy="10" r="1.5" fill="#000"/>
+              <path d="M12 13c-1 0-2 .5-2 1s1 1 2 1 2-.5 2-1-.5-1-2-1z" fill="#000"/>
+            </svg>
+          `)}`;
 
-          const markerImage = new window.kakao.maps.MarkerImage(
-            redMarkerSvg,
-            imageSize,
-            imageOption
-          );
+            const markerImage = new window.kakao.maps.MarkerImage(
+              redMarkerSvg,
+              imageSize,
+              imageOption
+            );
 
-          const marker = new window.kakao.maps.Marker({
-            position: position,
-            image: markerImage,
-            clickable: true,
-          });
+            const marker = new window.kakao.maps.Marker({
+              position: position,
+              image: markerImage,
+              clickable: true,
+            });
 
-          marker.setMap(mapInstance.current);
+            marker.setMap(mapInstance.current);
+            newMarkers.push(marker);
+            console.log(`✅ 마커 생성 성공: ${place.title}`);
 
-          // 마커 클릭 이벤트
-          window.kakao.maps.event.addListener(marker, "click", () => {
-            const content = `
-            <div style="padding: 15px; min-width: 280px; max-width: 320px; font-family: 'Malgun Gothic', sans-serif; position: relative;">
-              <button onclick="window.closeInfoWindow()" style="position: absolute; top: 8px; right: 8px; background: #f3f4f6; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 14px; color: #6b7280;">×</button>
-              
-              <div style="font-weight: bold; font-size: 16px; margin-bottom: 8px; color: #DC2626; padding-right: 30px;">${
-                place.title
-              }</div>
-              
-              <div style="font-size: 12px; color: #666; margin-bottom: 8px; background: #FEF2F2; padding: 4px 8px; border-radius: 12px; display: inline-block;">
-                🐾 반려동물 동반 가능
+            // 마커 클릭 이벤트
+            window.kakao.maps.event.addListener(marker, "click", () => {
+              const content = `
+              <div style="padding: 15px; min-width: 280px; max-width: 320px; font-family: 'Malgun Gothic', sans-serif; position: relative;">
+                <button onclick="window.closeInfoWindow()" style="position: absolute; top: 8px; right: 8px; background: #f3f4f6; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 14px; color: #6b7280;">×</button>
+                
+                <div style="font-weight: bold; font-size: 16px; margin-bottom: 8px; color: #DC2626; padding-right: 30px;">${
+                  place.title
+                }</div>
+                
+                <div style="font-size: 12px; color: #666; margin-bottom: 8px; background: #FEF2F2; padding: 4px 8px; border-radius: 12px; display: inline-block;">
+                  🐾 반려동물 동반 가능
+                </div>
+                
+                ${
+                  place.locationGubun
+                    ? `<div style="font-size: 12px; color: #666; margin-bottom: 8px; background: #F3F4F6; padding: 4px 8px; border-radius: 12px; display: inline-block;">
+                  📍 ${place.locationGubun}
+                </div>`
+                    : ""
+                }
+                
+                <div style="font-size: 13px; color: #333; margin-bottom: 6px;">${
+                  place.addr1
+                }</div>
+                ${
+                  place.addr2
+                    ? `<div style="font-size: 12px; color: #666; margin-bottom: 6px;">${place.addr2}</div>`
+                    : ""
+                }
+                ${
+                  place.tel
+                    ? `<div style="font-size: 12px; color: #666; margin-bottom: 8px;">📞 ${place.tel}</div>`
+                    : ""
+                }
+                
+                <div style="text-align: center;">
+                  <button id="review-btn-${place.contentid}" 
+                     style="color: #DC2626; font-size: 12px; text-decoration: none; background: #FEF2F2; padding: 6px 12px; border-radius: 8px; display: inline-block; border: 1px solid #FCA5A5; cursor: pointer;">
+                    ⭐ 평점 및 후기
+                  </button>
+                </div>
               </div>
-              
-              ${
-                place.locationGubun
-                  ? `<div style="font-size: 12px; color: #666; margin-bottom: 8px; background: #F3F4F6; padding: 4px 8px; border-radius: 12px; display: inline-block;">
-                📍 ${place.locationGubun}
-              </div>`
-                  : ""
-              }
-              
-              <div style="font-size: 13px; color: #333; margin-bottom: 6px;">${
-                place.addr1
-              }</div>
-              ${
-                place.addr2
-                  ? `<div style="font-size: 12px; color: #666; margin-bottom: 6px;">${place.addr2}</div>`
-                  : ""
-              }
-              ${
-                place.tel
-                  ? `<div style="font-size: 12px; color: #666; margin-bottom: 8px;">📞 ${place.tel}</div>`
-                  : ""
-              }
-              
-              <div style="text-align: center;">
-                <button id="review-btn-${place.contentid}" 
-                   style="color: #DC2626; font-size: 12px; text-decoration: none; background: #FEF2F2; padding: 6px 12px; border-radius: 8px; display: inline-block; border: 1px solid #FCA5A5; cursor: pointer;">
-                  ⭐ 평점 및 후기
-                </button>
-              </div>
-            </div>
-          `;
-            infoWindow.current.setContent(content);
-            infoWindow.current.open(mapInstance.current, marker);
+            `;
+              infoWindow.current.setContent(content);
+              infoWindow.current.open(mapInstance.current, marker);
 
-            // 정보창 닫기 함수를 전역에 등록
-            (window as any).closeInfoWindow = () => {
-              infoWindow.current.close();
-            };
+              // 정보창 닫기 함수를 전역에 등록
+              (window as any).closeInfoWindow = () => {
+                infoWindow.current.close();
+              };
 
-            // 평점/후기 버튼 이벤트 리스너 추가
-            setTimeout(() => {
-              const reviewBtn = document.getElementById(
-                `review-btn-${place.contentid}`
-              );
-              if (reviewBtn) {
-                reviewBtn.addEventListener("click", () => {
-                  setSelectedPlaceForReview(place);
-                  setIsReviewModalOpen(true);
-                });
-              }
-            }, 100);
-          });
-
-          newMarkers.push(marker);
+              // 평점/후기 버튼 이벤트 리스너 추가
+              setTimeout(() => {
+                const reviewBtn = document.getElementById(
+                  `review-btn-${place.contentid}`
+                );
+                if (reviewBtn) {
+                  reviewBtn.addEventListener("click", () => {
+                    setSelectedPlaceForReview(place);
+                    setIsReviewModalOpen(true);
+                  });
+                }
+              }, 100);
+            });
+          } catch (error) {
+            console.error(`❌ 마커 생성 실패: ${place.title}`, error);
+          }
         });
 
         // 🔥 핵심: 상태를 완전히 새 배열로 교체 (중복 방지)
@@ -615,39 +623,30 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     console.log(`✅ 총 ${newMarkers.length}개 마커 생성 완료`);
   }, [selectedCategory, selectedMbti, allPetData, showPetFilter]);
 
-  // MBTI 선택 핸들러 - 단순화
+  // MBTI 선택 핸들러 - 수정된 버전
   const handleMbtiSelect = useCallback(
     (mbtiId: string) => {
-      console.log(`🔍 MBTI 선택: ${mbtiId}`);
+      console.log(`🧠 MBTI 선택: ${mbtiId}, 현재 카테고리: ${selectedCategory}`);
       
       if (mbtiId === "none") {
         setSelectedMbti(null);
+        setIsMbtiModalOpen(false);
         toast.success("멍BTI 필터가 해제되었습니다.");
       } else {
         setSelectedMbti(mbtiId);
+        setIsMbtiModalOpen(false);
         toast.success(`${mbtiId} MBTI 필터가 적용되었습니다.`);
       }
       
-      setIsMbtiModalOpen(false);
+      // MBTI 변경 후 현재 선택된 카테고리로 다시 필터링
+      setTimeout(() => {
+        console.log(`🔄 MBTI 변경 후 카테고리 재필터링: ${selectedCategory}`);
+        handleCategorySelect(selectedCategory);
+      }, 100);
     },
-    []
+    [selectedCategory, handleCategorySelect]
   );
   
-  // MBTI 변경 시 필터 재적용
-  useEffect(() => {
-    if (isMapLoaded && showPetFilter && allPetData.length > 0) {
-      console.log("🔄 MBTI 변경으로인한 필터 재적용");
-      applyMbtiFilter();
-    }
-  }, [selectedMbti, applyMbtiFilter, isMapLoaded, showPetFilter, allPetData.length]);
-
-  // MBTI 필터 초기화
-  const clearMbtiFilter = useCallback(() => {
-    setSelectedMbti(null);
-    handleCategorySelect(selectedCategory);
-    toast.success("MBTI 필터가 해제되었습니다.");
-  }, [selectedCategory, handleCategorySelect]);
-
   // 카카오 지도 SDK 로드
   useEffect(() => {
     let isMounted = true;
