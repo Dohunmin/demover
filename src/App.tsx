@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -43,6 +43,11 @@ const AppWithNavigation = () => {
   };
 
   const activeTab = getActiveTab();
+
+  // 페이지 변경 시 최상단으로 스크롤
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
 
   const handleTabChange = (tab: string) => {
