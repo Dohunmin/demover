@@ -82,39 +82,71 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       console.log('로그아웃 시작...');
       
-      // Supabase 로그아웃
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        console.error('Supabase 로그아웃 오류:', error);
-      } else {
-        console.log('Supabase 로그아웃 성공');
-      }
-      
-      // 상태 강제 초기화 (로그아웃 성공/실패 상관없이)
+      // 상태를 먼저 초기화하여 UI가 즉시 반응하도록 함
       setSession(null);
       setUser(null);
       
-      // 로컬 스토리지 정리
-      localStorage.removeItem('supabase.auth.token');
-      localStorage.removeItem('kakaoAuthCode');
-      localStorage.removeItem('kakaoRedirectUri');
-      localStorage.removeItem('forcePasswordReset');
+      // 로컬 스토리지 정리 (세션 정보 삭제)
+      try {
+        localStorage.removeItem('supabase.auth.token');
+        localStorage.removeItem('kakaoAuthCode');
+        localStorage.removeItem('kakaoRedirectUri');
+        localStorage.removeItem('forcePasswordReset');
+        
+        // Supabase 관련 localStorage 키들도 정리
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('supabase.auth.')) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+        
+        console.log('로컬 스토리지 정리 완료');
+      } catch (storageError) {
+        console.warn('로컬 스토리지 정리 중 오류:', storageError);
+      }
+      
+      // Supabase 로그아웃 시도 (세션이 없어도 괜찮음)
+      try {
+        const { error } = await supabase.auth.signOut();
+        
+        if (error) {
+          // 403이나 session not found 오류는 이미 로그아웃된 상태이므로 무시
+          if (error.message?.includes('Session not found') || 
+              error.message?.includes('session_not_found') ||
+              error.status === 403) {
+            console.log('이미 로그아웃된 상태입니다.');
+          } else {
+            console.warn('Supabase 로그아웃 경고:', error.message);
+          }
+        } else {
+          console.log('Supabase 로그아웃 성공');
+        }
+      } catch (authError) {
+        // 네트워크 오류나 기타 오류는 로그만 남기고 계속 진행
+        console.warn('Supabase 로그아웃 중 오류:', authError);
+      }
       
       console.log('로그아웃 완료 - 상태 초기화됨');
       
     } catch (error) {
-      console.error('로그아웃 중 오류:', error);
+      console.error('로그아웃 중 예상치 못한 오류:', error);
       
-      // 오류가 발생해도 상태 강제 초기화
+      // 어떤 오류가 발생해도 상태는 반드시 초기화
       setSession(null);
       setUser(null);
       
       // 로컬 스토리지 정리
-      localStorage.removeItem('supabase.auth.token');
-      localStorage.removeItem('kakaoAuthCode');
-      localStorage.removeItem('kakaoRedirectUri');
-      localStorage.removeItem('forcePasswordReset');
+      try {
+        localStorage.removeItem('supabase.auth.token');
+        localStorage.removeItem('kakaoAuthCode');
+        localStorage.removeItem('kakaoRedirectUri');
+        localStorage.removeItem('forcePasswordReset');
+      } catch (storageError) {
+        console.warn('오류 복구 중 스토리지 정리 실패:', storageError);
+      }
     }
   };
 
