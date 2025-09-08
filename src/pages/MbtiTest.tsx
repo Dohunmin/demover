@@ -92,86 +92,36 @@ const dimensions = [
   }
 ];
 
-// 뒤집히는 카드 컴포넌트
-const FlipCard = ({ dimension }: { dimension: typeof dimensions[0] }) => {
-  const [flipped, setFlipped] = useState<{ [key: string]: boolean }>({});
-
-  const handleCardClick = (optionType: string) => {
-    setFlipped(prev => ({
-      ...prev,
-      [`${dimension.id}-${optionType}`]: !prev[`${dimension.id}-${optionType}`]
-    }));
-  };
-
+// 4가지 차원을 간단한 텍스트로 설명하는 컴포넌트
+const DimensionText = () => {
   return (
-    <div className="card p-4">
-      <div className="flex items-center mb-4">
-        <div className={`w-10 h-10 ${dimension.bgColor} rounded-lg flex items-center justify-center mr-3`}>
-          <span className="text-lg">{dimension.icon}</span>
-        </div>
-        <div>
-          <h4 className="card-title text-base">{dimension.title}</h4>
-          <p className="card-subtitle text-xs">{dimension.subtitle}</p>
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-2 gap-3">
-        {dimension.options.map((option) => {
-          const cardKey = `${dimension.id}-${option.type}`;
-          const isFlipped = flipped[cardKey];
-          
-          return (
-            <div
-              key={option.type}
-              className="relative h-32 cursor-pointer"
-              onClick={() => handleCardClick(option.type)}
-            >
-              <div
-                className={`absolute inset-0 w-full h-full transition-transform duration-700 transform-style-preserve-3d ${
-                  isFlipped ? 'rotate-y-180' : ''
-                }`}
-              >
-                {/* 앞면 */}
-                <div className="absolute inset-0 w-full h-full backface-hidden rounded-lg border-2 border-gray-200 bg-gradient-to-br from-white to-gray-50 flex flex-col items-center justify-center p-3 hover:shadow-md transition-shadow">
-                  <div className="text-2xl font-bold text-primary mb-2">
-                    {option.type}
-                  </div>
-                  <div className="text-xs text-center font-medium text-gray-600">
-                    {option.type === 'E' && '활동적'}
-                    {option.type === 'C' && '차분한'}
-                    {option.type === 'S' && '사교적'}
-                    {option.type === 'O' && '독립적'}
-                    {option.type === 'V' && '시각적'}
-                    {option.type === 'N' && '후각적'}
-                    {option.type === 'F' && '패션'}
-                    {option.type === 'B' && '기본'}
-                  </div>
-                </div>
-                
-                {/* 뒷면 */}
-                <div className="absolute inset-0 w-full h-full backface-hidden rounded-lg border-2 border-primary bg-primary/5 p-3 flex flex-col justify-center rotate-y-180">
-                  <div className="text-sm font-semibold text-primary mb-2 text-center">
-                    {option.title}
-                  </div>
-                  <div className="text-xs text-gray-600 leading-relaxed text-center">
-                    {option.description}
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
-// 4가지 차원 카드들을 렌더링하는 컴포넌트
-const DimensionCards = () => {
-  return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {dimensions.map((dimension) => (
-        <FlipCard key={dimension.id} dimension={dimension} />
+        <div key={dimension.id} className="p-4 rounded-lg bg-card border">
+          <div className="flex items-center mb-3">
+            <div className={`w-8 h-8 ${dimension.bgColor} rounded-lg flex items-center justify-center mr-3`}>
+              <span className="text-sm">{dimension.icon}</span>
+            </div>
+            <div>
+              <h4 className="font-semibold text-base">{dimension.title}</h4>
+              <p className="text-sm text-muted-foreground">{dimension.subtitle}</p>
+            </div>
+          </div>
+          
+          <div className="space-y-3">
+            {dimension.options.map((option) => (
+              <div key={option.type} className="pl-2">
+                <p className="text-sm">
+                  <span className="font-bold text-primary mr-2">{option.type}형:</span>
+                  <span className="font-medium mr-2">{option.title}</span>
+                </p>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  {option.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
       ))}
     </div>
   );
@@ -638,7 +588,7 @@ const MbtiTest = () => {
           <div className="space-y-4">
             <h3 className="card-title text-lg text-center mb-4">🎯 4가지 평가 차원</h3>
             
-            <DimensionCards />
+            <DimensionText />
           </div>
         </main>
 
