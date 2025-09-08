@@ -556,10 +556,10 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
       {/* Category Grid */}
       {!hideCategoryGrid && showPetFilter && (
-        <div className="px-5 mb-4">
-          <Card className="p-4 bg-white border-0 shadow-lg rounded-2xl">
-            <h3 className="font-semibold text-base mb-3 text-gray-900">카테고리 선택</h3>
-            <div className="grid grid-cols-3 gap-3">
+        <div className="px-5 mb-3">
+          <Card className="p-3 bg-white border-0 shadow-lg rounded-xl">
+            <h3 className="font-semibold text-sm mb-2 text-gray-900">카테고리 선택</h3>
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
               {categories.map((category) => {
                 const IconComponent = category.icon;
                 const isSelected = selectedCategory === category.id;
@@ -567,13 +567,13 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
                   <button
                     key={category.id}
                     onClick={() => handleCategorySelect(category.id)}
-                    className={`flex flex-col items-center justify-center p-3 rounded-xl transition-all ${
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg whitespace-nowrap transition-all flex-shrink-0 ${
                       isSelected
                         ? "bg-gray-900 text-white"
                         : "bg-gray-50 border border-gray-200 text-gray-600 hover:bg-gray-100"
                     }`}
                   >
-                    <IconComponent className="w-5 h-5 mb-1" />
+                    <IconComponent className="w-4 h-4" />
                     <span className="text-xs font-medium">{category.label}</span>
                   </button>
                 );
@@ -585,21 +585,21 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
       {/* MBTI Filter */}
       {showPetFilter && (
-        <div className="px-5 mb-4">
-          <Card className="p-4 bg-white border-0 shadow-lg rounded-2xl">
-            <h3 className="font-semibold text-base mb-3 text-gray-900">멍BTI 필터</h3>
+        <div className="px-5 mb-3">
+          <Card className="p-3 bg-white border-0 shadow-lg rounded-xl">
+            <h3 className="font-semibold text-sm mb-2 text-gray-900">멍BTI 필터</h3>
             <Button
               variant="outline"
               onClick={() => setIsMbtiModalOpen(true)}
-              className="w-full justify-between bg-gray-50 border-gray-200 hover:bg-gray-100"
+              className="w-full justify-between bg-gray-50 border-gray-200 hover:bg-gray-100 h-8 text-xs"
             >
-              <span className="text-gray-700">
+              <span className="text-gray-700 truncate">
                 {selectedMbti 
                   ? mbtiData.find(m => m.id === selectedMbti)?.label || selectedMbti
                   : "멍BTI 유형 선택하기"
                 }
               </span>
-              <div className="w-5 h-5 text-gray-400">⚙️</div>
+              <div className="w-4 h-4 text-gray-400">⚙️</div>
             </Button>
           </Card>
         </div>
@@ -607,8 +607,8 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
       {/* Map Container */}
       <div className="px-5">
-        <Card className="overflow-hidden border-0 shadow-lg rounded-2xl">
-          <div className="relative h-96">
+        <Card className="overflow-hidden border-0 shadow-lg rounded-xl">
+          <div className="relative h-80">
             <div ref={mapRef} className="w-full h-full" />
             {!isMapLoaded && (
               <div className="absolute inset-0 flex items-center justify-center bg-white/90">
