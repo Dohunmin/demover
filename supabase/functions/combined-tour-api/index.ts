@@ -489,25 +489,11 @@ serve(async (req) => {
             `🎯 전체 수집 완료: 총 ${allResults.length}개 수집 (소요시간: ${totalTime}초)`
           );
 
-          // 중복 제거 (contentid 기준)
-          const uniqueMap = new Map();
-          let duplicateCount = 0;
-          const duplicatedIds = new Set();
-
-          allResults.forEach((item) => {
-            const key = item.contentid;
-            if (uniqueMap.has(key)) {
-              duplicateCount++;
-              duplicatedIds.add(key);
-            } else {
-              uniqueMap.set(key, item);
-            }
-          });
-
-          const uniqueResults = Array.from(uniqueMap.values());
-
+          // 중복 제거 없이 모든 결과 사용
+          const uniqueResults = allResults;
+          
           console.log(
-            `✨ 중복 제거 완료: ${duplicateCount}개 중복 제거 (고유 ID: ${duplicatedIds.size}개), ${uniqueResults.length}개 최종 결과`
+            `✨ 중복 제거 없이 모든 결과 사용: ${uniqueResults.length}개 최종 결과`
           );
 
           // 카테고리별 분류 통계
