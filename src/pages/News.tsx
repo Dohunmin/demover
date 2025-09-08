@@ -40,6 +40,8 @@ interface TravelRecord {
   profiles?: {
     full_name?: string;
     avatar_url?: string;
+    pet_name?: string;
+    pet_image_url?: string;
   };
 }
 
@@ -57,6 +59,8 @@ interface CommunityPost {
   profiles?: {
     full_name?: string;
     avatar_url?: string;
+    pet_name?: string;
+    pet_image_url?: string;
   };
 }
 
@@ -153,7 +157,7 @@ const News = () => {
       const userIds = recordsData?.map(record => record.user_id) || [];
       const { data: profilesData } = await supabase
         .from('profiles')
-        .select('user_id, full_name, avatar_url')
+        .select('user_id, full_name, avatar_url, pet_name, pet_image_url')
         .in('user_id', userIds);
 
       // Combine records with profiles
@@ -188,7 +192,7 @@ const News = () => {
       const userIds = postsData?.map(post => post.user_id) || [];
       const { data: profilesData } = await supabase
         .from('profiles')
-        .select('user_id, full_name, avatar_url')
+        .select('user_id, full_name, avatar_url, pet_name, pet_image_url')
         .in('user_id', userIds);
 
       // Combine posts with profiles
@@ -465,15 +469,19 @@ const News = () => {
                       className="flex items-start p-3 bg-muted/30 rounded-xl hover:bg-green-50 transition-colors cursor-pointer"
                     >
                       <Avatar className="w-8 h-8 mr-3 flex-shrink-0">
-                        <AvatarImage src={record.profiles?.avatar_url || ""} />
+                        <AvatarImage src={
+                          record.profiles?.pet_image_url || 
+                          record.profiles?.avatar_url || 
+                          ""
+                        } />
                         <AvatarFallback>
-                          {record.profiles?.full_name?.[0] || "?"}
+                          {(record.profiles?.pet_name || record.profiles?.full_name)?.[0] || "?"}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-1">
                           <span className="text-sm font-medium">
-                            {record.profiles?.full_name || "익명"}
+                            {record.profiles?.pet_name || record.profiles?.full_name || "익명"}
                           </span>
                           <span className="text-xs text-muted-foreground">님이</span>
                         </div>
@@ -549,12 +557,12 @@ const News = () => {
                         <AvatarImage src={
                           post.is_anonymous 
                             ? "/placeholder.svg" 
-                            : (post.profiles?.avatar_url || "/placeholder.svg")
+                            : (post.profiles?.pet_image_url || post.profiles?.avatar_url || "/placeholder.svg")
                         } />
                         <AvatarFallback>
                           {post.is_anonymous 
                             ? '익' 
-                            : (post.profiles?.full_name?.[0] || "?")
+                            : ((post.profiles?.pet_name || post.profiles?.full_name)?.[0] || "?")
                           }
                         </AvatarFallback>
                       </Avatar>
