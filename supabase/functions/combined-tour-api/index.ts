@@ -286,7 +286,7 @@ serve(async (req) => {
       // 2. 한국관광공사 반려동물 동반 여행지 서비스 호출 (반려동물만)
       if (loadAllPetKeywords) {
         // 캐시 확인
-        const cacheKey = "pet_friendly_places_busan_v3"; // 새 버전으로 캐시 키 변경
+        const cacheKey = "pet_friendly_places_busan_v4"; // 새 버전으로 캐시 키 변경
         const cachedData = getCached(cacheKey);
 
         if (cachedData) {
@@ -324,42 +324,58 @@ serve(async (req) => {
           console.log("📍 1단계: areaBasedList API로 기존 반려동물 정보 수집 중...");
           
           try {
-            const areaBasedUrl = `https://apis.data.go.kr/B551011/KorPetTourService/areaBasedList?serviceKey=${encodeURIComponent(
-              decodedApiKey
-            )}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=100&pageNo=1&_type=xml`;
+            // 여러 페이지를 가져와서 모든 데이터를 수집
+            const maxPages = 3; // 최대 3페이지까지 가져오기
+            const itemsPerPage = 100;
+            
+            for (let page = 1; page <= maxPages; page++) {
+              const areaBasedUrl = `https://apis.data.go.kr/B551011/KorPetTourService/areaBasedList?serviceKey=${encodeURIComponent(
+                decodedApiKey
+              )}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=${itemsPerPage}&pageNo=${page}&_type=xml`;
 
-            console.log("areaBasedList API URL:", areaBasedUrl);
+              console.log(`areaBasedList API URL (페이지 ${page}):`, areaBasedUrl);
 
-            const areaBasedResponse = await fetch(areaBasedUrl).catch(
-              async (httpsError) => {
-                console.log("HTTPS 실패, HTTP로 재시도");
-                const httpUrl = areaBasedUrl.replace("https://", "http://");
-                return await fetch(httpUrl);
-              }
-            );
+              const areaBasedResponse = await fetch(areaBasedUrl).catch(
+                async (httpsError) => {
+                  console.log(`HTTPS 실패, HTTP로 재시도 (페이지 ${page})`);
+                  const httpUrl = areaBasedUrl.replace("https://", "http://");
+                  return await fetch(httpUrl);
+                }
+              );
 
-            if (areaBasedResponse.ok) {
-              const responseText = await areaBasedResponse.text();
-              console.log(`areaBasedList 응답 길이: ${responseText.length}`);
-              
-              const parsedData = parseXmlToJson(responseText);
-              
-              if (parsedData?.response?.body?.items?.item) {
-                const items = Array.isArray(parsedData.response.body.items.item)
-                  ? parsedData.response.body.items.item
-                  : [parsedData.response.body.items.item];
+              if (areaBasedResponse.ok) {
+                const responseText = await areaBasedResponse.text();
+                console.log(`areaBasedList 페이지 ${page} 응답 길이: ${responseText.length}`);
                 
-                items.forEach((item) => {
-                  allResults.push({
-                    ...item,
-                    searchKeyword: "areaBasedList",
+                const parsedData = parseXmlToJson(responseText);
+                
+                if (parsedData?.response?.body?.items?.item) {
+                  const items = Array.isArray(parsedData.response.body.items.item)
+                    ? parsedData.response.body.items.item
+                    : [parsedData.response.body.items.item];
+                  
+                  items.forEach((item) => {
+                    allResults.push({
+                      ...item,
+                      searchKeyword: `areaBasedList_page${page}`,
+                    });
                   });
-                });
-                
-                console.log(`✅ 1단계 완료: areaBasedList에서 ${items.length}개 수집`);
+                  
+                  console.log(`✅ 페이지 ${page} 완료: areaBasedList에서 ${items.length}개 수집`);
+                  
+                  // 만약 이 페이지에서 가져온 데이터가 요청한 수보다 적다면, 다음 페이지는 없다는 뜻
+                  if (items.length < itemsPerPage) {
+                    console.log(`📋 페이지 ${page}에서 ${items.length}개만 반환됨. 더 이상 데이터가 없음.`);
+                    break;
+                  }
+                } else {
+                  console.log(`⚠️ 페이지 ${page}에서 데이터 없음. 더 이상 페이지가 없을 수 있음.`);
+                  break;
+                }
+              } else {
+                console.log(`⚠️ areaBasedList API 페이지 ${page} 실패: ${areaBasedResponse.status}`);
+                break;
               }
-            } else {
-              console.log(`⚠️ areaBasedList API 실패: ${areaBasedResponse.status}`);
             }
           } catch (error) {
             console.log(`⚠️ areaBasedList API 오류: ${error.message}`);
@@ -396,7 +412,7 @@ serve(async (req) => {
                     decodedApiKey
                   )}&MobileOS=ETC&MobileApp=PetTravelApp&keyword=${encodeURIComponent(
                     keywordItem
-                  )}&areaCode=${areaCode}&numOfRows=20&pageNo=1&_type=xml`;
+                  )}&areaCode=${areaCode}&numOfRows=50&pageNo=1&_type=xml`;
 
                   // 재시도 로직 (최대 3번 시도)
                   for (let attempt = 1; attempt <= 3; attempt++) {

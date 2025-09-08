@@ -212,8 +212,8 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
     }
 
     // localStorage에서 캐시 확인 (24시간 TTL)
-    const cacheKey = 'pet_places_cache_v1';
-    const cacheTimeKey = 'pet_places_cache_time_v1';
+    const cacheKey = 'pet_places_cache_v2';
+    const cacheTimeKey = 'pet_places_cache_time_v2';
     const CACHE_TTL = 24 * 60 * 60 * 1000; // 24시간
 
     try {
@@ -262,7 +262,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
       const { data, error } = await supabase.functions.invoke('combined-tour-api', {
         body: {
           areaCode: userAreaCode,
-          numOfRows: '100',
+          numOfRows: '200',
           pageNo: '1',
           keyword: '',
           activeTab: 'pet',
