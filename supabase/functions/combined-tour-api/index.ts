@@ -106,41 +106,17 @@ function parseXmlToJson(xmlText: string) {
   }
 }
 
-// 반려동물 동반 가능한 키워드 목록 (정확한 매칭을 위해 띄어쓰기 수정)
+// 반려동물 동반 가능한 키워드 목록 (52개로 최적화)
 const petFriendlyKeywords = [
-  "롯데프리미엄아울렛 동부산점",
-  "몽작",
-  "부산시민공원",
-  "센텀 APEC나루공원",
-  "신호공원",
-  "오르디",
-  "온천천시민공원",
-  "칠암만장",
-  "카페 만디",
-  "포레스트3002",
-  "홍법사(부산)",
-  "감나무집",
   "광안리해변 테마거리",
   "광안리해수욕장",
-  "구덕포끝집고기",
   "구포시장",
   "국립부산과학관",
-  "그림하우스",
   "금강사(부산)",
   "다대포 꿈의 낙조분수",
   "다대포해수욕장",
-  "대보름",
-  "대저생태공원",
-  "대저수문 생태공원",
-  "더웨이브",
   "더펫텔프리미엄스위트",
-  "덕미",
-  "듀스포레",
   "드림서프라운지",
-  "만달리",
-  "맥도생태공원",
-  "모닝듀 게스트 하우스(모닝듀)",
-  "무명일기",
   "문탠로드",
   "민락수변공원",
   "밀락더마켓",
@@ -149,60 +125,32 @@ const petFriendlyKeywords = [
   "부산 송도해수욕장",
   "부산 암남공원",
   "부산북항 친수공원",
-  "부산 어린이대공원",
-  "불란서그로서리",
-  "브리타니",
-  "비아조",
+  "부산어린이대공원",
   "빅토리아 베이커리 가든",
   "삼락생태공원",
-  "성안집",
   "송도 구름산책로",
-  "송정물총칼국수",
   "송정해수욕장",
-  "스노잉클라우드",
   "스포원파크",
   "신세계사이먼 부산 프리미엄 아울렛",
   "아르반호텔[한국관광 품질인증/Korea Quality]",
   "아미르공원",
-  "알로이삥삥",
   "옐로우라이트하우스",
-  "오구카페",
   "용소웰빙공원",
   "원시학",
-  "웨스턴챔버",
-  "웨이브온 커피",
-  "윙민박",
-  "유정1995 기장 본점",
-  "을숙도 공원",
-  "이바구캠프",
   "장림포구",
   "절영해안산책로",
   "죽성드림세트장",
-  "카페베이스",
   "카페윤",
   "캐빈스위트광안",
   "캔버스",
   "캔버스 블랙",
   "태종대",
-  "팝콘 호스텔 해운대점",
-  "프루터리포레스트",
   "해동용궁사",
   "해운대 달맞이길",
   "해운대 동백섬",
   "해운대 블루라인파크",
   "해운대 영무파라드호텔",
-  "해운대해수욕장",
-  "해월전망대",
-  "형제가든",
-  "황령산",
-  "황령산 전망대",
-  "황령산레포츠공원",
-  "회동수원지",
-  "회동수원지 둘레길",
-  "AJ하우스(AJ House)",
-  "EL16.52",
-  "JSTAY",
-  "The Park Guest House",
+  "해운대해수욕장"
 ];
 
 serve(async (req) => {
@@ -328,9 +276,9 @@ serve(async (req) => {
     if (activeTab === "pet") {
       // 2. 한국관광공사 반려동물 동반 여행지 서비스 호출 (반려동물만)
       if (loadAllPetKeywords) {
-        // 캐시 확인 (캐시 무효화하여 최신 데이터 수집)
-        const cacheKey = "pet_friendly_places_busan_v2"; // 새 버전으로 캐시 키 변경
-        const cachedData = null; // 캐시 무시하고 항상 새로 수집
+        // 캐시 확인
+        const cacheKey = "pet_friendly_places_busan_v3"; // 새 버전으로 캐시 키 변경
+        const cachedData = getCached(cacheKey);
 
         if (cachedData) {
           console.log(`🎯 캐시에서 데이터 사용: ${cachedData.length}개`);
@@ -351,41 +299,80 @@ serve(async (req) => {
             },
           };
         } else {
-          // 95개 키워드로 모든 반려동물 여행지 검색
-          console.log("=== 반려동물 여행지 키워드 검색 시작 ===");
-          console.log(
-            `총 ${petFriendlyKeywords.length}개 키워드로 검색을 시작합니다...`
-          );
-
+          console.log("=== 반려동물 여행지 2단계 검색 시작 ===");
+          
           const startTime = Date.now();
-
+          let decodedApiKey = apiKey;
           try {
-            let decodedApiKey = apiKey;
-            try {
-              decodedApiKey = decodeURIComponent(apiKey);
-            } catch (e) {
-              decodedApiKey = apiKey;
-            }
+            decodedApiKey = decodeURIComponent(apiKey);
+          } catch (e) {
+            decodedApiKey = apiKey;
+          }
 
-            const allResults = [];
+          const allResults = [];
+
+          // 1단계: areaBasedList API로 기존 43개 반려동물 정보 수집
+          console.log("📍 1단계: areaBasedList API로 기존 반려동물 정보 수집 중...");
+          
+          try {
+            const areaBasedUrl = `https://apis.data.go.kr/B551011/KorPetTourService/areaBasedList?serviceKey=${encodeURIComponent(
+              decodedApiKey
+            )}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=100&pageNo=1&_type=xml`;
+
+            console.log("areaBasedList API URL:", areaBasedUrl);
+
+            const areaBasedResponse = await fetch(areaBasedUrl).catch(
+              async (httpsError) => {
+                console.log("HTTPS 실패, HTTP로 재시도");
+                const httpUrl = areaBasedUrl.replace("https://", "http://");
+                return await fetch(httpUrl);
+              }
+            );
+
+            if (areaBasedResponse.ok) {
+              const responseText = await areaBasedResponse.text();
+              console.log(`areaBasedList 응답 길이: ${responseText.length}`);
+              
+              const parsedData = parseXmlToJson(responseText);
+              
+              if (parsedData?.response?.body?.items?.item) {
+                const items = Array.isArray(parsedData.response.body.items.item)
+                  ? parsedData.response.body.items.item
+                  : [parsedData.response.body.items.item];
+                
+                items.forEach((item) => {
+                  allResults.push({
+                    ...item,
+                    searchKeyword: "areaBasedList",
+                  });
+                });
+                
+                console.log(`✅ 1단계 완료: areaBasedList에서 ${items.length}개 수집`);
+              }
+            } else {
+              console.log(`⚠️ areaBasedList API 실패: ${areaBasedResponse.status}`);
+            }
+          } catch (error) {
+            console.log(`⚠️ areaBasedList API 오류: ${error.message}`);
+          }
+
+          // 2단계: 52개 키워드로 추가 반려동물 여행지 검색
+          console.log(`📍 2단계: ${petFriendlyKeywords.length}개 키워드로 추가 검색 중...`);
+
+          
+          try {
             let totalSearched = 0;
             let successCount = 0;
             let errorCount = 0;
 
-            // 키워드를 10개씩 청크로 나누어 병렬 처리 (속도 개선)
-            const chunkSize = 10;
+            // 키워드를 8개씩 청크로 나누어 병렬 처리 (속도 개선)
+            const chunkSize = 8;
             const promises = [];
-
-            console.log(
-              `키워드를 ${chunkSize}개씩 청크로 나누어 병렬 처리합니다...`
-            );
 
             for (let i = 0; i < petFriendlyKeywords.length; i += chunkSize) {
               const chunk = petFriendlyKeywords.slice(i, i + chunkSize);
               const chunkIndex = Math.floor(i / chunkSize) + 1;
-              const totalChunks = Math.ceil(
-                petFriendlyKeywords.length / chunkSize
-              );
+              const totalChunks = Math.ceil(petFriendlyKeywords.length / chunkSize);
 
               console.log(
                 `📦 청크 ${chunkIndex}/${totalChunks} 처리 중... (키워드 ${
@@ -418,288 +405,194 @@ serve(async (req) => {
                               `⚠️ HTTPS 실패, HTTP로 재시도: ${keywordItem}`
                             );
                           }
-                          const httpUrl = searchUrl.replace(
-                            "https://",
-                            "http://"
-                          );
+                          const httpUrl = searchUrl.replace("https://", "http://");
                           return await fetch(httpUrl);
                         }
                       );
 
                       if (response.ok) {
                         const responseText = await response.text();
-                        console.log(
-                          `Parsing XML content: ${responseText.substring(
-                            0,
-                            200
-                          )}`
-                        );
-
+                        
                         const parsedData = parseXmlToJson(responseText);
-                        console.log(
-                          `Parsed XML result: ${JSON.stringify(
-                            parsedData
-                          ).substring(0, 500)}`
-                        );
-
+                        
                         if (parsedData?.response?.body?.items?.item) {
                           // 다건 응답 시 첫 번째 아이템만 사용
-                          const items = Array.isArray(
-                            parsedData.response.body.items.item
-                          )
-                            ? [parsedData.response.body.items.item[0]] // 첫 번째만 선택
+                          const items = Array.isArray(parsedData.response.body.items.item)
+                            ? [parsedData.response.body.items.item[0]]
                             : [parsedData.response.body.items.item];
 
-                          const mappedItems = items.map((item) => ({
-                            ...item,
-                            searchKeyword: keywordItem,
-                          }));
+                          items.forEach((item) => {
+                            allResults.push({
+                              ...item,
+                              searchKeyword: keywordItem,
+                            });
+                          });
 
-                          console.log(
-                            `✅ "${keywordItem}": ${mappedItems.length}개 결과 찾음 (시도 ${attempt}번째 성공)`
-                          );
                           successCount++;
-                          return mappedItems;
+                          console.log(
+                            `✅ [${i + index + 1}] "${keywordItem}" 성공: ${items.length}개 수집`
+                          );
                         } else {
-                          console.log(
-                            `📭 "${keywordItem}": 검색 결과 없음 (시도 ${attempt}번째) - API 응답 구조: ${JSON.stringify(
-                              parsedData?.response?.body || {}
-                            )}`
-                          );
-                          if (attempt === 3) {
-                            console.log(
-                              `🚫 최종 실패: "${keywordItem}" - 3번 시도 모두 결과 없음`
-                            );
-                            successCount++; // 시도는 완료된 것으로 처리
-                            return [];
-                          }
+                          console.log(`⚠️ [${i + index + 1}] "${keywordItem}" 결과 없음`);
                         }
+                        break; // 성공 시 재시도 루프 탈출
                       } else {
-                        console.log(
-                          `❌ "${keywordItem}": HTTP ${
-                            response.status
-                          } 오류 (시도 ${attempt}/3) - 응답: ${await response.text()}`
-                        );
-                        if (attempt === 3) {
-                          console.log(
-                            `🚫 최종 실패: "${keywordItem}" - HTTP 오류로 3번 시도 실패`
-                          );
-                          errorCount++;
-                          return [];
-                        }
+                        throw new Error(`HTTP ${response.status}`);
                       }
                     } catch (error) {
                       console.log(
-                        `💥 "${keywordItem}" 검색 실패 (시도 ${attempt}/3): ${error.message}`
+                        `❌ [${i + index + 1}] "${keywordItem}" 실패 (시도 ${attempt}/3): ${error.message}`
                       );
+                      
                       if (attempt === 3) {
-                        console.log(
-                          `🚫 최종 실패: "${keywordItem}" - 예외 발생으로 3번 시도 실패`
-                        );
                         errorCount++;
-                        return [];
+                      } else {
+                        // 재시도 전 잠시 대기
+                        await new Promise((resolve) => setTimeout(resolve, 1000));
                       }
-                      // 재시도 전 대기
-                      await new Promise((resolve) => setTimeout(resolve, 1000));
                     }
                   }
-
-                  return []; // 모든 시도 실패 시 빈 배열 반환
+                  
+                  totalSearched++;
                 })
               );
 
               promises.push(chunkPromise);
-
-              // 청크 간 1초 딜레이 (안정성 향상)
+              
+              // 청크 간 잠시 대기 (API 부하 방지)
               if (i + chunkSize < petFriendlyKeywords.length) {
-                console.log(`⏱️ 다음 청크 처리까지 1초 대기...`);
-                await new Promise((resolve) => setTimeout(resolve, 1000));
+                await new Promise((resolve) => setTimeout(resolve, 500));
               }
             }
 
-            console.log("🔄 모든 청크 완료 대기 중...");
+            // 모든 청크 완료 대기
+            await Promise.all(promises);
 
-            // 모든 청크 완료까지 대기
-            const chunkResults = await Promise.all(promises);
-            chunkResults.forEach((chunkResult) => {
-              chunkResult.forEach((items) => {
-                allResults.push(...items);
-              });
-            });
+            console.log(`✅ 2단계 완료: 키워드 검색에서 ${successCount}개 성공, ${errorCount}개 실패`);
+          } catch (error) {
+            console.error(`💥 2단계 키워드 검색 중 오류 발생: ${error.message}`);
+          }
 
-            const endTime = Date.now();
-            const totalTime = ((endTime - startTime) / 1000).toFixed(2);
+          const endTime = Date.now();
+          const totalTime = (endTime - startTime) / 1000;
 
-            console.log(`🎉 키워드 검색 완료!`);
-            console.log(`📊 검색 통계:`);
-            console.log(`   - 총 키워드: ${petFriendlyKeywords.length}개`);
-            console.log(`   - 성공: ${successCount}개`);
-            console.log(`   - 실패: ${errorCount}개`);
-            console.log(`   - 총 검색 결과: ${allResults.length}개`);
-            console.log(`   - 소요 시간: ${totalTime}초`);
+          console.log(
+            `🎯 전체 수집 완료: 총 ${allResults.length}개 수집 (소요시간: ${totalTime}초)`
+          );
 
-            // 결과가 있는 키워드들만 따로 카운트
-            const keywordsWithResults = new Set();
-            const keywordsWithoutResults = [];
-            allResults.forEach((item) => {
-              if (item.searchKeyword) {
-                keywordsWithResults.add(item.searchKeyword);
-              }
-            });
+          // 중복 제거 (contentid 기준)
+          const uniqueMap = new Map();
+          let duplicateCount = 0;
+          const duplicatedIds = new Set();
 
-            // 결과 없는 키워드 찾기
-            petFriendlyKeywords.forEach((keyword) => {
-              if (!keywordsWithResults.has(keyword)) {
-                keywordsWithoutResults.push(keyword);
-              }
-            });
-
-            console.log(
-              `   - 결과를 반환한 키워드: ${keywordsWithResults.size}개`
-            );
-            if (keywordsWithoutResults.length > 0) {
-              console.log(
-                `   - 결과 없는 키워드: ${keywordsWithoutResults.length}개`
-              );
-              console.log(
-                `     >> ${keywordsWithoutResults.slice(0, 5).join(", ")}${
-                  keywordsWithoutResults.length > 5 ? " 등..." : ""
-                }`
-              );
+          allResults.forEach((item) => {
+            const key = item.contentid;
+            if (uniqueMap.has(key)) {
+              duplicateCount++;
+              duplicatedIds.add(key);
+            } else {
+              uniqueMap.set(key, item);
             }
+          });
 
-            // 검색 성공률 체크
-            const successRate = (
-              (successCount / petFriendlyKeywords.length) *
-              100
-            ).toFixed(1);
-            console.log(`   - 검색 성공률: ${successRate}%`);
+          const uniqueResults = Array.from(uniqueMap.values());
 
-            if (successRate < 90) {
-              console.log(
-                `⚠️ 경고: 검색 성공률이 90% 미만입니다. API 응답이 불안정할 수 있습니다.`
-              );
-            }
+          console.log(
+            `✨ 중복 제거 완료: ${duplicateCount}개 중복 제거 (고유 ID: ${duplicatedIds.size}개), ${uniqueResults.length}개 최종 결과`
+          );
 
-            // 중복 제거 (contentid 기준)
-            console.log("🔄 중복 데이터 제거 중...");
-            const uniqueResults = [];
-            const seenIds = new Set();
-            const duplicatedIds = new Set();
+          // 카테고리별 분류 통계
+          const categoryStats = {};
+          uniqueResults.forEach((item) => {
+            const cat = item.cat1 || "unknown";
+            categoryStats[cat] = (categoryStats[cat] || 0) + 1;
+          });
 
-            for (const item of allResults) {
-              if (!seenIds.has(item.contentid)) {
-                seenIds.add(item.contentid);
-                uniqueResults.push(item);
-              } else {
-                duplicatedIds.add(item.contentid);
-              }
-            }
+          console.log("📂 카테고리별 분포:");
+          Object.entries(categoryStats).forEach(([category, count]) => {
+            console.log(`   - ${category}: ${count}개`);
+          });
 
-            const duplicateCount = allResults.length - uniqueResults.length;
-            console.log(
-              `✨ 중복 제거 완료: ${duplicateCount}개 중복 제거 (고유 ID: ${duplicatedIds.size}개), ${uniqueResults.length}개 최종 결과`
-            );
-
-            // 카테고리별 분류 통계
-            const categoryStats = {};
-            uniqueResults.forEach((item) => {
-              const cat = item.cat1 || "unknown";
-              categoryStats[cat] = (categoryStats[cat] || 0) + 1;
+          // 샘플 데이터를 Map으로 변환 (O(1) 조회 성능)
+          const sampleDataMap = new Map();
+          sampleData.forEach((data) => {
+            sampleDataMap.set(data.title, {
+              locationGubun: data.locationGubun,
+              mbti: data.mbti,
+              holiday: data.holiday,
             });
+          });
 
-            console.log("📂 카테고리별 분포:");
-            Object.entries(categoryStats).forEach(([category, count]) => {
-              console.log(`   - ${category}: ${count}개`);
-            });
+          console.log("샘플 데이터 Map 생성 완료:", sampleDataMap.size, "개");
 
-            // 샘플 데이터를 Map으로 변환 (O(1) 조회 성능)
-            const sampleDataMap = new Map();
-            sampleData.forEach((data) => {
-              sampleDataMap.set(data.title, {
-                locationGubun: data.locationGubun,
-                mbti: data.mbti,
-                holiday: data.holiday,
-              });
-            });
-
-            console.log("샘플 데이터 Map 생성 완료:", sampleDataMap.size, "개");
-
-            // 응답 형태로 구성 - 모든 필드 포함하여 완전한 데이터 제공
-            const simplifiedResults = uniqueResults.map((item) => {
-              // Map에서 빠르게 조회 (O(1) 성능)
-              const additionalInfo = sampleDataMap.get(item.title) || {
-                locationGubun: null,
-                mbti: null,
-                holiday: null,
-              };
-
-              console.log("title: ", item.title);
-              console.log("additionalInfo: ", additionalInfo);
-
-              return {
-                contentid: item.contentid || "",
-                contenttypeid: item.contenttypeid || "",
-                title: item.title || "",
-                addr1: item.addr1 || "",
-                addr2: item.addr2 || "",
-                zipcode: item.zipcode || "",
-                tel: item.tel || "",
-                mapx: item.mapx || "",
-                mapy: item.mapy || "",
-                firstimage: item.firstimage || "",
-                firstimage2: item.firstimage2 || "",
-                areacode: item.areacode || "",
-                sigungucode: item.sigungucode || "",
-                cat1: item.cat1 || "",
-                cat2: item.cat2 || "",
-                cat3: item.cat3 || "",
-                createdtime: item.createdtime || "",
-                modifiedtime: item.modifiedtime || "",
-                mlevel: item.mlevel || "",
-                searchKeyword: item.searchKeyword || "",
-                // 빠진 필드들 추가
-                cpyrhtDivCd: item.cpyrhtDivCd || "",
-                lDongRegnCd: item.lDongRegnCd || "",
-                lDongSignguCd: item.lDongSignguCd || "",
-                lclsSystm1: item.lclsSystm1 || "",
-                lclsSystm2: item.lclsSystm2 || "",
-                lclsSystm3: item.lclsSystm3 || "",
-                // JSON 파일에서 매칭된 새로운 필드들
-                locationGubun: additionalInfo.locationGubun,
-                mbti: additionalInfo.mbti,
-                holiday: additionalInfo.holiday,
-              };
-            });
-
-            // 캐시에 저장
-            setCache(cacheKey, simplifiedResults);
-
-            petTourismData = {
-              response: {
-                header: {
-                  resultCode: "0000",
-                  resultMsg: "OK",
-                },
-                body: {
-                  totalCount: simplifiedResults.length,
-                  numOfRows: simplifiedResults.length,
-                  pageNo: 1,
-                  items: {
-                    item: simplifiedResults,
-                  },
-                },
-              },
+          // 응답 형태로 구성 - 모든 필드 포함하여 완전한 데이터 제공
+          const simplifiedResults = uniqueResults.map((item) => {
+            // Map에서 빠르게 조회 (O(1) 성능)
+            const additionalInfo = sampleDataMap.get(item.title) || {
+              locationGubun: null,
+              mbti: null,
+              holiday: null,
             };
 
-            console.log("=== 반려동물 여행지 키워드 검색 완료 ===");
-          } catch (error) {
-            petTourismError = `Pet keywords search error: ${error.message}`;
-            console.error(
-              "💥 반려동물 키워드 검색 중 오류 발생:",
-              petTourismError
-            );
-          }
+            console.log("title: ", item.title);
+            console.log("additionalInfo: ", additionalInfo);
+
+            return {
+              contentid: item.contentid || "",
+              contenttypeid: item.contenttypeid || "",
+              title: item.title || "",
+              addr1: item.addr1 || "",
+              addr2: item.addr2 || "",
+              zipcode: item.zipcode || "",
+              tel: item.tel || "",
+              mapx: item.mapx || "",
+              mapy: item.mapy || "",
+              firstimage: item.firstimage || "",
+              firstimage2: item.firstimage2 || "",
+              areacode: item.areacode || "",
+              sigungucode: item.sigungucode || "",
+              cat1: item.cat1 || "",
+              cat2: item.cat2 || "",
+              cat3: item.cat3 || "",
+              createdtime: item.createdtime || "",
+              modifiedtime: item.modifiedtime || "",
+              mlevel: item.mlevel || "",
+              searchKeyword: item.searchKeyword || "",
+              // 빠진 필드들 추가
+              cpyrhtDivCd: item.cpyrhtDivCd || "",
+              lDongRegnCd: item.lDongRegnCd || "",
+              lDongSignguCd: item.lDongSignguCd || "",
+              lclsSystm1: item.lclsSystm1 || "",
+              lclsSystm2: item.lclsSystm2 || "",
+              lclsSystm3: item.lclsSystm3 || "",
+              // JSON 파일에서 매칭된 새로운 필드들
+              locationGubun: additionalInfo.locationGubun,
+              mbti: additionalInfo.mbti,
+              holiday: additionalInfo.holiday,
+            };
+          });
+
+          // 캐시에 저장
+          setCache(cacheKey, simplifiedResults);
+
+          petTourismData = {
+            response: {
+              header: {
+                resultCode: "0000",
+                resultMsg: "OK",
+              },
+              body: {
+                totalCount: simplifiedResults.length,
+                numOfRows: simplifiedResults.length,
+                pageNo: 1,
+                items: {
+                  item: simplifiedResults,
+                },
+              },
+            },
+          };
+
+          console.log("=== 반려동물 여행지 2단계 검색 완료 ===");
         }
       } else {
         // 기존 방식: 단일 API 호출
