@@ -183,13 +183,19 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
 
   useEffect(() => {
     if (userAreaCode) {
+      console.log(`🔍 useEffect 실행: activeTab=${activeTab}, userAreaCode=${userAreaCode}`);
+      
       if (activeTab === "general") {
+        console.log("➡️ 일반 관광지 탭: fetchTourPlaces 호출");
         fetchTourPlaces();
-      } else {
+      } else if (activeTab === "pet") {
+        console.log("➡️ 반려동물 탭: 캐시 상태 확인");
         // 반려동물 탭: 캐시가 없으면 초기 로딩
         if (!petCacheLoaded) {
+          console.log("➡️ 캐시 없음: loadAllPetPlaces 호출");
           loadAllPetPlaces();
         } else {
+          console.log("➡️ 캐시 있음: processCachedPetPlaces 호출");
           // 캐시가 있으면 클라이언트 사이드 처리
           processCachedPetPlaces();
         }
@@ -197,7 +203,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
     }
   }, [generalCurrentPage, petCurrentPage, userAreaCode, activeTab, parkFilter]);
 
-  // 반려동물 여행지 데이터 로딩 (한 번에 전체 로딩)
+  // 반려동물 여행지 데이터 로딩 - sample-data.ts에서 직접 로드
   const loadAllPetPlaces = async () => {
     // 이미 로딩 중이거나 로딩 완료된 경우 중복 실행 방지
     if (petDataLoading || petCacheLoaded) {
@@ -208,79 +214,51 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
     setPetDataLoading(true);
     
     try {
-      console.log('=== 반려동물 여행지 전체 로딩 시작 ===');
+      console.log('=== 반려동물 여행지 sample-data에서 로딩 시작 ===');
       
-      // 타임아웃 설정으로 무한 로딩 방지
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('요청 시간 초과')), 30000)
-      );
+      // sample-data.ts에서 데이터 가져오기 (API 호출 대신)
+      const { sampleData } = await import("../../supabase/functions/combined-tour-api/sample-data.ts");
       
-      const apiCall = supabase.functions.invoke('combined-tour-api', {
-        body: {
-          areaCode: userAreaCode,
-          numOfRows: '10', // 사용되지 않음
-          pageNo: '1', // 사용되지 않음
-          keyword: '',
-          activeTab: 'pet',
-          loadAllPetKeywords: true // 95개 키워드로 전체 로딩
-        }
-      });
-
-      const { data, error } = await Promise.race([apiCall, timeoutPromise]) as any;
-
-      if (error) {
-        console.error('반려동물 여행지 로딩 오류:', error);
-        toast.error('반려동물 여행지 로딩에 실패했습니다.');
-        // 오류 시에도 캐시 로딩 완료로 설정하여 재시도 방지
-        setPetCacheLoaded(true);
-        setAllPetPlacesCache([]);
-        setPetTourPlaces([]);
-        setPetTotalCount(0);
-        return false;
+      // 필요한 필드들을 API 형태로 매핑
+      const processedData = sampleData.map(item => ({
+        contentid: `sample-${item.title}`,
+        title: item.title,
+        locationGubun: item.locationGubun,
+        mbti: item.mbti,
+        holiday: item.holiday,
+        addr1: `부산광역시 ${item.locationGubun} 지역`,
+        addr2: '',
+        tel: '',
+        mapx: Math.random() * 0.5 + 128.8, // 부산 지역 랜덤 좌표
+        mapy: Math.random() * 0.3 + 35.0,
+        areacode: "6",
+        sigungucode: Math.floor(Math.random() * 20) + 1,
+        firstimage: '',
+        firstimage2: ''
+      }));
+      
+      console.log(`${processedData.length}개의 반려동물 여행지 로딩 완료`);
+      
+      setAllPetPlacesCache(processedData);
+      setPetCacheLoaded(true);
+      
+      // 부모 컴포넌트에 데이터 전달
+      if (onPetDataLoaded) {
+        onPetDataLoaded(processedData);
       }
-
-      if (data?.petTourismData && !data.petTourismData.error && 
-          data.petTourismData.response?.header?.resultCode === "0000" &&
-          data.petTourismData.response?.body?.items?.item) {
-        const items = data.petTourismData.response.body.items.item;
-        const processedData = Array.isArray(items) ? items : [items];
-        
-        console.log(`${processedData.length}개의 반려동물 여행지 로딩 완료`);
-        
-        setAllPetPlacesCache(processedData);
-        setPetCacheLoaded(true);
-        
-        // 부모 컴포넌트에 데이터 전달
-        if (onPetDataLoaded) {
-          onPetDataLoaded(processedData);
-        }
-        
-        // 리뷰 통계 로드
-        await loadPlaceReviews(processedData);
-        
-        // 검색 키워드가 있으면 검색 결과를, 없으면 첫 페이지를 표시
-        processCachedPetPlaces(processedData, petSearchKeyword, 1);
-        
-        toast.success('반려동물 여행지를 불러왔습니다!');
-        return true;
-      } else {
-        console.warn('반려동물 여행지 데이터 없음:', data?.petTourismData?.error || 'No data');
-        setAllPetPlacesCache([]);
-        setPetCacheLoaded(true);
-        setPetTourPlaces([]);
-        setPetTotalCount(0);
-        toast.warning("반려동물 동반 여행지를 찾을 수 없습니다.");
-        return false;
-      }
+      
+      // 리뷰 통계 로드
+      await loadPlaceReviews(processedData);
+      
+      // 검색 키워드가 있으면 검색 결과를, 없으면 첫 페이지를 표시
+      processCachedPetPlaces(processedData, petSearchKeyword, 1);
+      
+      toast.success('반려동물 여행지를 불러왔습니다!');
+      return true;
       
     } catch (error) {
       console.error('반려동물 여행지 로딩 실패:', error);
-      
-      if (error.message === '요청 시간 초과') {
-        toast.error('요청 시간이 초과되었습니다. 다시 시도해주세요.');
-      } else {
-        toast.error('반려동물 여행지 로딩에 실패했습니다.');
-      }
+      toast.error('반려동물 여행지 로딩에 실패했습니다.');
       
       // 오류 발생 시 빈 캐시로 설정하여 무한 로딩 방지
       setAllPetPlacesCache([]);
@@ -289,8 +267,8 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
       setPetTotalCount(0);
       return false;
     } finally {
-        setPetDataLoading(false);
-      }
+      setPetDataLoading(false);
+    }
   };
 
   // 캐시된 데이터로 클라이언트 사이드 페이지네이션 및 검색
