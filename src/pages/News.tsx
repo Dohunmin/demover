@@ -170,47 +170,26 @@ const News = () => {
     try {
       const { data: postsData, error } = await supabase
         .from('community_posts')
-        .select(`
-          *,
-          profiles:user_id (
-            full_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(10);
 
       if (error) throw error;
 
-      // Fetch user profiles
+      // Fetch user profiles separately
       const userIds = postsData?.map(post => post.user_id) || [];
       const { data: profilesData } = await supabase
         .from('profiles')
         .select('user_id, full_name, avatar_url')
         .in('user_id', userIds);
 
-      // Fetch likes and comments count for each post
-      const postIds = postsData?.map(post => post.id) || [];
-      const [{ data: likesData }, { data: commentsData }] = await Promise.all([
-        supabase
-          .from('post_likes')
-          .select('post_id')
-          .eq('post_type', 'community')
-          .in('post_id', postIds),
-        supabase
-          .from('post_comments')
-          .select('post_id')
-          .eq('post_type', 'community')
-          .in('post_id', postIds)
-      ]);
-
       // Combine posts with profiles
-      const postsWithData = postsData?.map(post => ({
+      const postsWithProfiles = postsData?.map(post => ({
         ...post,
         profiles: profilesData?.find(profile => profile.user_id === post.user_id)
       })) || [];
 
-      setCommunityPosts(postsWithData);
+      setCommunityPosts(postsWithProfiles);
     } catch (error) {
       console.error('Error fetching community posts:', error);
     }
