@@ -117,6 +117,8 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [selectedMbti, setSelectedMbti] = useState<string | null>(null);
   const [isMbtiModalOpen, setIsMbtiModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // 지도 초기화
   const initializeMap = useCallback(() => {
@@ -283,8 +285,10 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           // 마커 클릭 이벤트
           window.kakao.maps.event.addListener(marker, "click", () => {
             const content = `
-            <div style="padding: 15px; min-width: 280px; max-width: 320px; font-family: 'Malgun Gothic', sans-serif;">
-              <div style="font-weight: bold; font-size: 16px; margin-bottom: 8px; color: #DC2626;">${
+            <div style="padding: 15px; min-width: 280px; max-width: 320px; font-family: 'Malgun Gothic', sans-serif; position: relative;">
+              <button onclick="window.closeInfoWindow()" style="position: absolute; top: 8px; right: 8px; background: #f3f4f6; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 14px; color: #6b7280;">×</button>
+              
+              <div style="font-weight: bold; font-size: 16px; margin-bottom: 8px; color: #DC2626; padding-right: 30px;">${
                 place.title
               }</div>
               
@@ -324,6 +328,11 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           `;
             infoWindow.current.setContent(content);
             infoWindow.current.open(mapInstance.current, marker);
+
+            // 정보창 닫기 함수를 전역에 등록
+            (window as any).closeInfoWindow = () => {
+              infoWindow.current.close();
+            };
 
             // 평점/후기 버튼 이벤트 리스너 추가
             setTimeout(() => {
@@ -508,6 +517,121 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     }
   }, [petTourismData, allPetData.length]);
 
+  // 카카오맵 장소 검색
+  const searchPlaces = useCallback(async () => {
+    if (!searchQuery.trim()) {
+      toast.warning("검색어를 입력해주세요.");
+      return;
+    }
+
+    if (!mapInstance.current) {
+      toast.error("지도가 로드되지 않았습니다.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // 카카오맵 장소 검색 서비스 사용
+      if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
+        const ps = new window.kakao.maps.services.Places();
+
+        // 현재 지도 중심 좌표
+        const center = mapInstance.current.getCenter();
+        const searchOptions = {
+          location: center,
+          radius: 10000, // 10km 반경
+          size: 15,
+        };
+
+        ps.keywordSearch(
+          searchQuery,
+          (data: any[], status: any) => {
+            if (status === window.kakao.maps.services.Status.OK) {
+              // 기존 검색 마커 제거
+              markers.current.forEach((marker) => marker.setMap(null));
+              markers.current = [];
+
+              // 새 마커 추가
+              data.forEach((place: any) => {
+                const position = new window.kakao.maps.LatLng(place.y, place.x);
+                
+                const marker = new window.kakao.maps.Marker({
+                  position: position,
+                  clickable: true,
+                });
+
+                marker.setMap(mapInstance.current);
+                markers.current.push(marker);
+
+                // 마커 클릭 이벤트
+                window.kakao.maps.event.addListener(marker, "click", () => {
+                  const content = `
+                    <div style="padding: 15px; min-width: 250px; max-width: 300px; font-family: 'Malgun Gothic', sans-serif; position: relative;">
+                      <button onclick="window.closeInfoWindow()" style="position: absolute; top: 8px; right: 8px; background: #f3f4f6; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 14px; color: #6b7280;">×</button>
+                      
+                      <div style="font-weight: bold; font-size: 16px; margin-bottom: 8px; color: #2563eb; padding-right: 30px;">${place.place_name}</div>
+                      
+                      <div style="font-size: 12px; color: #666; margin-bottom: 8px; background: #eff6ff; padding: 4px 8px; border-radius: 12px; display: inline-block;">
+                        📍 ${place.category_name}
+                      </div>
+                      
+                      <div style="font-size: 13px; color: #333; margin-bottom: 6px;">${place.address_name}</div>
+                      ${place.road_address_name ? `<div style="font-size: 12px; color: #666; margin-bottom: 6px;">${place.road_address_name}</div>` : ""}
+                      ${place.phone ? `<div style="font-size: 12px; color: #666; margin-bottom: 8px;">📞 ${place.phone}</div>` : ""}
+                      
+                      ${place.place_url ? `
+                        <div style="text-align: center; margin-top: 8px;">
+                          <a href="${place.place_url}" target="_blank" style="color: #2563eb; font-size: 12px; text-decoration: none; background: #eff6ff; padding: 6px 12px; border-radius: 8px; display: inline-block; border: 1px solid #93c5fd;">
+                            🔗 카카오맵에서 보기
+                          </a>
+                        </div>
+                      ` : ""}
+                    </div>
+                  `;
+                  infoWindow.current.setContent(content);
+                  infoWindow.current.open(mapInstance.current, marker);
+
+                  // 정보창 닫기 함수를 전역에 등록
+                  (window as any).closeInfoWindow = () => {
+                    infoWindow.current.close();
+                  };
+                });
+              });
+
+              // 첫 번째 검색 결과로 지도 이동
+              if (data.length > 0) {
+                const firstPlace = data[0];
+                const moveLatLng = new window.kakao.maps.LatLng(firstPlace.y, firstPlace.x);
+                mapInstance.current.panTo(moveLatLng);
+                mapInstance.current.setLevel(3);
+              }
+
+              toast.success(`${data.length}개의 장소를 찾았습니다.`);
+            } else if (status === window.kakao.maps.services.Status.ZERO_RESULT) {
+              toast.warning("검색 결과가 없습니다.");
+            } else {
+              toast.error("검색 중 오류가 발생했습니다.");
+            }
+          },
+          searchOptions
+        );
+      }
+    } catch (error) {
+      console.error("장소 검색 오류:", error);
+      toast.error("검색 중 오류가 발생했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  }, [searchQuery]);
+
+  // 검색 키 이벤트
+  const handleSearchKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      searchPlaces();
+    }
+  };
+
   // 지도와 데이터 모두 로드된 후 자동으로 카테고리 마커 표시
   useEffect(() => {
     if (
@@ -553,6 +677,38 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           </div>
         </div>
       </header>
+
+      {/* Search Bar */}
+      {!hideSearchBar && showPetFilter && (
+        <div className="px-5 mb-3">
+          <Card className="p-3 bg-white border-0 shadow-lg rounded-xl">
+            <div className="flex gap-2">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder="카카오맵에서 장소 검색..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={handleSearchKeyPress}
+                  className="pl-10 border-gray-200 focus:border-primary h-8 text-sm"
+                />
+              </div>
+              <Button 
+                onClick={searchPlaces}
+                disabled={loading}
+                size="sm"
+                className="px-3 h-8"
+              >
+                {loading ? (
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                ) : (
+                  <Search className="w-3 h-3" />
+                )}
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
 
       {/* Category Grid */}
       {!hideCategoryGrid && showPetFilter && (
