@@ -310,6 +310,134 @@ const News = () => {
         {/* 전체보기 모드 */}
         {viewMode === 'all' && (
           <>
+            {/* 축제/이벤트 섹션 */}
+            <div className="card">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="card-title text-lg flex items-center">
+                  <Calendar className="w-5 h-5 mr-2" style={{ color: 'var(--primary-color)' }} />
+                  축제/이벤트
+                </h2>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-primary hover:text-primary/80"
+                  onClick={() => handleViewModeChange('events')}
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  더보기
+                </Button>
+              </div>
+          
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                  <p className="text-muted-foreground text-sm mt-2">로딩 중...</p>
+                </div>
+              ) : events.length > 0 ? (
+                <div className="space-y-3">
+                  {events.slice(0, 3).map((event) => (
+                    <div 
+                      key={event.id}
+                      onClick={() => navigate(`/news/${event.id}`)}
+                      className="flex items-start p-3 bg-muted/30 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer"
+                    >
+                      {event.image_url && (
+                        <div className="flex-shrink-0 mr-3">
+                          <img 
+                            src={event.image_url} 
+                            alt={event.title}
+                            className="w-12 h-12 object-cover rounded-lg"
+                          />
+                        </div>
+                      )}
+                      <div className="w-2 h-2 bg-primary rounded-full mr-3 flex-shrink-0 mt-2"></div>
+                      <div className="flex-1">
+                        <span className="text-sm text-foreground font-medium block">{event.title}</span>
+                        {event.content && (
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{event.content}</p>
+                        )}
+                        <span className="text-xs text-muted-foreground mt-1 block">
+                          {new Date(event.created_at).toLocaleDateString('ko-KR')}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-muted rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <Calendar className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <p className="text-muted-foreground text-sm">현재 진행 중인 축제/이벤트가 없습니다</p>
+                  <p className="text-muted-foreground text-xs mt-1">새로운 행사 정보를 기다려주세요!</p>
+                </div>
+              )}
+            </div>
+
+            {/* 세일 섹션 */}
+            <div className="card">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="card-title text-lg flex items-center">
+                  <Tag className="w-5 h-5 mr-2 text-red-600" />
+                  세일
+                </h2>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-red-600 hover:text-red-700"
+                  onClick={() => handleViewModeChange('sales')}
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  더보기
+                </Button>
+              </div>
+          
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-600 mx-auto"></div>
+                  <p className="text-muted-foreground text-sm mt-2">로딩 중...</p>
+                </div>
+              ) : sales.length > 0 ? (
+                <div className="space-y-3">
+                  {sales.slice(0, 3).map((sale) => (
+                    <div 
+                      key={sale.id}
+                      onClick={() => navigate(`/news/${sale.id}`)}
+                      className="flex items-start p-3 bg-muted/30 rounded-xl hover:bg-red-50 transition-colors cursor-pointer"
+                    >
+                      {sale.image_url && (
+                        <div className="flex-shrink-0 mr-3">
+                          <img 
+                            src={sale.image_url} 
+                            alt={sale.title}
+                            className="w-12 h-12 object-cover rounded-lg"
+                          />
+                        </div>
+                      )}
+                      <div className="w-2 h-2 bg-red-500 rounded-full mr-3 flex-shrink-0 mt-2"></div>
+                      <div className="flex-1">
+                        <span className="text-sm text-foreground font-medium block">{sale.title}</span>
+                        {sale.content && (
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{sale.content}</p>
+                        )}
+                        <span className="text-xs text-muted-foreground mt-1 block">
+                          {new Date(sale.created_at).toLocaleDateString('ko-KR')}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-muted rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <Tag className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <p className="text-muted-foreground text-sm">현재 진행 중인 세일이 없습니다</p>
+                  <p className="text-muted-foreground text-xs mt-1">새로운 할인 정보를 기다려주세요!</p>
+                </div>
+              )}
+            </div>
+
             {/* 다른 멍멍이들의 여행 섹션 */}
             <div className="card">
               <div className="flex items-center justify-between mb-4">
@@ -468,134 +596,6 @@ const News = () => {
                   </div>
                   <p className="text-muted-foreground text-sm">아직 커뮤니티 글이 없습니다</p>
                   <p className="text-muted-foreground text-xs mt-1">첫 번째 글을 작성해보세요!</p>
-                </div>
-              )}
-            </div>
-
-            {/* 축제/이벤트 섹션 */}
-            <div className="card">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="card-title text-lg flex items-center">
-                  <Calendar className="w-5 h-5 mr-2" style={{ color: 'var(--primary-color)' }} />
-                  축제/이벤트
-                </h2>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-primary hover:text-primary/80"
-                  onClick={() => handleViewModeChange('events')}
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  더보기
-                </Button>
-              </div>
-          
-              {loading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
-                  <p className="text-muted-foreground text-sm mt-2">로딩 중...</p>
-                </div>
-              ) : events.length > 0 ? (
-                <div className="space-y-3">
-                  {events.slice(0, 3).map((event) => (
-                    <div 
-                      key={event.id}
-                      onClick={() => navigate(`/news/${event.id}`)}
-                      className="flex items-start p-3 bg-muted/30 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer"
-                    >
-                      {event.image_url && (
-                        <div className="flex-shrink-0 mr-3">
-                          <img 
-                            src={event.image_url} 
-                            alt={event.title}
-                            className="w-12 h-12 object-cover rounded-lg"
-                          />
-                        </div>
-                      )}
-                      <div className="w-2 h-2 bg-primary rounded-full mr-3 flex-shrink-0 mt-2"></div>
-                      <div className="flex-1">
-                        <span className="text-sm text-foreground font-medium block">{event.title}</span>
-                        {event.content && (
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{event.content}</p>
-                        )}
-                        <span className="text-xs text-muted-foreground mt-1 block">
-                          {new Date(event.created_at).toLocaleDateString('ko-KR')}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 bg-muted rounded-full mx-auto mb-4 flex items-center justify-center">
-                    <Calendar className="w-8 h-8 text-muted-foreground" />
-                  </div>
-                  <p className="text-muted-foreground text-sm">현재 진행 중인 축제/이벤트가 없습니다</p>
-                  <p className="text-muted-foreground text-xs mt-1">새로운 행사 정보를 기다려주세요!</p>
-                </div>
-              )}
-            </div>
-
-            {/* 세일 섹션 */}
-            <div className="card">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="card-title text-lg flex items-center">
-                  <Tag className="w-5 h-5 mr-2 text-red-600" />
-                  세일
-                </h2>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-red-600 hover:text-red-700"
-                  onClick={() => handleViewModeChange('sales')}
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  더보기
-                </Button>
-              </div>
-          
-              {loading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-600 mx-auto"></div>
-                  <p className="text-muted-foreground text-sm mt-2">로딩 중...</p>
-                </div>
-              ) : sales.length > 0 ? (
-                <div className="space-y-3">
-                  {sales.slice(0, 3).map((sale) => (
-                    <div 
-                      key={sale.id}
-                      onClick={() => navigate(`/news/${sale.id}`)}
-                      className="flex items-start p-3 bg-muted/30 rounded-xl hover:bg-red-50 transition-colors cursor-pointer"
-                    >
-                      {sale.image_url && (
-                        <div className="flex-shrink-0 mr-3">
-                          <img 
-                            src={sale.image_url} 
-                            alt={sale.title}
-                            className="w-12 h-12 object-cover rounded-lg"
-                          />
-                        </div>
-                      )}
-                      <div className="w-2 h-2 bg-red-500 rounded-full mr-3 flex-shrink-0 mt-2"></div>
-                      <div className="flex-1">
-                        <span className="text-sm text-foreground font-medium block">{sale.title}</span>
-                        {sale.content && (
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{sale.content}</p>
-                        )}
-                        <span className="text-xs text-muted-foreground mt-1 block">
-                          {new Date(sale.created_at).toLocaleDateString('ko-KR')}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 bg-muted rounded-full mx-auto mb-4 flex items-center justify-center">
-                    <Tag className="w-8 h-8 text-muted-foreground" />
-                  </div>
-                  <p className="text-muted-foreground text-sm">현재 진행 중인 세일이 없습니다</p>
-                  <p className="text-muted-foreground text-xs mt-1">새로운 할인 정보를 기다려주세요!</p>
                 </div>
               )}
             </div>
