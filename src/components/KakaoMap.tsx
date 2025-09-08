@@ -89,8 +89,15 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
   const infoWindow = useRef<any>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>(
-    initialCategory || "all"
+    propSelectedCategory || initialCategory || "all"
   );
+
+  // props로 전달된 selectedCategory 동기화
+  useEffect(() => {
+    if (propSelectedCategory && propSelectedCategory !== selectedCategory) {
+      setSelectedCategory(propSelectedCategory);
+    }
+  }, [propSelectedCategory]);
 
   // 카테고리별 필터링
   const categories = [
@@ -568,6 +575,14 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       console.log(`✅ Props에서 받은 데이터 ${validData.length}개 설정 완료`);
     }
   }, [petTourismData, allPetData.length]);
+
+  // 초기 카테고리가 설정되었거나 카테고리가 변경되었을 때 자동으로 마커 로드
+  useEffect(() => {
+    if (showPetFilter && allPetData.length > 0 && selectedCategory && isMapLoaded) {
+      console.log(`카테고리 자동 선택: ${selectedCategory}`);
+      handleCategorySelect(selectedCategory);
+    }
+  }, [selectedCategory, allPetData.length, isMapLoaded, showPetFilter]);
 
   // 카카오맵 장소 검색
   const searchPlaces = useCallback(async () => {
