@@ -617,9 +617,16 @@ const MbtiTest = () => {
                 <button 
                   key={type.code} 
                   onClick={() => handleTypeClick(type.code)}
-                  className="tab-item p-3 text-center transition-all duration-200 cursor-pointer hover:shadow-md"
+                  className="tab-item p-1 text-center transition-all duration-200 cursor-pointer hover:shadow-md rounded-lg overflow-hidden"
                 >
-                  <div className="text-xs font-bold">{type.code}</div>
+                  {mbtiImages[type.code] && (
+                    <img 
+                      src={mbtiImages[type.code]} 
+                      alt={`${type.code} 캐릭터`}
+                      className="w-full h-16 object-contain"
+                    />
+                  )}
+                  <div className="text-xs font-bold mt-1">{type.code}</div>
                 </button>
               ))}
             </div>
