@@ -26,6 +26,7 @@ interface Profile {
   created_at?: string;
   updated_at?: string;
   mbti_result?: string;
+  location_privacy_level?: string;
 }
 
 const UserProfile = () => {
@@ -163,6 +164,7 @@ const UserProfile = () => {
         email: user.email,
         full_name: user.user_metadata?.full_name || null,
         provider: profile?.provider || 'email', // Preserve provider info
+        location_privacy_level: editData.location_privacy_level || 'fuzzy',
         updated_at: new Date().toISOString()
       };
 
@@ -522,6 +524,26 @@ const UserProfile = () => {
                         className="mt-1"
                       />
                     </div>
+
+                    <div>
+                      <Label htmlFor="location_privacy_level" className="text-sm font-medium text-gray-700">위치 정보 공개 수준</Label>
+                      <Select
+                        value={editData.location_privacy_level || 'fuzzy'}
+                        onValueChange={(value: string) => setEditData({...editData, location_privacy_level: value})}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="위치 공개 수준을 선택하세요" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="general">일반 (시/구 수준)</SelectItem>
+                          <SelectItem value="fuzzy">보통 (약 100-500m 범위)</SelectItem>
+                          <SelectItem value="precise">정확 (정확한 위치)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-gray-500 mt-1">
+                        공개 여행 기록에서 다른 사용자가 볼 수 있는 위치 정확도입니다. 보안을 위해 '보통' 이하를 권장합니다.
+                      </p>
+                    </div>
                   </div>
 
                   <div className="flex space-x-3 pt-6">
@@ -563,6 +585,13 @@ const UserProfile = () => {
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <Label className="text-sm font-medium text-gray-600">품종</Label>
                         <p className="text-gray-900 mt-1 font-medium">{profile?.pet_breed || '미설정'}</p>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-sm font-medium text-gray-600">위치 공개 수준</Label>
+                        <p className="text-gray-900 mt-1 font-medium">
+                          {profile?.location_privacy_level === 'precise' ? '정확한 위치' : 
+                           profile?.location_privacy_level === 'general' ? '시/구 수준' : '보통 (권장)'}
+                        </p>
                       </div>
                     </div>
 

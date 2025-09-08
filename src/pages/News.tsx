@@ -133,10 +133,9 @@ const News = () => {
 
   const fetchTravelRecords = async () => {
     try {
+      // Use the safe function that protects location privacy
       const { data: recordsData, error } = await supabase
-        .from('travel_records')
-        .select('*')
-        .eq('is_public', true)
+        .rpc('get_public_travel_records_safe')
         .order('created_at', { ascending: false })
         .limit(10);
 
