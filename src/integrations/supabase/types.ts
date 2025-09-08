@@ -213,6 +213,7 @@ export type Database = {
           gender: string | null
           id: string
           kakao_id: string | null
+          location_privacy_level: string | null
           mbti_result: string | null
           pet_age: number | null
           pet_breed: string | null
@@ -233,6 +234,7 @@ export type Database = {
           gender?: string | null
           id: string
           kakao_id?: string | null
+          location_privacy_level?: string | null
           mbti_result?: string | null
           pet_age?: number | null
           pet_breed?: string | null
@@ -253,6 +255,7 @@ export type Database = {
           gender?: string | null
           id?: string
           kakao_id?: string | null
+          location_privacy_level?: string | null
           mbti_result?: string | null
           pet_age?: number | null
           pet_breed?: string | null
@@ -393,9 +396,35 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_travel_records_safe: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          images: Json | null
+          is_public: boolean | null
+          latitude: number | null
+          location_address: string | null
+          location_name: string | null
+          longitude: number | null
+          memo: string | null
+          rating: number | null
+          safe_location_data: Json | null
+          updated_at: string | null
+          user_id: string | null
+          visit_date: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      fuzz_coordinates: {
+        Args: { lat: number; lng: number; privacy_level?: string }
+        Returns: Json
+      }
+      get_safe_location_data: {
+        Args: { addr: string; lat: number; lng: number; privacy_level?: string }
+        Returns: Json
+      }
       grant_admin_role: {
         Args: { user_email: string }
         Returns: boolean
