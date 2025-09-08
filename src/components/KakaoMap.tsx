@@ -343,25 +343,25 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           // 마커 클릭 이벤트
           window.kakao.maps.event.addListener(marker, "click", () => {
             const content = `
-              <div style="padding: 15px; min-width: 280px; max-width: 320px; font-family: 'Malgun Gothic', sans-serif; position: relative;">
-                <button onclick="window.closeInfoWindow()" style="position: absolute; top: 8px; right: 8px; background: #f3f4f6; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 14px; color: #6b7280;">×</button>
+              <div style="padding: 12px; min-width: 200px; max-width: 240px; font-family: 'Malgun Gothic', sans-serif; position: relative;">
+                <button onclick="window.closeInfoWindow()" style="position: absolute; top: 6px; right: 6px; background: #f3f4f6; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 12px; color: #6b7280;">×</button>
                 
-                <div style="font-weight: bold; font-size: 16px; margin-bottom: 8px; color: #DC2626; padding-right: 30px;">${place.title}</div>
+                <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px; color: #DC2626; padding-right: 26px; line-height: 1.2;">${place.title}</div>
                 
-                <div style="font-size: 12px; color: #666; margin-bottom: 8px; background: #FEF2F2; padding: 4px 8px; border-radius: 12px; display: inline-block;">
+                <div style="font-size: 10px; color: #666; margin-bottom: 6px; background: #FEF2F2; padding: 3px 6px; border-radius: 8px; display: inline-block;">
                   🐾 반려동물 동반 가능
                 </div>
                 
-                ${place.locationGubun ? `<div style="font-size: 12px; color: #666; margin-bottom: 8px; background: #F3F4F6; padding: 4px 8px; border-radius: 12px; display: inline-block;">📍 ${place.locationGubun}</div>` : ""}
-                ${place.mbti && place.mbti !== "all" ? `<div style="font-size: 12px; color: #666; margin-bottom: 8px; background: #E0F2FE; padding: 4px 8px; border-radius: 12px; display: inline-block;">🧠 MBTI: ${Array.isArray(place.mbti) ? place.mbti.join(', ') : place.mbti}</div>` : ""}
+                ${place.locationGubun ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px; background: #F3F4F6; padding: 3px 6px; border-radius: 8px; display: inline-block;">📍 ${place.locationGubun}</div>` : ""}
+                ${place.mbti && place.mbti !== "all" ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px; background: #E0F2FE; padding: 3px 6px; border-radius: 8px; display: inline-block;">🧠 MBTI: ${Array.isArray(place.mbti) ? place.mbti.join(', ') : place.mbti}</div>` : ""}
                 
-                <div style="font-size: 13px; color: #333; margin-bottom: 6px;">${place.addr1 || '주소 정보 없음'}</div>
-                ${place.addr2 ? `<div style="font-size: 12px; color: #666; margin-bottom: 6px;">${place.addr2}</div>` : ""}
-                ${place.tel ? `<div style="font-size: 12px; color: #666; margin-bottom: 8px;">📞 ${place.tel}</div>` : ""}
+                <div style="font-size: 11px; color: #333; margin-bottom: 4px; line-height: 1.2;">${place.addr1 || '주소 정보 없음'}</div>
+                ${place.addr2 ? `<div style="font-size: 10px; color: #666; margin-bottom: 4px;">${place.addr2}</div>` : ""}
+                ${place.tel ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px;">📞 ${place.tel}</div>` : ""}
                 
                 <div style="text-align: center;">
                   <button id="review-btn-${place.contentid}" 
-                     style="color: #DC2626; font-size: 12px; text-decoration: none; background: #FEF2F2; padding: 6px 12px; border-radius: 8px; display: inline-block; border: 1px solid #FCA5A5; cursor: pointer;">
+                     style="color: #DC2626; font-size: 10px; text-decoration: none; background: #FEF2F2; padding: 4px 8px; border-radius: 6px; display: inline-block; border: 1px solid #FCA5A5; cursor: pointer;">
                     ⭐ 평점 및 후기
                   </button>
                 </div>
@@ -547,24 +547,24 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       // 마커 클릭 이벤트
       window.kakao.maps.event.addListener(marker, "click", () => {
         const content = `
-          <div style="padding: 15px; min-width: 280px; max-width: 320px; font-family: 'Malgun Gothic', sans-serif; position: relative;">
-            <button onclick="window.closeInfoWindow()" style="position: absolute; top: 8px; right: 8px; background: #f3f4f6; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 14px; color: #6b7280;">×</button>
+          <div style="padding: 12px; min-width: 200px; max-width: 240px; font-family: 'Malgun Gothic', sans-serif; position: relative;">
+            <button onclick="window.closeInfoWindow()" style="position: absolute; top: 6px; right: 6px; background: #f3f4f6; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 12px; color: #6b7280;">×</button>
             
-            <div style="font-weight: bold; font-size: 16px; margin-bottom: 8px; color: #DC2626; padding-right: 30px;">${place.title}</div>
+            <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px; color: #DC2626; padding-right: 26px; line-height: 1.2;">${place.title}</div>
             
-            <div style="font-size: 12px; color: #666; margin-bottom: 8px; background: #FEF2F2; padding: 4px 8px; border-radius: 12px; display: inline-block;">
+            <div style="font-size: 10px; color: #666; margin-bottom: 6px; background: #FEF2F2; padding: 3px 6px; border-radius: 8px; display: inline-block;">
               🐾 반려동물 동반 가능
             </div>
             
-            ${place.locationGubun ? `<div style="font-size: 12px; color: #666; margin-bottom: 8px; background: #F3F4F6; padding: 4px 8px; border-radius: 12px; display: inline-block;">📍 ${place.locationGubun}</div>` : ""}
+            ${place.locationGubun ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px; background: #F3F4F6; padding: 3px 6px; border-radius: 8px; display: inline-block;">📍 ${place.locationGubun}</div>` : ""}
             
-            <div style="font-size: 13px; color: #333; margin-bottom: 6px;">${place.addr1}</div>
-            ${place.addr2 ? `<div style="font-size: 12px; color: #666; margin-bottom: 6px;">${place.addr2}</div>` : ""}
-            ${place.tel ? `<div style="font-size: 12px; color: #666; margin-bottom: 8px;">📞 ${place.tel}</div>` : ""}
+            <div style="font-size: 11px; color: #333; margin-bottom: 4px; line-height: 1.2;">${place.addr1}</div>
+            ${place.addr2 ? `<div style="font-size: 10px; color: #666; margin-bottom: 4px;">${place.addr2}</div>` : ""}
+            ${place.tel ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px;">📞 ${place.tel}</div>` : ""}
             
             <div style="text-align: center;">
               <button id="review-btn-${place.contentid}" 
-                 style="color: #DC2626; font-size: 12px; text-decoration: none; background: #FEF2F2; padding: 6px 12px; border-radius: 8px; display: inline-block; border: 1px solid #FCA5A5; cursor: pointer;">
+                 style="color: #DC2626; font-size: 10px; text-decoration: none; background: #FEF2F2; padding: 4px 8px; border-radius: 6px; display: inline-block; border: 1px solid #FCA5A5; cursor: pointer;">
                 ⭐ 평점 및 후기
               </button>
             </div>
@@ -819,22 +819,22 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
                 // 마커 클릭 이벤트
                 window.kakao.maps.event.addListener(marker, "click", () => {
                   const content = `
-                    <div style="padding: 15px; min-width: 250px; max-width: 300px; font-family: 'Malgun Gothic', sans-serif; position: relative;">
-                      <button onclick="window.closeInfoWindow()" style="position: absolute; top: 8px; right: 8px; background: #f3f4f6; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 14px; color: #6b7280;">×</button>
+                    <div style="padding: 12px; min-width: 200px; max-width: 240px; font-family: 'Malgun Gothic', sans-serif; position: relative;">
+                      <button onclick="window.closeInfoWindow()" style="position: absolute; top: 6px; right: 6px; background: #f3f4f6; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 12px; color: #6b7280;">×</button>
                       
-                      <div style="font-weight: bold; font-size: 16px; margin-bottom: 8px; color: #2563eb; padding-right: 30px;">${place.place_name}</div>
+                      <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px; color: #2563eb; padding-right: 26px; line-height: 1.2;">${place.place_name}</div>
                       
-                      <div style="font-size: 12px; color: #666; margin-bottom: 8px; background: #eff6ff; padding: 4px 8px; border-radius: 12px; display: inline-block;">
+                      <div style="font-size: 10px; color: #666; margin-bottom: 6px; background: #eff6ff; padding: 3px 6px; border-radius: 8px; display: inline-block;">
                         📍 ${place.category_name}
                       </div>
                       
-                      <div style="font-size: 13px; color: #333; margin-bottom: 6px;">${place.address_name}</div>
-                      ${place.road_address_name ? `<div style="font-size: 12px; color: #666; margin-bottom: 6px;">${place.road_address_name}</div>` : ""}
-                      ${place.phone ? `<div style="font-size: 12px; color: #666; margin-bottom: 8px;">📞 ${place.phone}</div>` : ""}
+                      <div style="font-size: 11px; color: #333; margin-bottom: 4px; line-height: 1.2;">${place.address_name}</div>
+                      ${place.road_address_name ? `<div style="font-size: 10px; color: #666; margin-bottom: 4px;">${place.road_address_name}</div>` : ""}
+                      ${place.phone ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px;">📞 ${place.phone}</div>` : ""}
                       
                       ${place.place_url ? `
-                        <div style="text-align: center; margin-top: 8px;">
-                          <a href="${place.place_url}" target="_blank" style="color: #2563eb; font-size: 12px; text-decoration: none; background: #eff6ff; padding: 6px 12px; border-radius: 8px; display: inline-block; border: 1px solid #93c5fd;">
+                        <div style="text-align: center; margin-top: 6px;">
+                          <a href="${place.place_url}" target="_blank" style="color: #2563eb; font-size: 10px; text-decoration: none; background: #eff6ff; padding: 4px 8px; border-radius: 6px; display: inline-block; border: 1px solid #93c5fd;">
                             🔗 카카오맵에서 보기
                           </a>
                         </div>
