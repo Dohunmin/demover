@@ -142,6 +142,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [selectedMbti, setSelectedMbti] = useState<string | null>(null);
   const [isMbtiModalOpen, setIsMbtiModalOpen] = useState(false);
+  const [showHolidayOnly, setShowHolidayOnly] = useState(false);
 
   // 즐겨찾기 장소 마커 표시 함수
   const displayBookmarkedMarkers = useCallback(() => {
@@ -347,6 +348,15 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           console.log(`MBTI 필터링 후: ${filteredPlaces.length}개`);
         }
 
+        // Holiday 필터링 추가 적용
+        if (showHolidayOnly && filteredPlaces.length > 0) {
+          console.log(`Holiday 필터 적용`);
+          filteredPlaces = filteredPlaces.filter((place) => {
+            return place.holiday && place.holiday !== null;
+          });
+          console.log(`Holiday 필터링 후: ${filteredPlaces.length}개`);
+        }
+
         console.log(`필터링된 장소 ${filteredPlaces.length}개`);
 
         // 🔥 핵심: 새로운 마커들만 생성
@@ -509,7 +519,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         );
       }
     },
-    [showPetFilter, allPetData, selectedMbti]
+    [showPetFilter, allPetData, selectedMbti, showHolidayOnly]
   );
 
   // MBTI 선택 핸들러
@@ -532,6 +542,19 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     handleCategorySelect(selectedCategory);
     toast.success("MBTI 필터가 해제되었습니다.");
   }, [selectedCategory, handleCategorySelect]);
+
+  // Holiday 필터 토글
+  const toggleHolidayFilter = useCallback(() => {
+    const newShowHolidayOnly = !showHolidayOnly;
+    setShowHolidayOnly(newShowHolidayOnly);
+    handleCategorySelect(selectedCategory);
+    
+    if (newShowHolidayOnly) {
+      toast.success("휴무일 있는 장소만 표시합니다.");
+    } else {
+      toast.success("휴무일 필터가 해제되었습니다.");
+    }
+  }, [showHolidayOnly, selectedCategory, handleCategorySelect]);
 
   // 카카오 지도 SDK 로드
   useEffect(() => {
@@ -1330,6 +1353,17 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
                     ✕ MBTI 해제
                   </Button>
                 )}
+
+                {/* Holiday 필터 버튼 */}
+                <Button
+                  variant={showHolidayOnly ? "default" : "outline"}
+                  size="sm"
+                  onClick={toggleHolidayFilter}
+                  className="flex items-center gap-1 whitespace-nowrap text-xs px-2 py-1 flex-shrink-0 min-w-fit"
+                >
+                  🗓️ 휴무일
+                  {showHolidayOnly && " ✓"}
+                </Button>
               </div>
             </div>
           </div>
