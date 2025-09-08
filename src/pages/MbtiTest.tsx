@@ -634,27 +634,6 @@ const MbtiTest = () => {
             
             <DimensionCards />
           </div>
-
-          {/* 마무리 안내 */}
-          <div className="card text-center p-6">
-            <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl mx-auto mb-4 flex items-center justify-center">
-              <Compass className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="card-title text-lg mb-3">
-              🐶 우리 강아지만의 여행 스타일을 찾아보세요
-            </h3>
-            <p className="card-subtitle text-sm mb-4 leading-relaxed">
-              멍BTI는 강아지의 행동 패턴을 분석해<br />
-              16가지 여행 성향으로 분류하고,<br />
-              각 성향에 꼭 맞는 맞춤 여행지를 추천해드려요.
-            </p>
-            <p className="text-lg font-medium mb-4" style={{ color: "var(--text-primary)" }}>
-              "우리 강아지는 어떤 여행 스타일일까?"
-            </p>
-            <p className="card-subtitle text-sm">
-              테스트를 시작하고, 아이에게 딱 맞는 여행을 계획해보세요!
-            </p>
-          </div>
         </main>
 
         {/* Ad Banner */}
