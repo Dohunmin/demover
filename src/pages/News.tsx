@@ -849,7 +849,13 @@ const News = () => {
       <CommunityPostModal
         isOpen={showPostModal}
         onClose={() => setShowPostModal(false)}
-        onPostCreated={fetchAllData}
+        onPostCreated={() => {
+          fetchAllData();
+          // 모바일 캐시 문제 해결을 위한 강제 새로고침
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        }}
       />
 
       <CommunityPostDetailModal
