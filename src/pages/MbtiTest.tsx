@@ -150,10 +150,10 @@ const FlipCard = ({ dimension }: { dimension: typeof dimensions[0] }) => {
                 
                 {/* 뒷면 */}
                 <div className="absolute inset-0 w-full h-full backface-hidden rounded-lg border-2 border-primary bg-primary/5 p-3 flex flex-col justify-center rotate-y-180">
-                  <div className="text-xs font-semibold text-primary mb-2 text-center">
+                  <div className="text-sm font-semibold text-primary mb-2 text-center">
                     {option.title}
                   </div>
-                  <div className="text-[10px] text-gray-600 leading-tight text-center">
+                  <div className="text-xs text-gray-600 leading-relaxed text-center">
                     {option.description}
                   </div>
                 </div>
