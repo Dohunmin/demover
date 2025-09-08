@@ -27,6 +27,8 @@ interface CommunityPost {
   profiles?: {
     full_name?: string;
     avatar_url?: string;
+    pet_name?: string;
+    pet_image_url?: string;
   };
 }
 
@@ -39,6 +41,8 @@ interface Comment {
   profiles?: {
     full_name?: string;
     avatar_url?: string;
+    pet_name?: string;
+    pet_image_url?: string;
   };
 }
 
@@ -87,7 +91,7 @@ const CommunityPostDetailModal = ({ post, isOpen, onClose, onEdit, onDelete }: C
       const userIds = commentsData?.map(comment => comment.user_id) || [];
       const { data: profilesData } = await supabase
         .from('profiles')
-        .select('user_id, full_name, avatar_url')
+        .select('user_id, full_name, avatar_url, pet_name, pet_image_url')
         .in('user_id', userIds);
 
       // Combine comments with profiles
@@ -337,12 +341,12 @@ const CommunityPostDetailModal = ({ post, isOpen, onClose, onEdit, onDelete }: C
               <AvatarImage src={
                 post.is_anonymous 
                   ? "/placeholder.svg" 
-                  : (post.profiles?.avatar_url || "/placeholder.svg")
+                  : (post.profiles?.pet_image_url || post.profiles?.avatar_url || "/placeholder.svg")
               } />
               <AvatarFallback>
                 {post.is_anonymous 
                   ? '익' 
-                  : (post.profiles?.full_name?.[0] || "?")
+                  : ((post.profiles?.pet_name || post.profiles?.full_name)?.[0] || "?")
                 }
               </AvatarFallback>
             </Avatar>
@@ -350,7 +354,7 @@ const CommunityPostDetailModal = ({ post, isOpen, onClose, onEdit, onDelete }: C
               <p className="text-sm font-medium">
                 {post.is_anonymous 
                   ? '익명' 
-                  : (post.profiles?.full_name || "익명")
+                  : (post.profiles?.pet_name || post.profiles?.full_name || "익명")
                 }
               </p>
               <p className="text-xs text-muted-foreground">
@@ -414,12 +418,12 @@ const CommunityPostDetailModal = ({ post, isOpen, onClose, onEdit, onDelete }: C
                   <AvatarImage src={
                     comment.is_anonymous 
                       ? "/placeholder.svg" 
-                      : (comment.profiles?.avatar_url || "/placeholder.svg")
+                      : (comment.profiles?.pet_image_url || comment.profiles?.avatar_url || "/placeholder.svg")
                   } />
                   <AvatarFallback className="text-xs">
                     {comment.is_anonymous 
                       ? '익' 
-                      : (comment.profiles?.full_name?.[0] || "?")
+                      : ((comment.profiles?.pet_name || comment.profiles?.full_name)?.[0] || "?")
                     }
                   </AvatarFallback>
                 </Avatar>
@@ -428,7 +432,7 @@ const CommunityPostDetailModal = ({ post, isOpen, onClose, onEdit, onDelete }: C
                     <p className="text-sm font-medium">
                       {comment.is_anonymous 
                         ? '익명' 
-                        : (comment.profiles?.full_name || "익명")
+                        : (comment.profiles?.pet_name || comment.profiles?.full_name || "익명")
                       }
                     </p>
                     {user?.id === comment.user_id && (
