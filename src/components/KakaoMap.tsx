@@ -371,7 +371,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         );
       }
     },
-    [showPetFilter, allPetData]
+    [showPetFilter, allPetData, selectedMbti]
   );
 
   // MBTI 선택 핌들러
@@ -567,14 +567,14 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
                   <button
                     key={category.id}
                     onClick={() => handleCategorySelect(category.id)}
-                    className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl transition-all ${
                       isSelected
-                        ? "bg-primary/10 border-primary text-primary"
-                        : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300"
+                        ? "bg-gray-900 text-white"
+                        : "bg-gray-50 border border-gray-200 text-gray-600 hover:bg-gray-100"
                     }`}
                   >
-                    <IconComponent className="w-6 h-6 mb-2" />
-                    <span className="text-xs font-medium leading-tight">{category.label}</span>
+                    <IconComponent className="w-5 h-5 mb-1" />
+                    <span className="text-xs font-medium">{category.label}</span>
                   </button>
                 );
               })}
@@ -587,31 +587,19 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       {showPetFilter && (
         <div className="px-5 mb-4">
           <Card className="p-4 bg-white border-0 shadow-lg rounded-2xl">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-base text-gray-900">멍BTI 필터</h3>
-              {selectedMbti && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearMbtiFilter}
-                  className="text-xs text-gray-600 hover:text-gray-800"
-                >
-                  초기화
-                </Button>
-              )}
-            </div>
+            <h3 className="font-semibold text-base mb-3 text-gray-900">멍BTI 필터</h3>
             <Button
-              variant={selectedMbti ? "default" : "outline"}
+              variant="outline"
               onClick={() => setIsMbtiModalOpen(true)}
-              className="w-full justify-between"
+              className="w-full justify-between bg-gray-50 border-gray-200 hover:bg-gray-100"
             >
-              <span>
+              <span className="text-gray-700">
                 {selectedMbti 
                   ? mbtiData.find(m => m.id === selectedMbti)?.label || selectedMbti
                   : "멍BTI 유형 선택하기"
                 }
               </span>
-              <PawPrint className="w-4 h-4" />
+              <div className="w-5 h-5 text-gray-400">⚙️</div>
             </Button>
           </Card>
         </div>
