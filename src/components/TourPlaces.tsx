@@ -203,7 +203,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
     }
   }, [generalCurrentPage, petCurrentPage, userAreaCode, activeTab, parkFilter]);
 
-  // 반려동물 여행지 데이터 로딩 - sample-data.ts에서 직접 로드
+  // 반려동물 여행지 데이터 로딩 - API 호출 방식
   const loadAllPetPlaces = async () => {
     // 이미 로딩 중이거나 로딩 완료된 경우 중복 실행 방지
     if (petDataLoading || petCacheLoaded) {
@@ -214,44 +214,56 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
     setPetDataLoading(true);
     
     try {
-      console.log('=== 반려동물 여행지 sample-data에서 로딩 시작 ===');
+      console.log('=== 반려동물 여행지 API 로딩 시작 ===');
       
-      // sample-data.ts에서 데이터 가져오기 (API 호출 대신)
-      const { sampleData } = await import("../../supabase/functions/combined-tour-api/sample-data.ts");
+      const { data, error } = await supabase.functions.invoke('combined-tour-api', {
+        body: {
+          areaCode: userAreaCode,
+          numOfRows: '100',
+          pageNo: '1',
+          keyword: '',
+          activeTab: 'pet',
+          loadAllPetKeywords: true
+        }
+      });
+
+      if (error) {
+        console.error('반려동물 여행지 API 오류:', error);
+        toast.error('반려동물 여행지를 불러오는데 실패했습니다.');
+        return false;
+      }
+
+      console.log('API 응답 데이터:', data);
+
+      let allPetData = [];
+
+      // API에서 받은 데이터 처리
+      if (data?.petTourismData?.response?.body?.items?.item) {
+        const items = data.petTourismData.response.body.items.item;
+        const processedItems = Array.isArray(items) ? items : [items];
+        allPetData.push(...processedItems);
+      }
+
+      // 추가 샘플 데이터 (52개)
+      if (data?.additionalPetPlaces && Array.isArray(data.additionalPetPlaces)) {
+        allPetData.push(...data.additionalPetPlaces);
+      }
+
+      console.log(`총 ${allPetData.length}개의 반려동물 여행지 로딩 완료`);
       
-      // 필요한 필드들을 API 형태로 매핑
-      const processedData = sampleData.map(item => ({
-        contentid: `sample-${item.title}`,
-        title: item.title,
-        locationGubun: item.locationGubun,
-        mbti: item.mbti,
-        holiday: item.holiday,
-        addr1: `부산광역시 ${item.locationGubun} 지역`,
-        addr2: '',
-        tel: '',
-        mapx: Math.random() * 0.5 + 128.8, // 부산 지역 랜덤 좌표
-        mapy: Math.random() * 0.3 + 35.0,
-        areacode: "6",
-        sigungucode: Math.floor(Math.random() * 20) + 1,
-        firstimage: '',
-        firstimage2: ''
-      }));
-      
-      console.log(`${processedData.length}개의 반려동물 여행지 로딩 완료`);
-      
-      setAllPetPlacesCache(processedData);
+      setAllPetPlacesCache(allPetData);
       setPetCacheLoaded(true);
       
       // 부모 컴포넌트에 데이터 전달
       if (onPetDataLoaded) {
-        onPetDataLoaded(processedData);
+        onPetDataLoaded(allPetData);
       }
       
       // 리뷰 통계 로드
-      await loadPlaceReviews(processedData);
+      await loadPlaceReviews(allPetData);
       
       // 검색 키워드가 있으면 검색 결과를, 없으면 첫 페이지를 표시
-      processCachedPetPlaces(processedData, petSearchKeyword, 1);
+      processCachedPetPlaces(allPetData, petSearchKeyword, 1);
       
       toast.success('반려동물 여행지를 불러왔습니다!');
       return true;
