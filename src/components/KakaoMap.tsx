@@ -94,7 +94,9 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
   // props로 전달된 selectedCategory 동기화
   useEffect(() => {
+    console.log("🔍 Props selectedCategory 변경:", propSelectedCategory);
     if (propSelectedCategory && propSelectedCategory !== selectedCategory) {
+      console.log(`카테고리 동기화: ${selectedCategory} -> ${propSelectedCategory}`);
       setSelectedCategory(propSelectedCategory);
     }
   }, [propSelectedCategory]);
@@ -236,6 +238,9 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         if (categoryId === "all") {
           filteredPlaces = allPetData;
           console.log(`전체 데이터: ${allPetData.length}개`);
+          
+          // 전체 카테고리 선택 시 MBTI 필터 무시
+          console.log("🔄 전체 카테고리 선택 - MBTI 필터 무시");
         } else {
           // locationGubun 기반 필터링
           const locationGubunMap = {
@@ -281,8 +286,8 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           }
         }
 
-        // MBTI 필터링 추가 적용
-        if (selectedMbti && filteredPlaces.length > 0) {
+        // MBTI 필터링 추가 적용 (전체 카테고리가 아닐 때만)
+        if (selectedMbti && filteredPlaces.length > 0 && categoryId !== "all") {
           console.log(`MBTI 필터 적용: ${selectedMbti}`);
           filteredPlaces = filteredPlaces.filter((place) => {
             if (!place.mbti) return false;
@@ -442,16 +447,22 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     [showPetFilter, allPetData, selectedMbti]
   );
 
-  // MBTI 선택 핌들러
+  // MBTI 선택 핸들러
   const handleMbtiSelect = useCallback(
     (mbtiId: string) => {
-      setSelectedMbti(mbtiId);
-      setIsMbtiModalOpen(false);
-
-      // 현재 선택된 카테고리로 다시 필터링
-      handleCategorySelect(selectedCategory);
-
-      toast.success(`${mbtiId} MBTI 필터가 적용되었습니다.`);
+      if (mbtiId === "none") {
+        setSelectedMbti(null);
+        setIsMbtiModalOpen(false);
+        // 현재 선택된 카테고리로 다시 필터링 (MBTI 필터 없이)
+        handleCategorySelect(selectedCategory);
+        toast.success("멍BTI 필터가 해제되었습니다.");
+      } else {
+        setSelectedMbti(mbtiId);
+        setIsMbtiModalOpen(false);
+        // 현재 선택된 카테고리로 다시 필터링
+        handleCategorySelect(selectedCategory);
+        toast.success(`${mbtiId} MBTI 필터가 적용되었습니다.`);
+      }
     },
     [selectedCategory, handleCategorySelect]
   );
@@ -578,8 +589,15 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
   // 초기 카테고리가 설정되었거나 카테고리가 변경되었을 때 자동으로 마커 로드
   useEffect(() => {
+    console.log("🔍 카테고리 자동 로드 체크:", {
+      showPetFilter,
+      allPetDataLength: allPetData.length,
+      selectedCategory,
+      isMapLoaded
+    });
+    
     if (showPetFilter && allPetData.length > 0 && selectedCategory && isMapLoaded) {
-      console.log(`카테고리 자동 선택: ${selectedCategory}`);
+      console.log(`✅ 카테고리 자동 선택 실행: ${selectedCategory}`);
       handleCategorySelect(selectedCategory);
     }
   }, [selectedCategory, allPetData.length, isMapLoaded, showPetFilter]);
@@ -839,7 +857,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
               <span className="text-gray-700 truncate">
                 {selectedMbti 
                   ? mbtiData.find(m => m.id === selectedMbti)?.label || selectedMbti
-                  : "멍BTI 유형 선택하기"
+                  : "멍BTI 유형 선택하기 (전체)"
                 }
               </span>
               <div className="w-4 h-4 text-gray-400">⚙️</div>
@@ -872,6 +890,21 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
             <DialogTitle className="text-center">멍BTI 유형 선택</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-1 gap-2 max-h-80 overflow-y-auto">
+            {/* 필터 해제 옵션 */}
+            <Button
+              variant={selectedMbti === null ? "default" : "outline"}
+              onClick={() => handleMbtiSelect("none")}
+              className="justify-start p-3 h-auto text-left border-dashed"
+            >
+              <div>
+                <div className="font-medium">필터 해제</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  모든 유형 표시
+                </div>
+              </div>
+            </Button>
+            
+            {/* MBTI 옵션들 */}
             {mbtiData.map((mbti) => (
               <Button
                 key={mbti.id}
