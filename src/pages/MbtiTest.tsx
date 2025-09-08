@@ -92,205 +92,87 @@ const dimensions = [
   }
 ];
 
-// 포지셔닝맵 컴포넌트
-const PositioningMap = () => {
-  const [selectedQuadrant, setSelectedQuadrant] = useState<string | null>(null);
+// 뒤집히는 카드 컴포넌트
+const FlipCard = ({ dimension }: { dimension: typeof dimensions[0] }) => {
+  const [flipped, setFlipped] = useState<{ [key: string]: boolean }>({});
 
-  const handleQuadrantClick = (quadrant: string) => {
-    setSelectedQuadrant(selectedQuadrant === quadrant ? null : quadrant);
+  const handleCardClick = (optionType: string) => {
+    setFlipped(prev => ({
+      ...prev,
+      [`${dimension.id}-${optionType}`]: !prev[`${dimension.id}-${optionType}`]
+    }));
   };
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border">
-      <h3 className="text-lg font-bold text-center mb-6">🎯 4가지 평가 차원</h3>
+    <div className="card p-4">
+      <div className="flex items-center mb-4">
+        <div className={`w-10 h-10 ${dimension.bgColor} rounded-lg flex items-center justify-center mr-3`}>
+          <span className="text-lg">{dimension.icon}</span>
+        </div>
+        <div>
+          <h4 className="card-title text-base">{dimension.title}</h4>
+          <p className="card-subtitle text-xs">{dimension.subtitle}</p>
+        </div>
+      </div>
       
-      {/* 포지셔닝맵 */}
-      <div className="relative w-full aspect-square max-w-sm mx-auto">
-        {/* 배경 그리드 */}
-        <div className="absolute inset-0 border-2 border-gray-300 rounded-lg">
-          {/* 수직선 */}
-          <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-gray-300 transform -translate-x-0.5"></div>
-          {/* 수평선 */}
-          <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-300 transform -translate-y-0.5"></div>
-        </div>
-
-        {/* 축 레이블 */}
-        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-sm font-semibold text-primary">
-          에너지 넘침 ⚡
-        </div>
-        <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-sm font-semibold text-primary">
-          차분함 😴
-        </div>
-        <div className="absolute -left-16 top-1/2 transform -translate-y-1/2 -rotate-90 text-sm font-semibold text-primary">
-          사교적 🤝
-        </div>
-        <div className="absolute -right-16 top-1/2 transform -translate-y-1/2 rotate-90 text-sm font-semibold text-primary">
-          독립적 🚶
-        </div>
-
-        {/* 4개 사분면 */}
-        {/* 1사분면: 에너지 + 사교적 */}
-        <button
-          onClick={() => handleQuadrantClick('ES')}
-          className={`absolute top-0 right-0 w-1/2 h-1/2 rounded-tr-lg transition-all duration-200 ${
-            selectedQuadrant === 'ES' ? 'bg-red-100 border-2 border-red-400' : 'hover:bg-red-50'
-          }`}
-        >
-          <div className="flex flex-col items-center justify-center h-full p-2">
-            <div className="text-2xl mb-1">⚡🤝</div>
-            <div className="text-xs font-bold">ES</div>
-          </div>
-        </button>
-
-        {/* 2사분면: 에너지 + 독립적 */}
-        <button
-          onClick={() => handleQuadrantClick('EO')}
-          className={`absolute top-0 left-0 w-1/2 h-1/2 rounded-tl-lg transition-all duration-200 ${
-            selectedQuadrant === 'EO' ? 'bg-blue-100 border-2 border-blue-400' : 'hover:bg-blue-50'
-          }`}
-        >
-          <div className="flex flex-col items-center justify-center h-full p-2">
-            <div className="text-2xl mb-1">⚡🚶</div>
-            <div className="text-xs font-bold">EO</div>
-          </div>
-        </button>
-
-        {/* 3사분면: 차분함 + 사교적 */}
-        <button
-          onClick={() => handleQuadrantClick('CS')}
-          className={`absolute bottom-0 right-0 w-1/2 h-1/2 rounded-br-lg transition-all duration-200 ${
-            selectedQuadrant === 'CS' ? 'bg-green-100 border-2 border-green-400' : 'hover:bg-green-50'
-          }`}
-        >
-          <div className="flex flex-col items-center justify-center h-full p-2">
-            <div className="text-2xl mb-1">😴🤝</div>
-            <div className="text-xs font-bold">CS</div>
-          </div>
-        </button>
-
-        {/* 4사분면: 차분함 + 독립적 */}
-        <button
-          onClick={() => handleQuadrantClick('CO')}
-          className={`absolute bottom-0 left-0 w-1/2 h-1/2 rounded-bl-lg transition-all duration-200 ${
-            selectedQuadrant === 'CO' ? 'bg-purple-100 border-2 border-purple-400' : 'hover:bg-purple-50'
-          }`}
-        >
-          <div className="flex flex-col items-center justify-center h-full p-2">
-            <div className="text-2xl mb-1">😴🚶</div>
-            <div className="text-xs font-bold">CO</div>
-          </div>
-        </button>
+      <div className="grid grid-cols-2 gap-3">
+        {dimension.options.map((option) => {
+          const cardKey = `${dimension.id}-${option.type}`;
+          const isFlipped = flipped[cardKey];
+          
+          return (
+            <div
+              key={option.type}
+              className="relative h-32 cursor-pointer"
+              onClick={() => handleCardClick(option.type)}
+            >
+              <div
+                className={`absolute inset-0 w-full h-full transition-transform duration-700 transform-style-preserve-3d ${
+                  isFlipped ? 'rotate-y-180' : ''
+                }`}
+              >
+                {/* 앞면 */}
+                <div className="absolute inset-0 w-full h-full backface-hidden rounded-lg border-2 border-gray-200 bg-gradient-to-br from-white to-gray-50 flex flex-col items-center justify-center p-3 hover:shadow-md transition-shadow">
+                  <div className="text-2xl font-bold text-primary mb-2">
+                    {option.type}
+                  </div>
+                  <div className="text-xs text-center font-medium text-gray-600">
+                    {option.type === 'E' && '활동적'}
+                    {option.type === 'C' && '차분한'}
+                    {option.type === 'S' && '사교적'}
+                    {option.type === 'O' && '독립적'}
+                    {option.type === 'V' && '시각적'}
+                    {option.type === 'N' && '후각적'}
+                    {option.type === 'F' && '패션'}
+                    {option.type === 'B' && '기본'}
+                  </div>
+                </div>
+                
+                {/* 뒷면 */}
+                <div className="absolute inset-0 w-full h-full backface-hidden rounded-lg border-2 border-primary bg-primary/5 p-3 flex flex-col justify-center rotate-y-180">
+                  <div className="text-sm font-semibold text-primary mb-2 text-center">
+                    {option.title}
+                  </div>
+                  <div className="text-xs text-gray-600 leading-relaxed text-center">
+                    {option.description}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
+    </div>
+  );
+};
 
-      {/* 선택된 사분면 설명 */}
-      {selectedQuadrant && (
-        <div className="mt-6 p-4 rounded-lg bg-gray-50 border">
-          <div className="space-y-3">
-            {selectedQuadrant === 'ES' && (
-              <>
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
-                    <span>⚡</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-sm">에너지 넘치는 탐험가</h4>
-                    <p className="text-xs text-gray-600">새로운 장소와 액티비티를 즐기는 에너자이저</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <span>🤝</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-sm">사교적인 소셜러</h4>
-                    <p className="text-xs text-gray-600">다른 강아지·사람과 쉽게 친해지는 소셜러</p>
-                  </div>
-                </div>
-              </>
-            )}
-            {selectedQuadrant === 'EO' && (
-              <>
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
-                    <span>⚡</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-sm">에너지 넘치는 탐험가</h4>
-                    <p className="text-xs text-gray-600">새로운 장소와 액티비티를 즐기는 에너자이저</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <span>🚶</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-sm">주인바라기 전용러버</h4>
-                    <p className="text-xs text-gray-600">보호자와 단둘이 있는 시간을 중요하게 생각</p>
-                  </div>
-                </div>
-              </>
-            )}
-            {selectedQuadrant === 'CS' && (
-              <>
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                    <span>😴</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-sm">차분한 힐링러</h4>
-                    <p className="text-xs text-gray-600">안정적이고 편안한 환경을 선호하는 힐링러</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <span>🤝</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-sm">사교적인 소셜러</h4>
-                    <p className="text-xs text-gray-600">다른 강아지·사람과 쉽게 친해지는 소셜러</p>
-                  </div>
-                </div>
-              </>
-            )}
-            {selectedQuadrant === 'CO' && (
-              <>
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                    <span>😴</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-sm">차분한 힐링러</h4>
-                    <p className="text-xs text-gray-600">안정적이고 편안한 환경을 선호하는 힐링러</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <span>🚶</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-sm">주인바라기 전용러버</h4>
-                    <p className="text-xs text-gray-600">보호자와 단둘이 있는 시간을 중요하게 생각</p>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* 추가 차원들 (시각/후각, 패션/자연) */}
-      <div className="mt-8 grid grid-cols-2 gap-4">
-        <div className="bg-gray-50 rounded-lg p-4 text-center">
-          <div className="text-lg mb-2">👁️ vs 👃</div>
-          <div className="text-sm font-semibold mb-1">발달감각</div>
-          <div className="text-xs text-gray-600">시각 중심 vs 후각 중심</div>
-        </div>
-        <div className="bg-gray-50 rounded-lg p-4 text-center">
-          <div className="text-lg mb-2">✨ vs 🌿</div>
-          <div className="text-sm font-semibold mb-1">여행 바이브</div>
-          <div className="text-xs text-gray-600">꾸미기 vs 자연스러움</div>
-        </div>
-      </div>
+// 4가지 차원 카드들을 렌더링하는 컴포넌트
+const DimensionCards = () => {
+  return (
+    <div className="space-y-4">
+      {dimensions.map((dimension) => (
+        <FlipCard key={dimension.id} dimension={dimension} />
+      ))}
     </div>
   );
 };
@@ -754,7 +636,9 @@ const MbtiTest = () => {
 
           {/* 4가지 차원 소개 */}
           <div className="space-y-4">
-            <PositioningMap />
+            <h3 className="card-title text-lg text-center mb-4">🎯 4가지 평가 차원</h3>
+            
+            <DimensionCards />
           </div>
         </main>
 
