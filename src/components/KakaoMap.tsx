@@ -115,6 +115,8 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
   const [allPetData, setAllPetData] = useState<any[]>([]);
   const [selectedPlaceForReview, setSelectedPlaceForReview] = useState<any>(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [selectedMbti, setSelectedMbti] = useState<string | null>(null);
+  const [isMbtiModalOpen, setIsMbtiModalOpen] = useState(false);
 
   // 지도 초기화
   const initializeMap = useCallback(() => {
@@ -216,6 +218,23 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
               });
             }
           }
+        }
+
+        // MBTI 필터링 추가 적용
+        if (selectedMbti && filteredPlaces.length > 0) {
+          console.log(`MBTI 필터 적용: ${selectedMbti}`);
+          filteredPlaces = filteredPlaces.filter((place) => {
+            if (!place.mbti) return false;
+
+            if (place.mbti === "all") return true;
+
+            if (Array.isArray(place.mbti)) {
+              return place.mbti.includes(selectedMbti);
+            }
+
+            return place.mbti === selectedMbti;
+          });
+          console.log(`MBTI 필터링 후: ${filteredPlaces.length}개`);
         }
 
         console.log(`필터링된 장소 ${filteredPlaces.length}개`);
@@ -354,6 +373,27 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     },
     [showPetFilter, allPetData]
   );
+
+  // MBTI 선택 핌들러
+  const handleMbtiSelect = useCallback(
+    (mbtiId: string) => {
+      setSelectedMbti(mbtiId);
+      setIsMbtiModalOpen(false);
+
+      // 현재 선택된 카테고리로 다시 필터링
+      handleCategorySelect(selectedCategory);
+
+      toast.success(`${mbtiId} MBTI 필터가 적용되었습니다.`);
+    },
+    [selectedCategory, handleCategorySelect]
+  );
+
+  // MBTI 필터 초기화
+  const clearMbtiFilter = useCallback(() => {
+    setSelectedMbti(null);
+    handleCategorySelect(selectedCategory);
+    toast.success("MBTI 필터가 해제되었습니다.");
+  }, [selectedCategory, handleCategorySelect]);
 
   // 카카오 지도 SDK 로드
   useEffect(() => {
@@ -495,55 +535,130 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
   ]);
 
   return (
-    <div className="min-h-screen bg-background max-w-md mx-auto">
+    <div className="min-h-screen bg-background max-w-md mx-auto pb-20">
       {/* Header */}
-      <header className="flex items-center justify-between p-4 bg-background border-b">
+      <header className="header p-6">
         <div className="flex items-center space-x-3">
-          <Button variant="ghost" size="sm" onClick={onBack}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onBack}
+            className="text-foreground hover:bg-muted p-2"
+          >
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-lg font-semibold">지도</h1>
+          <div>
+            <h1 className="header-title">지도</h1>
+            <p className="header-subtitle">카테고리별 반려동물 동반 가능 장소</p>
+          </div>
         </div>
       </header>
 
       {/* Category Grid */}
       {!hideCategoryGrid && showPetFilter && (
-        <div className="p-4 bg-background border-b">
-          <div className="grid grid-cols-3 gap-3">
-            {categories.map((category) => {
-              const IconComponent = category.icon;
-              const isSelected = selectedCategory === category.id;
-              return (
-                <button
-                  key={category.id}
-                  onClick={() => handleCategorySelect(category.id)}
-                  className={`flex flex-col items-center justify-center p-3 rounded-lg border transition-all ${
-                    isSelected
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-card hover:bg-accent text-card-foreground border-border"
-                  }`}
+        <div className="px-5 mb-4">
+          <Card className="p-4 bg-white border-0 shadow-lg rounded-2xl">
+            <h3 className="font-semibold text-base mb-3 text-gray-900">카테고리 선택</h3>
+            <div className="grid grid-cols-3 gap-3">
+              {categories.map((category) => {
+                const IconComponent = category.icon;
+                const isSelected = selectedCategory === category.id;
+                return (
+                  <button
+                    key={category.id}
+                    onClick={() => handleCategorySelect(category.id)}
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all ${
+                      isSelected
+                        ? "bg-primary/10 border-primary text-primary"
+                        : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300"
+                    }`}
+                  >
+                    <IconComponent className="w-6 h-6 mb-2" />
+                    <span className="text-xs font-medium leading-tight">{category.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* MBTI Filter */}
+      {showPetFilter && (
+        <div className="px-5 mb-4">
+          <Card className="p-4 bg-white border-0 shadow-lg rounded-2xl">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-base text-gray-900">멍BTI 필터</h3>
+              {selectedMbti && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearMbtiFilter}
+                  className="text-xs text-gray-600 hover:text-gray-800"
                 >
-                  <IconComponent className="w-5 h-5 mb-1" />
-                  <span className="text-xs font-medium">{category.label}</span>
-                </button>
-              );
-            })}
-          </div>
+                  초기화
+                </Button>
+              )}
+            </div>
+            <Button
+              variant={selectedMbti ? "default" : "outline"}
+              onClick={() => setIsMbtiModalOpen(true)}
+              className="w-full justify-between"
+            >
+              <span>
+                {selectedMbti 
+                  ? mbtiData.find(m => m.id === selectedMbti)?.label || selectedMbti
+                  : "멍BTI 유형 선택하기"
+                }
+              </span>
+              <PawPrint className="w-4 h-4" />
+            </Button>
+          </Card>
         </div>
       )}
 
       {/* Map Container */}
-      <div className="relative h-screen">
-        <div ref={mapRef} className="w-full h-full" />
-        {!isMapLoaded && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/80">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-              <p className="text-sm text-muted-foreground">지도를 불러오는 중...</p>
-            </div>
+      <div className="px-5">
+        <Card className="overflow-hidden border-0 shadow-lg rounded-2xl">
+          <div className="relative h-96">
+            <div ref={mapRef} className="w-full h-full" />
+            {!isMapLoaded && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/90">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                  <p className="text-sm text-gray-600">지도를 불러오는 중...</p>
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        </Card>
       </div>
+
+      {/* MBTI Selection Modal */}
+      <Dialog open={isMbtiModalOpen} onOpenChange={setIsMbtiModalOpen}>
+        <DialogContent className="max-w-sm mx-auto">
+          <DialogHeader>
+            <DialogTitle className="text-center">멍BTI 유형 선택</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-1 gap-2 max-h-80 overflow-y-auto">
+            {mbtiData.map((mbti) => (
+              <Button
+                key={mbti.id}
+                variant={selectedMbti === mbti.id ? "default" : "outline"}
+                onClick={() => handleMbtiSelect(mbti.id)}
+                className="justify-start p-3 h-auto text-left"
+              >
+                <div>
+                  <div className="font-medium">{mbti.id}</div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {mbti.label}
+                  </div>
+                </div>
+              </Button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Review Modal */}
       {selectedPlaceForReview && (
@@ -554,7 +669,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
             setIsReviewModalOpen(false);
             setSelectedPlaceForReview(null);
           }}
-          onReviewSubmitted={() => {
+          onReviewUpdate={() => {
             setIsReviewModalOpen(false);
             setSelectedPlaceForReview(null);
           }}
