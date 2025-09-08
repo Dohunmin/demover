@@ -83,6 +83,61 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
   const [petCacheLoaded, setPetCacheLoaded] = useState(false);
   const [petDataLoading, setPetDataLoading] = useState(false);
 
+  // 장소별 리뷰 통계 로드
+  const loadPlaceReviews = async (places: any[]) => {
+    if (!places || places.length === 0) return;
+    
+    const contentIds = places.map(place => place.contentid || place.contentId).filter(Boolean);
+    if (contentIds.length === 0) return;
+
+    try {
+      // 각 장소별로 리뷰 통계 조회
+      const reviewPromises = contentIds.map(async (contentId) => {
+        const { data, error } = await supabase
+          .from('place_reviews')
+          .select('rating')
+          .eq('content_id', contentId);
+
+        if (error) {
+          console.error(`장소 ${contentId} 리뷰 로드 오류:`, error);
+          return { contentId, stats: null };
+        }
+
+        if (data && data.length > 0) {
+          const totalReviews = data.length;
+          const averageRating = data.reduce((sum, review) => sum + review.rating, 0) / totalReviews;
+          return {
+            contentId,
+            stats: {
+              averageRating: Math.round(averageRating * 10) / 10, // 소수점 1자리
+              totalReviews
+            }
+          };
+        }
+
+        return { contentId, stats: null };
+      });
+
+      const reviewResults = await Promise.all(reviewPromises);
+      
+      // 리뷰 통계 상태 업데이트
+      const newPlaceReviews: Record<string, {averageRating: number, totalReviews: number}> = {};
+      reviewResults.forEach(({ contentId, stats }) => {
+        if (stats) {
+          newPlaceReviews[contentId] = stats;
+        }
+      });
+
+      setPlaceReviews(prev => ({
+        ...prev,
+        ...newPlaceReviews
+      }));
+
+    } catch (error) {
+      console.error('리뷰 통계 로드 실패:', error);
+    }
+  };
+
   // 사용자 프로필에서 지역 코드 가져오기 및 즐겨찾기 로드
   useEffect(() => {
     const getUserDataAndBookmarks = async () => {
@@ -193,6 +248,9 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
         
         setAllPetPlacesCache(processedData);
         setPetCacheLoaded(true);
+        
+        // 리뷰 통계 로드
+        await loadPlaceReviews(processedData);
         
         // 검색 키워드가 있으면 검색 결과를, 없으면 첫 페이지를 표시
         processCachedPetPlaces(processedData, petSearchKeyword, 1);
@@ -344,6 +402,9 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
             areacode: item.areacode || '',
             sigungucode: item.sigungucode || ''
           })));
+          
+          // 리뷰 통계 로드
+          await loadPlaceReviews(processedData);
           
           const totalAfterFilter = parkFilter ? processedData.length : (data.tourismData.response.body.totalCount || 0);
           setTotalCount(totalAfterFilter);
