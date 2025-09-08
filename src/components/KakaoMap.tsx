@@ -101,6 +101,9 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     }
   }, [propSelectedCategory]);
 
+  // 필터링 실행 중 상태 추가
+  const [isFiltering, setIsFiltering] = useState(false);
+
   // 카테고리별 필터링
   const categories = [
     { id: "all", label: "전체", icon: MapPin },
@@ -209,41 +212,191 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     setIsDragging(false);
   };
 
-  // 카테고리 선택 핸들러 (locationGubun 기반 필터링)
+  // 카테고리 선택 핸들러 - 중복 실행 방지 및 통합 로직
   const handleCategorySelect = useCallback(
     (categoryId: string) => {
+      if (isFiltering) {
+        console.log("⚠️ 이미 필터링 중이므로 중복 실행 방지");
+        return;
+      }
+      
+      setIsFiltering(true);
       setSelectedCategory(categoryId);
 
-      if (showPetFilter && allPetData.length > 0) {
-        console.log(`=== 카테고리 선택: ${categoryId} ===`);
-        console.log("전체 데이터 개수:", allPetData.length);
+      if (!showPetFilter || allPetData.length === 0 || !mapInstance.current) {
+        setIsFiltering(false);
+        return;
+      }
+      
+      console.log(`🎯 카테고리 필터링 시작: ${categoryId}, MBTI: ${selectedMbti || 'none'}`);
 
-        // 🔥 핵심: 모든 기존 마커들 완전히 제거
-        setPetTourismMarkers((prevMarkers) => {
-          prevMarkers.forEach((marker) => marker.setMap(null));
-          return [];
+      // 🔥 모든 기존 마커들 완전히 제거
+      setPetTourismMarkers((prevMarkers) => {
+        prevMarkers.forEach((marker) => marker.setMap(null));
+        return [];
+      });
+      
+      markers.current.forEach((marker) => marker.setMap(null));
+      markers.current = [];
+      
+      if (clusterer.current) {
+        clusterer.current.clear();
+      }
+
+      let filteredPlaces = [];
+
+      // 1단계: 카테고리 필터링
+      if (categoryId === "all") {
+        filteredPlaces = [...allPetData];
+        console.log(`✅ 전체 카테고리: ${filteredPlaces.length}개`);
+      } else {
+        const locationGubunMap = {
+          restaurant: "식당",
+          shopping: "쇼핑", 
+          brunch: "브런치",
+          cafe: "카페",
+          park: "공원",
+          leisure: "레저",
+          culture: "문화시설",
+          temple: "사찰",
+          accommodation: "숙소",
+          market: "재래시장",
+          "theme-street": "테마거리",
+          trekking: "트레킹",
+          port: "항구",
+          beach: "해수욕장",
+        };
+
+        const targetLocationGubun = locationGubunMap[categoryId as keyof typeof locationGubunMap];
+        
+        if (targetLocationGubun) {
+          filteredPlaces = allPetData.filter(place => place.locationGubun === targetLocationGubun);
+          console.log(`✅ ${categoryId} (${targetLocationGubun}) 카테고리 필터링: ${filteredPlaces.length}개`);
+          
+          // 필터링 결과가 없을 때 디버깅 정보
+          if (filteredPlaces.length === 0) {
+            console.log("⚠️ 필터링 결과가 0개입니다.");
+            const uniqueLocationGubuns = [...new Set(allPetData.map(p => p.locationGubun))];
+            console.log("📍 실제 locationGubun 값들:", uniqueLocationGubuns);
+          }
+        }
+      }
+
+      // 2단계: MBTI 필터링 (전체 카테고리가 아닐 때만)
+      let finalPlaces = filteredPlaces;
+      if (selectedMbti && categoryId !== "all" && filteredPlaces.length > 0) {
+        console.log(`🧠 MBTI 필터 적용: ${selectedMbti}`);
+        const beforeCount = filteredPlaces.length;
+        
+        finalPlaces = filteredPlaces.filter((place) => {
+          if (!place.mbti) return false;
+          if (place.mbti === "all") return true;
+          if (Array.isArray(place.mbti)) {
+            return place.mbti.includes(selectedMbti);
+          }
+          return place.mbti === selectedMbti;
         });
         
-        // 일반 검색 마커 제거
-        markers.current.forEach((marker) => marker.setMap(null));
-        markers.current = [];
+        console.log(`✅ MBTI 필터링: ${beforeCount}개 → ${finalPlaces.length}개`);
+      }
+
+      // 3단계: 마커 생성
+      const newMarkers: any[] = [];
+      let markerCount = 0;
+      
+      finalPlaces.forEach((place, index) => {
+        console.log(`🔍 마커 처리 ${index + 1}/${finalPlaces.length}: ${place.title}`);
         
-        // 클러스터러 초기화
-        if (clusterer.current) {
-          clusterer.current.clear();
+        if (!place.mapx || !place.mapy || place.mapx === "0" || place.mapy === "0") {
+          console.log(`❌ 좌표 없음: ${place.title}`);
+          return;
         }
 
-        let filteredPlaces = [];
+        try {
+          const position = new window.kakao.maps.LatLng(place.mapy, place.mapx);
+          const imageSize = new window.kakao.maps.Size(30, 30);
+          const imageOption = { offset: new window.kakao.maps.Point(15, 30) };
 
-        if (categoryId === "all") {
-          filteredPlaces = allPetData;
-          console.log(`전체 데이터: ${allPetData.length}개`);
+          const redMarkerSvg = `data:image/svg+xml;base64,${btoa(`
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#DC2626" width="30" height="30">
+              <circle cx="12" cy="12" r="11" fill="white" stroke="#DC2626" stroke-width="2"/>
+              <path d="M8 10c0-1.1.9-2 2-2s2 .9 2 2-2 3-2 3-2-1.9-2-3zm6 0c0-1.1.9-2 2-2s2 .9 2 2-2 3-2 3-2-1.9-2-3z" fill="#FFFFFF"/>
+              <circle cx="10" cy="10" r="1.5" fill="#000"/>
+              <circle cx="14" cy="10" r="1.5" fill="#000"/>
+              <path d="M12 13c-1 0-2 .5-2 1s1 1 2 1 2-.5 2-1-.5-1-2-1z" fill="#000"/>
+            </svg>
+          `)}`;
+
+          const markerImage = new window.kakao.maps.MarkerImage(redMarkerSvg, imageSize, imageOption);
+          const marker = new window.kakao.maps.Marker({
+            position: position,
+            image: markerImage,
+            clickable: true,
+          });
+
+          marker.setMap(mapInstance.current);
+          newMarkers.push(marker);
+          markerCount++;
           
-          // 전체 카테고리 선택 시 MBTI 필터 무시
-          console.log("🔄 전체 카테고리 선택 - MBTI 필터 무시");
-        } else {
-      // locationGubun 기반 필터링 - sample-data.ts의 실제 값들 사용
-      const locationGubunMap = {
+          console.log(`✅ 마커 생성 완료 ${markerCount}: ${place.title}`);
+
+          // 마커 클릭 이벤트
+          window.kakao.maps.event.addListener(marker, "click", () => {
+            const content = `
+              <div style="padding: 15px; min-width: 280px; max-width: 320px; font-family: 'Malgun Gothic', sans-serif; position: relative;">
+                <button onclick="window.closeInfoWindow()" style="position: absolute; top: 8px; right: 8px; background: #f3f4f6; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 14px; color: #6b7280;">×</button>
+                
+                <div style="font-weight: bold; font-size: 16px; margin-bottom: 8px; color: #DC2626; padding-right: 30px;">${place.title}</div>
+                
+                <div style="font-size: 12px; color: #666; margin-bottom: 8px; background: #FEF2F2; padding: 4px 8px; border-radius: 12px; display: inline-block;">
+                  🐾 반려동물 동반 가능
+                </div>
+                
+                ${place.locationGubun ? `<div style="font-size: 12px; color: #666; margin-bottom: 8px; background: #F3F4F6; padding: 4px 8px; border-radius: 12px; display: inline-block;">📍 ${place.locationGubun}</div>` : ""}
+                ${place.mbti && place.mbti !== "all" ? `<div style="font-size: 12px; color: #666; margin-bottom: 8px; background: #E0F2FE; padding: 4px 8px; border-radius: 12px; display: inline-block;">🧠 MBTI: ${Array.isArray(place.mbti) ? place.mbti.join(', ') : place.mbti}</div>` : ""}
+                
+                <div style="font-size: 13px; color: #333; margin-bottom: 6px;">${place.addr1 || '주소 정보 없음'}</div>
+                ${place.addr2 ? `<div style="font-size: 12px; color: #666; margin-bottom: 6px;">${place.addr2}</div>` : ""}
+                ${place.tel ? `<div style="font-size: 12px; color: #666; margin-bottom: 8px;">📞 ${place.tel}</div>` : ""}
+                
+                <div style="text-align: center;">
+                  <button id="review-btn-${place.contentid}" 
+                     style="color: #DC2626; font-size: 12px; text-decoration: none; background: #FEF2F2; padding: 6px 12px; border-radius: 8px; display: inline-block; border: 1px solid #FCA5A5; cursor: pointer;">
+                    ⭐ 평점 및 후기
+                  </button>
+                </div>
+              </div>
+            `;
+            
+            infoWindow.current.setContent(content);
+            infoWindow.current.open(mapInstance.current, marker);
+
+            (window as any).closeInfoWindow = () => {
+              infoWindow.current.close();
+            };
+
+            setTimeout(() => {
+              const reviewBtn = document.getElementById(`review-btn-${place.contentid}`);
+              if (reviewBtn) {
+                reviewBtn.addEventListener("click", () => {
+                  setSelectedPlaceForReview(place);
+                  setIsReviewModalOpen(true);
+                });
+              }
+            }, 100);
+          });
+          
+        } catch (error) {
+          console.error(`❌ 마커 생성 실패: ${place.title}`, error);
+        }
+      });
+
+      setPetTourismMarkers(newMarkers);
+      console.log(`🎯 최종 마커 생성 완료: ${markerCount}개`);
+      
+      // 토스트 메시지
+      const categoryLabels = {
+        all: "전체",
         restaurant: "식당",
         shopping: "쇼핑", 
         brunch: "브런치",
@@ -259,200 +412,18 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         port: "항구",
         beach: "해수욕장",
       };
-
-          const targetLocationGubun =
-            locationGubunMap[categoryId as keyof typeof locationGubunMap];
-
-          if (targetLocationGubun) {
-            console.log(
-              `${categoryId} 카테고리 -> locationGubun: ${targetLocationGubun}`
-            );
-
-            filteredPlaces = allPetData.filter(
-              (place) => place.locationGubun === targetLocationGubun
-            );
-
-            console.log(`locationGubun 매칭 결과: ${filteredPlaces.length}개`);
-
-            // 매칭되지 않은 데이터 확인
-            if (filteredPlaces.length === 0) {
-              console.log("매칭되지 않은 데이터들의 locationGubun:");
-              allPetData.slice(0, 10).forEach((place) => {
-                console.log(
-                  `- "${place.title}" -> locationGubun: "${place.locationGubun}"`
-                );
-              });
-            }
-          }
-        }
-
-        // MBTI 필터링 추가 적용 (전체 카테고리가 아닐 때만)
-        if (selectedMbti && filteredPlaces.length > 0 && categoryId !== "all") {
-          console.log(`MBTI 필터 적용: ${selectedMbti}`);
-          filteredPlaces = filteredPlaces.filter((place) => {
-            if (!place.mbti) return false;
-
-            if (place.mbti === "all") return true;
-
-            if (Array.isArray(place.mbti)) {
-              return place.mbti.includes(selectedMbti);
-            }
-
-            return place.mbti === selectedMbti;
-          });
-          console.log(`MBTI 필터링 후: ${filteredPlaces.length}개`);
-        }
-
-        console.log(`필터링된 장소 ${filteredPlaces.length}개`);
-
-        // 🔥 핵심: 새로운 마커들만 생성
-        const newMarkers: any[] = [];
-
-        filteredPlaces.forEach((place, index) => {
-          console.log(`🔍 마커 생성 시도 ${index + 1}: ${place.title} (${place.mapx}, ${place.mapy})`);
-          
-          if (
-            !place.mapx ||
-            !place.mapy ||
-            place.mapx === "0" ||
-            place.mapy === "0"
-          ) {
-            console.log(`❌ 좌표 없음: ${place.title}`);
-            return;
-          }
-
-          try {
-            const position = new window.kakao.maps.LatLng(place.mapy, place.mapx);
-
-            const imageSize = new window.kakao.maps.Size(30, 30);
-            const imageOption = { offset: new window.kakao.maps.Point(15, 30) };
-
-            const redMarkerSvg = `data:image/svg+xml;base64,${btoa(`
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#DC2626" width="30" height="30">
-              <circle cx="12" cy="12" r="11" fill="white" stroke="#DC2626" stroke-width="2"/>
-              <path d="M8 10c0-1.1.9-2 2-2s2 .9 2 2-2 3-2 3-2-1.9-2-3zm6 0c0-1.1.9-2 2-2s2 .9 2 2-2 3-2 3-2-1.9-2-3z" fill="#FFFFFF"/>
-              <circle cx="10" cy="10" r="1.5" fill="#000"/>
-              <circle cx="14" cy="10" r="1.5" fill="#000"/>
-              <path d="M12 13c-1 0-2 .5-2 1s1 1 2 1 2-.5 2-1-.5-1-2-1z" fill="#000"/>
-            </svg>
-          `)}`;
-
-            const markerImage = new window.kakao.maps.MarkerImage(
-              redMarkerSvg,
-              imageSize,
-              imageOption
-            );
-
-            const marker = new window.kakao.maps.Marker({
-              position: position,
-              image: markerImage,
-              clickable: true,
-            });
-
-            marker.setMap(mapInstance.current);
-            newMarkers.push(marker);
-            console.log(`✅ 마커 생성 성공: ${place.title}`);
-
-            // 마커 클릭 이벤트
-            window.kakao.maps.event.addListener(marker, "click", () => {
-              const content = `
-              <div style="padding: 15px; min-width: 280px; max-width: 320px; font-family: 'Malgun Gothic', sans-serif; position: relative;">
-                <button onclick="window.closeInfoWindow()" style="position: absolute; top: 8px; right: 8px; background: #f3f4f6; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 14px; color: #6b7280;">×</button>
-                
-                <div style="font-weight: bold; font-size: 16px; margin-bottom: 8px; color: #DC2626; padding-right: 30px;">${
-                  place.title
-                }</div>
-                
-                <div style="font-size: 12px; color: #666; margin-bottom: 8px; background: #FEF2F2; padding: 4px 8px; border-radius: 12px; display: inline-block;">
-                  🐾 반려동물 동반 가능
-                </div>
-                
-                ${
-                  place.locationGubun
-                    ? `<div style="font-size: 12px; color: #666; margin-bottom: 8px; background: #F3F4F6; padding: 4px 8px; border-radius: 12px; display: inline-block;">
-                  📍 ${place.locationGubun}
-                </div>`
-                    : ""
-                }
-                
-                <div style="font-size: 13px; color: #333; margin-bottom: 6px;">${
-                  place.addr1
-                }</div>
-                ${
-                  place.addr2
-                    ? `<div style="font-size: 12px; color: #666; margin-bottom: 6px;">${place.addr2}</div>`
-                    : ""
-                }
-                ${
-                  place.tel
-                    ? `<div style="font-size: 12px; color: #666; margin-bottom: 8px;">📞 ${place.tel}</div>`
-                    : ""
-                }
-                
-                <div style="text-align: center;">
-                  <button id="review-btn-${place.contentid}" 
-                     style="color: #DC2626; font-size: 12px; text-decoration: none; background: #FEF2F2; padding: 6px 12px; border-radius: 8px; display: inline-block; border: 1px solid #FCA5A5; cursor: pointer;">
-                    ⭐ 평점 및 후기
-                  </button>
-                </div>
-              </div>
-            `;
-              infoWindow.current.setContent(content);
-              infoWindow.current.open(mapInstance.current, marker);
-
-              // 정보창 닫기 함수를 전역에 등록
-              (window as any).closeInfoWindow = () => {
-                infoWindow.current.close();
-              };
-
-              // 평점/후기 버튼 이벤트 리스너 추가
-              setTimeout(() => {
-                const reviewBtn = document.getElementById(
-                  `review-btn-${place.contentid}`
-                );
-                if (reviewBtn) {
-                  reviewBtn.addEventListener("click", () => {
-                    setSelectedPlaceForReview(place);
-                    setIsReviewModalOpen(true);
-                  });
-                }
-              }, 100);
-            });
-          } catch (error) {
-            console.error(`❌ 마커 생성 실패: ${place.title}`, error);
-          }
-        });
-
-        // 🔥 핵심: 상태를 완전히 새 배열로 교체 (중복 방지)
-        setPetTourismMarkers(newMarkers);
-
-        const categoryLabels = {
-          all: "전체",
-          park: "공원",
-          leisure: "레저",
-          culture: "문화시설",
-          brunch: "브런치",
-          temple: "사찰",
-          shopping: "쇼핑",
-          accommodation: "숙소",
-          restaurant: "식당",
-          market: "재래시장",
-          cafe: "카페",
-          "theme-street": "테마거리",
-          trekking: "트레킹",
-          port: "항구",
-          beach: "해수욕장",
-        };
-
-        toast.success(
-          `${
-            categoryLabels[categoryId as keyof typeof categoryLabels] ||
-            categoryId
-          } ${filteredPlaces.length}개를 지도에 표시했습니다.`
-        );
+      
+      if (markerCount > 0) {
+        const categoryName = categoryLabels[categoryId as keyof typeof categoryLabels] || categoryId;
+        const mbtiText = selectedMbti && categoryId !== "all" ? ` (${selectedMbti} 필터)` : "";
+        toast.success(`${categoryName} ${markerCount}개를 지도에 표시했습니다${mbtiText}`);
+      } else {
+        toast.warning("해당 조건에 맞는 장소가 없습니다.");
       }
+      
+      setIsFiltering(false);
     },
-    [showPetFilter, allPetData, selectedMbti]
+    [showPetFilter, allPetData, selectedMbti, isFiltering]
   );
 
   // MBTI 필터링만 별도로 적용하는 함수
@@ -623,10 +594,10 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     console.log(`✅ 총 ${newMarkers.length}개 마커 생성 완료`);
   }, [selectedCategory, selectedMbti, allPetData, showPetFilter]);
 
-  // MBTI 선택 핸들러 - 수정된 버전
+  // MBTI 선택 핸들러 - 중복 실행 방지
   const handleMbtiSelect = useCallback(
     (mbtiId: string) => {
-      console.log(`🧠 MBTI 선택: ${mbtiId}, 현재 카테고리: ${selectedCategory}`);
+      console.log(`🧠 MBTI 선택: ${mbtiId}`);
       
       if (mbtiId === "none") {
         setSelectedMbti(null);
@@ -638,14 +609,18 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         toast.success(`${mbtiId} MBTI 필터가 적용되었습니다.`);
       }
       
-      // MBTI 변경 후 현재 선택된 카테고리로 다시 필터링
-      setTimeout(() => {
-        console.log(`🔄 MBTI 변경 후 카테고리 재필터링: ${selectedCategory}`);
-        handleCategorySelect(selectedCategory);
-      }, 100);
+      // MBTI 상태가 변경되면 자동으로 useEffect에서 필터링이 재실행됨
     },
-    [selectedCategory, handleCategorySelect]
+    []
   );
+
+  // MBTI가 변경될 때 자동으로 현재 카테고리로 다시 필터링
+  useEffect(() => {
+    if (isMapLoaded && showPetFilter && allPetData.length > 0 && selectedCategory) {
+      console.log(`🔄 MBTI 변경으로 인한 자동 재필터링: ${selectedCategory}`);
+      handleCategorySelect(selectedCategory);
+    }
+  }, [selectedMbti]);
   
   // 카카오 지도 SDK 로드
   useEffect(() => {
