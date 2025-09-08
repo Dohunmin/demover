@@ -81,7 +81,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
   // 반려동물 키워드 검색 결과 캐시
   const [allPetPlacesCache, setAllPetPlacesCache] = useState<any[]>([]);
   const [petCacheLoaded, setPetCacheLoaded] = useState(false);
-  const [initialPetLoading, setInitialPetLoading] = useState(false);
+  const [petDataLoading, setPetDataLoading] = useState(false);
 
   // 사용자 프로필에서 지역 코드 가져오기 및 즐겨찾기 로드
   useEffect(() => {
@@ -144,12 +144,12 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
   // 반려동물 여행지 데이터 로딩 (한 번에 전체 로딩)
   const loadAllPetPlaces = async () => {
     // 이미 로딩 중이거나 로딩 완료된 경우 중복 실행 방지
-    if (initialPetLoading || petCacheLoaded) {
-      console.log('반려동물 데이터 로딩 중이거나 이미 완료됨, 건너뜸');
+    if (petDataLoading || petCacheLoaded) {
+      console.log('반려동물 데이터 로딩 중이거나 이미 완료됨, 건너뜀');
       return;
     }
     
-    setInitialPetLoading(true);
+    setPetDataLoading(true);
     
     try {
       console.log('=== 반려동물 여행지 전체 로딩 시작 ===');
@@ -225,7 +225,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
       setPetTotalCount(0);
       return false;
     } finally {
-        setInitialPetLoading(false);
+        setPetDataLoading(false);
       }
   };
 
@@ -427,7 +427,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
   const handleTabChange = (tab: "general" | "pet") => {
     // 이전 탭의 로딩 상태 리셋
     if (activeTab === "pet" && tab === "general") {
-      setInitialPetLoading(false);
+      setPetDataLoading(false);
     } else if (activeTab === "general" && tab === "pet") {
       setLoading(false);
     }
@@ -790,11 +790,11 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap }) => {
 
       {/* 콘텐츠 영역 */}
       <div className="px-5">
-        {loading || initialPetLoading ? (
+        {loading || petDataLoading ? (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground mx-auto"></div>
             <p className="text-gray-600 mt-2">
-              {initialPetLoading ? '로딩중' : '로딩 중...'}
+              {petDataLoading ? '반려동물 여행지 로딩중...' : '로딩 중...'}
             </p>
           </div>
         ) : (
