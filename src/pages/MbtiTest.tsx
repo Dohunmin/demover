@@ -626,7 +626,6 @@ const MbtiTest = () => {
                       className="w-full h-16 object-contain"
                     />
                   )}
-                  <div className="text-xs font-bold mt-1">{type.code}</div>
                 </button>
               ))}
             </div>
