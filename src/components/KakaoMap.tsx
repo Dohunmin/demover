@@ -279,10 +279,32 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         console.log("전체 데이터 개수:", allPetData.length);
 
         // 🔥 핵심: 모든 기존 마커들 완전히 제거
+        // 반려동물 관광지 마커 제거
         setPetTourismMarkers((prevMarkers) => {
           prevMarkers.forEach((marker) => marker.setMap(null));
           return [];
         });
+        
+        // 일반 검색 마커 제거
+        markers.current.forEach((marker) => marker.setMap(null));
+        markers.current = [];
+        
+        // 일반->반려동물 마커 제거
+        setGeneralAsPetMarkers((prevMarkers) => {
+          prevMarkers.forEach((marker) => marker.setMap(null));
+          return [];
+        });
+        
+        // 북마크 마커 제거
+        setBookmarkMarkers((prevMarkers) => {
+          prevMarkers.forEach((marker) => marker.setMap(null));
+          return [];
+        });
+        
+        // 클러스터러 초기화
+        if (clusterer.current) {
+          clusterer.current.clear();
+        }
 
         let filteredPlaces = [];
 
