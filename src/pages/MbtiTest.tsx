@@ -19,7 +19,7 @@ const dimensions = [
     title: "에너지 레벨 (Energy Level)",
     subtitle: "활동적 vs 차분한",
     icon: "⚡",
-    bgColor: "bg-red-100",
+    bgColor: "",
     options: [
       {
         type: "E",
@@ -38,7 +38,7 @@ const dimensions = [
     title: "관계 추구 (Relationship)",
     subtitle: "사교적 vs 주인바라기",
     icon: "🤝",
-    bgColor: "bg-blue-100",
+    bgColor: "",
     options: [
       {
         type: "S",
@@ -57,7 +57,7 @@ const dimensions = [
     title: "발달 감각 (Sense)",
     subtitle: "시각 중심 vs 후각 중심",
     icon: "👁️",
-    bgColor: "bg-green-100",
+    bgColor: "",
     options: [
       {
         type: "V",
@@ -76,7 +76,7 @@ const dimensions = [
     title: "여행 바이브 (Vibe)",
     subtitle: "꾸미기 vs 자연스러움",
     icon: "✨",
-    bgColor: "bg-purple-100",
+    bgColor: "",
     options: [
       {
         type: "F",
@@ -93,40 +93,31 @@ const dimensions = [
 ];
 
 // 4가지 차원을 간단한 텍스트로 설명하는 컴포넌트
-const DimensionText = () => {
-  const dimensionColors = [
-    "from-peach-100 to-orange-100 border-peach-200", // 에너지 - 복숭아
-    "from-mint-100 to-emerald-100 border-mint-200", // 관계 - 민트
-    "from-sky-100 to-blue-100 border-sky-200", // 감각 - 스카이블루
-    "from-lavender-100 to-purple-100 border-lavender-200" // 바이브 - 라벤더
-  ];
-
-  const dimensionIcons = ["⚡", "💕", "👃", "✨"];
-  
+const DimensionText = () => {  
   return (
     <div className="space-y-8">
       {dimensions.map((dimension, index) => (
         <div 
           key={dimension.id} 
-          className={`relative p-6 rounded-2xl bg-gradient-to-br ${dimensionColors[index]} border-2 shadow-lg hover:shadow-xl transition-all duration-300`}
+          className="card"
         >
           {/* Large cute dog icon at top */}
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-white/80 rounded-full flex items-center justify-center shadow-md">
-              <span className="text-3xl">{dimensionIcons[index]}</span>
+            <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center shadow-sm">
+              <span className="text-3xl">{dimension.icon}</span>
             </div>
           </div>
 
           {/* Title with emoji */}
           <div className="text-center mb-4">
-            <h3 className="text-lg font-bold text-gray-800 mb-1">
+            <h3 className="card-title text-lg mb-2">
               {dimension.icon} {dimension.title}
             </h3>
             
             {/* Opposing traits bar */}
-            <div className="flex items-center justify-between bg-white/50 rounded-full px-4 py-2 text-sm font-medium text-gray-700">
+            <div className="flex items-center justify-between bg-secondary rounded-full px-4 py-2 text-sm font-medium text-muted-foreground">
               <span>{dimension.options[0].title.split(' ')[0]}</span>
-              <span className="text-gray-400">↔</span>
+              <span className="text-muted-foreground">↔</span>
               <span>{dimension.options[1].title.split(' ')[0]}</span>
             </div>
           </div>
@@ -136,19 +127,17 @@ const DimensionText = () => {
             {dimension.options.map((option, optionIndex) => (
               <div 
                 key={option.type}
-                className="bg-white/60 backdrop-blur-sm rounded-xl p-3 border border-white/30"
+                className="bg-secondary/50 rounded-xl p-3 border border-border"
               >
                 <div className="flex items-start gap-2">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm ${
-                    optionIndex === 0 ? 'bg-gradient-to-r from-pink-400 to-rose-400' : 'bg-gradient-to-r from-indigo-400 to-purple-400'
-                  }`}>
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm bg-primary`}>
                     {option.type}
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-bold text-sm text-gray-800 mb-1">
+                    <h4 className="font-bold text-sm text-foreground mb-1">
                       {option.title}
                     </h4>
-                    <p className="text-xs text-gray-600 leading-relaxed">
+                    <p className="text-xs text-muted-foreground leading-relaxed">
                       {option.description}
                     </p>
                   </div>
@@ -651,11 +640,11 @@ const MbtiTest = () => {
                 )}
                 
                 {/* 성향 설명 */}
-                <div className={`p-4 rounded-xl bg-gradient-to-br ${mbtiBackgrounds[selectedTypeData.code] || "from-orange-400 to-orange-500"} text-gray-800`}>
+                <div className="card">
                   <div className="text-center mb-3">
                     <span className="text-2xl">{selectedTypeData.icon}</span>
                   </div>
-                  <p className="text-sm leading-relaxed text-center">
+                  <p className="text-sm leading-relaxed text-center text-foreground">
                     {selectedTypeData.description}
                   </p>
                 </div>
@@ -665,7 +654,7 @@ const MbtiTest = () => {
                   {selectedTypeData.tags.map((tag, index) => (
                     <span
                       key={index}
-                      className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full"
+                      className="px-2 py-1 bg-secondary text-muted-foreground text-xs rounded-full"
                     >
                       {tag}
                     </span>
@@ -685,26 +674,26 @@ const MbtiTest = () => {
     const question = questions[currentQuestion];
 
     return (
-      <div className="min-h-screen bg-gray-50 max-w-md mx-auto">
+      <div className="min-h-screen bg-background max-w-md mx-auto">
         {/* Progress Bar */}
-        <div className="w-full bg-gray-200 h-1">
+        <div className="w-full bg-secondary h-1">
           <div 
-            className="bg-blue-600 h-1 transition-all duration-300"
+            className="bg-primary h-1 transition-all duration-300"
             style={{ width: `${progress}%` }}
           />
         </div>
 
         {/* Question Counter */}
         <div className="text-center py-4">
-          <span className="text-lg font-bold text-gray-800">
+          <span className="text-lg font-bold text-foreground">
             {currentQuestion + 1}/{questions.length}
           </span>
         </div>
 
         {/* Question Card */}
         <div className="p-5">
-          <Card className="p-6 bg-white rounded-2xl shadow-lg mb-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-6 leading-relaxed">
+          <Card className="card mb-6">
+            <h2 className="text-lg font-bold text-foreground mb-6 leading-relaxed">
               {question.question}
             </h2>
 
@@ -715,15 +704,15 @@ const MbtiTest = () => {
                     key={index}
                     className={`p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer ${
                       currentAnswer === option.value
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 bg-gray-50 hover:border-gray-300"
+                        ? "border-primary bg-secondary"
+                        : "border-border bg-secondary/50 hover:border-border/80"
                     }`}
                     onClick={() => handleAnswerChange(option.value)}
                   >
                     <div className="flex items-start space-x-3">
                       <RadioGroupItem value={option.value} />
                       <div className="flex-1">
-                        <div className="text-sm font-medium text-gray-900 leading-relaxed">
+                        <div className="text-sm font-medium text-foreground leading-relaxed">
                           {option.text}
                         </div>
                       </div>
@@ -748,7 +737,7 @@ const MbtiTest = () => {
             <Button
               onClick={handleNextQuestion}
               disabled={!currentAnswer}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 disabled:opacity-50"
+              className="flex-1 button-primary py-3 disabled:opacity-50"
             >
               {currentQuestion === questions.length - 1 ? "결과 보기" : "다음 문항"}
             </Button>
@@ -765,21 +754,21 @@ const MbtiTest = () => {
     const resultData = travelTypes.find(type => type.code === result) || travelTypes[0];
 
     return (
-      <div className="min-h-screen bg-gray-50 max-w-md mx-auto pb-20">
+      <div className="min-h-screen bg-background max-w-md mx-auto pb-20">
         {/* Header */}
         <div className="text-center py-8">
           <div className="text-6xl mb-4">{resultData.icon}</div>
-          <div className="text-2xl font-bold text-gray-900 mb-2">
+          <div className="header-title text-2xl mb-2">
             {result}
           </div>
-          <div className="text-lg font-semibold text-gray-700">
+          <div className="text-lg font-semibold text-foreground">
             {resultData.title}
           </div>
         </div>
 
         {/* Result Card */}
         <div className="p-5">
-          <Card className={`p-6 bg-gradient-to-br ${mbtiBackgrounds[result] || "from-orange-400 to-orange-500"} rounded-2xl shadow-lg text-gray-800 mb-6`}>
+          <Card className="card mb-6">
             {/* 캐릭터 이미지 */}
             {mbtiImages[result] && (
               <div className="flex justify-center mb-6">
@@ -791,7 +780,7 @@ const MbtiTest = () => {
               </div>
             )}
             
-            <p className="text-sm leading-relaxed">
+            <p className="text-sm leading-relaxed text-foreground">
               {resultData.description}
             </p>
           </Card>
@@ -801,7 +790,7 @@ const MbtiTest = () => {
             {resultData.tags.map((tag, index) => (
               <span
                 key={index}
-                className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full"
+                className="px-3 py-1 bg-secondary text-muted-foreground text-sm rounded-full"
               >
                 {tag}
               </span>
@@ -812,7 +801,7 @@ const MbtiTest = () => {
           <div className="space-y-3">
             <Button
               onClick={handleRecommendTravel}
-              className="w-full bg-black text-white font-semibold py-4 rounded-xl hover:bg-gray-800 transition-all duration-200"
+              className="button-primary w-full py-4"
             >
               <Heart className="w-5 h-5 mr-2" />
               추천 여행지 보기

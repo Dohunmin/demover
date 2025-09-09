@@ -322,14 +322,14 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background max-w-md mx-auto flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Back Button */}
         <div className="mb-4">
           <Button
             variant="ghost"
             onClick={() => navigate("/")}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="w-4 h-4" />
             홈으로 돌아가기
@@ -339,22 +339,22 @@ const Auth = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-2 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+            <div className="w-12 h-12 bg-white border border-border rounded-2xl flex items-center justify-center shadow-sm">
               <img 
                 src="/lovable-uploads/cda9196c-6bda-4f6d-b9de-457dc88de528.png" 
                 alt="멍멍! 일단 출발해! 로고"
                 className="w-8 h-8 rounded-lg"
               />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">멍멍! 일단 출발해!</h1>
+            <h1 className="header-title">멍멍! 일단 출발해!</h1>
           </div>
-          <p className="text-gray-600">반려견과 함께하는 스마트한 여행</p>
+          <p className="header-subtitle">반려견과 함께하는 스마트한 여행</p>
         </div>
 
         {/* Auth Card */}
-        <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm">
+        <Card className="card">
           <CardHeader className="text-center">
-            <CardTitle className="text-xl font-bold text-gray-900">
+            <CardTitle className="card-title text-xl">
               {isNewPasswordMode ? "새 비밀번호 설정" : 
                isPasswordReset ? "비밀번호 재설정" : 
                isSignUp ? (signUpStep === 1 ? "회원가입 - 개인정보" : "회원가입 - 계정정보") : 
@@ -363,9 +363,9 @@ const Auth = () => {
             {isSignUp && (
               <div className="flex justify-center mt-2">
                 <div className="flex items-center space-x-2">
-                  <div className={`w-3 h-3 rounded-full ${signUpStep === 1 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
-                  <div className="w-8 h-0.5 bg-gray-300"></div>
-                  <div className={`w-3 h-3 rounded-full ${signUpStep === 2 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
+                  <div className={`w-3 h-3 rounded-full ${signUpStep === 1 ? 'bg-primary' : 'bg-border'}`}></div>
+                  <div className="w-8 h-0.5 bg-border"></div>
+                  <div className={`w-3 h-3 rounded-full ${signUpStep === 2 ? 'bg-primary' : 'bg-border'}`}></div>
                 </div>
               </div>
             )}
@@ -375,16 +375,16 @@ const Auth = () => {
             {isSignUp && signUpStep === 1 && (
               <form onSubmit={handlePersonalInfoSubmit} className="space-y-4">
                 {/* 필수 입력 정보 */}
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="text-sm font-semibold text-gray-700 mb-3">필수 입력 정보</h4>
+                <div className="bg-secondary p-4 rounded-lg">
+                  <h4 className="text-sm font-semibold text-foreground mb-3">필수 입력 정보</h4>
                   
                   <div className="space-y-3">
                     <div className="space-y-2">
-                      <Label htmlFor="userName" className="text-sm font-medium text-gray-700">
+                      <Label htmlFor="userName" className="text-sm font-medium text-foreground">
                         이름 *
                       </Label>
                       <div className="relative">
-                        <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="userName"
                           type="text"
@@ -398,11 +398,11 @@ const Auth = () => {
                     </div>
                     
                     <div className="space-y-2">
-                       <Label htmlFor="userAccount" className="text-sm font-medium text-gray-700">
+                       <Label htmlFor="userAccount" className="text-sm font-medium text-foreground">
                         카카오 계정 (전화번호) *
                       </Label>
                       <div className="relative">
-                        <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="userAccount"
                           type="text"
@@ -418,21 +418,21 @@ const Auth = () => {
                 </div>
 
                 {/* 선택 입력 정보 */}
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <h4 className="text-sm font-semibold text-gray-700 mb-3">선택 입력 정보</h4>
+                <div className="bg-muted p-4 rounded-lg">
+                  <h4 className="text-sm font-semibold text-foreground mb-3">선택 입력 정보</h4>
                   
                   <div className="space-y-3">
                     <div className="space-y-2">
-                      <Label htmlFor="userGender" className="text-sm font-medium text-gray-700">
+                      <Label htmlFor="userGender" className="text-sm font-medium text-foreground">
                         성별
                       </Label>
                       <div className="relative">
-                        <Users className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <Users className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <select
                           id="userGender"
                           value={userGender}
                           onChange={(e) => setUserGender(e.target.value)}
-                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full pl-10 pr-4 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-foreground"
                         >
                           <option value="">선택하세요</option>
                           <option value="male">남성</option>
@@ -443,16 +443,16 @@ const Auth = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="userAgeGroup" className="text-sm font-medium text-gray-700">
+                      <Label htmlFor="userAgeGroup" className="text-sm font-medium text-foreground">
                         연령대
                       </Label>
                       <div className="relative">
-                        <Users className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <Users className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <select
                           id="userAgeGroup"
                           value={userAgeGroup}
                           onChange={(e) => setUserAgeGroup(e.target.value)}
-                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full pl-10 pr-4 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-foreground"
                         >
                           <option value="">선택하세요</option>
                           <option value="10s">10대</option>
@@ -466,11 +466,11 @@ const Auth = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="userBirthYear" className="text-sm font-medium text-gray-700">
+                      <Label htmlFor="userBirthYear" className="text-sm font-medium text-foreground">
                         출생 연도
                       </Label>
                       <div className="relative">
-                        <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="userBirthYear"
                           type="number"
@@ -488,7 +488,7 @@ const Auth = () => {
 
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                  className="button-primary w-full"
                 >
                   다음 단계
                 </Button>
@@ -504,7 +504,7 @@ const Auth = () => {
                       type="button"
                       variant="ghost"
                       onClick={() => setSignUpStep(1)}
-                      className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+                      className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
                     >
                       <ArrowLeft className="w-4 h-4" />
                       이전 단계
@@ -514,11 +514,11 @@ const Auth = () => {
 
                 {!isNewPasswordMode && (
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                    <Label htmlFor="email" className="text-sm font-medium text-foreground">
                       이메일
                     </Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="email"
                         type="email"
@@ -535,11 +535,11 @@ const Auth = () => {
                 {isNewPasswordMode && (
                   <>
                     <div className="space-y-2">
-                      <Label htmlFor="newPassword" className="text-sm font-medium text-gray-700">
+                      <Label htmlFor="newPassword" className="text-sm font-medium text-foreground">
                         새 비밀번호
                       </Label>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="newPassword"
                           type="password"
@@ -553,11 +553,11 @@ const Auth = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="confirmNewPassword" className="text-sm font-medium text-gray-700">
+                      <Label htmlFor="confirmNewPassword" className="text-sm font-medium text-foreground">
                         새 비밀번호 확인
                       </Label>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="confirmNewPassword"
                           type="password"
@@ -574,11 +574,11 @@ const Auth = () => {
 
                 {!isPasswordReset && !isNewPasswordMode && (
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                    <Label htmlFor="password" className="text-sm font-medium text-foreground">
                       비밀번호
                     </Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="password"
                         type="password"
@@ -594,11 +594,11 @@ const Auth = () => {
 
                 {isSignUp && signUpStep === 2 && !isNewPasswordMode && (
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
+                    <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">
                       비밀번호 확인
                     </Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="confirmPassword"
                         type="password"
@@ -614,7 +614,7 @@ const Auth = () => {
 
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                  className="button-primary w-full"
                   disabled={loading}
                 >
                   {loading ? "처리중..." : isNewPasswordMode ? "비밀번호 변경" : isPasswordReset ? "재설정 이메일 발송" : isSignUp ? "회원가입 완료" : "로그인"}
@@ -624,9 +624,9 @@ const Auth = () => {
 
             {/* 카카오 로그인 섹션 */}
             {!isPasswordReset && !isNewPasswordMode && (
-              <div className="mt-6 pt-4 border-t border-gray-200">
+              <div className="mt-6 pt-4 border-t border-border">
                 <div className="text-center mb-4">
-                  <p className="text-sm text-gray-600">또는</p>
+                  <p className="text-sm text-muted-foreground">또는</p>
                 </div>
                 <KakaoLogin 
                   onSuccess={handleKakaoSuccess}
@@ -638,7 +638,7 @@ const Auth = () => {
               {!isPasswordReset && !isNewPasswordMode && (
                 <button
                   onClick={toggleMode}
-                  className="text-sm text-blue-600 hover:text-blue-700 font-medium block w-full"
+                  className="text-sm text-primary hover:text-primary/80 font-medium block w-full"
                 >
                   {isSignUp ? "이미 계정이 있나요? 로그인" : "계정이 없나요? 회원가입"}
                 </button>
@@ -647,7 +647,7 @@ const Auth = () => {
               {!isSignUp && !isNewPasswordMode && (
                 <button
                   onClick={togglePasswordReset}
-                  className="text-sm text-gray-600 hover:text-gray-700 font-medium"
+                  className="text-sm text-muted-foreground hover:text-foreground font-medium"
                 >
                   {isPasswordReset ? "로그인으로 돌아가기" : "비밀번호를 잊으셨나요?"}
                 </button>
