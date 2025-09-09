@@ -1,7 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import hospitalBanner from '@/assets/ad-banner-hospital.jpg';
-import groomingBanner from '@/assets/ad-banner-grooming.jpg';
-import hotelBanner from '@/assets/ad-banner-hotel.jpg';
 
 interface BannerData {
   id: number;
@@ -14,24 +11,31 @@ interface BannerData {
 const banners: BannerData[] = [
   {
     id: 1,
-    image: hospitalBanner,
-    title: "24시 동물병원",
-    subtitle: "우리 아이의 건강을 책임집니다",
+    image: "/lovable-uploads/ef62330e-d2c8-436c-a93b-94b280eb17ea.png",
+    title: "털 끝까지 사랑을 담다",
+    subtitle: "펫 그루밍 전문 서비스",
     link: "#"
   },
   {
     id: 2,
-    image: groomingBanner,
-    title: "펫살롱",
-    subtitle: "우리 강아지를 더욱 예쁘게",
+    image: "/lovable-uploads/ec9c4fd4-6c05-4760-8af9-ff63c429f4bb.png",
+    title: "우리동네 동물병원",
+    subtitle: "언제나, 당신 곁에 든든한",
     link: "#"
   },
   {
     id: 3,
-    image: hotelBanner,
-    title: "펫 동반 호텔",
-    subtitle: "가족 모두가 함께하는 휴식",
+    image: "/lovable-uploads/23447610-d606-420e-aa28-dab6485249b2.png",
+    title: "반려동물과 함께",
+    subtitle: "완벽한 스테이!",
     link: "#"
+  },
+  {
+    id: 4,
+    image: "/lovable-uploads/3f350ae4-af49-4927-ba2e-d652d903e2b1.png",
+    title: "반려동물 관련 광고문의",
+    subtitle: "rislekfk@gmail.com",
+    link: "mailto:rislekfk@gmail.com"
   }
 ];
 
