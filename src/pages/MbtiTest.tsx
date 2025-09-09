@@ -104,7 +104,7 @@ const DimensionText = () => {
   const dimensionIcons = ["⚡", "💕", "👃", "✨"];
   
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="space-y-8">
       {dimensions.map((dimension, index) => (
         <div 
           key={dimension.id} 
