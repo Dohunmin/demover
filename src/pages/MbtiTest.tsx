@@ -94,30 +94,65 @@ const dimensions = [
 
 // 4가지 차원을 간단한 텍스트로 설명하는 컴포넌트
 const DimensionText = () => {
+  const dimensionColors = [
+    "from-peach-100 to-orange-100 border-peach-200", // 에너지 - 복숭아
+    "from-mint-100 to-emerald-100 border-mint-200", // 관계 - 민트
+    "from-sky-100 to-blue-100 border-sky-200", // 감각 - 스카이블루
+    "from-lavender-100 to-purple-100 border-lavender-200" // 바이브 - 라벤더
+  ];
+
+  const dimensionIcons = ["⚡", "💕", "👃", "✨"];
+  
   return (
-    <div className="space-y-6">
-      {dimensions.map((dimension) => (
-        <div key={dimension.id} className="p-4 rounded-lg bg-card border">
-          <div className="flex items-center mb-3">
-            <div className={`w-8 h-8 ${dimension.bgColor} rounded-lg flex items-center justify-center mr-3`}>
-              <span className="text-sm">{dimension.icon}</span>
-            </div>
-            <div>
-              <h4 className="font-semibold text-base">{dimension.title}</h4>
-              <p className="text-sm text-muted-foreground">{dimension.subtitle}</p>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {dimensions.map((dimension, index) => (
+        <div 
+          key={dimension.id} 
+          className={`relative p-6 rounded-2xl bg-gradient-to-br ${dimensionColors[index]} border-2 shadow-lg hover:shadow-xl transition-all duration-300`}
+        >
+          {/* Large cute dog icon at top */}
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 bg-white/80 rounded-full flex items-center justify-center shadow-md">
+              <span className="text-3xl">{dimensionIcons[index]}</span>
             </div>
           </div>
-          
+
+          {/* Title with emoji */}
+          <div className="text-center mb-4">
+            <h3 className="text-lg font-bold text-gray-800 mb-1">
+              {dimension.icon} {dimension.title}
+            </h3>
+            
+            {/* Opposing traits bar */}
+            <div className="flex items-center justify-between bg-white/50 rounded-full px-4 py-2 text-sm font-medium text-gray-700">
+              <span>{dimension.options[0].title.split(' ')[0]}</span>
+              <span className="text-gray-400">↔</span>
+              <span>{dimension.options[1].title.split(' ')[0]}</span>
+            </div>
+          </div>
+
+          {/* Two persona mini cards */}
           <div className="space-y-3">
-            {dimension.options.map((option) => (
-              <div key={option.type} className="pl-2">
-                <p className="text-sm">
-                  <span className="font-bold text-primary mr-2">{option.type}형:</span>
-                  <span className="font-medium mr-2">{option.title}</span>
-                </p>
-                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                  {option.description}
-                </p>
+            {dimension.options.map((option, optionIndex) => (
+              <div 
+                key={option.type}
+                className="bg-white/60 backdrop-blur-sm rounded-xl p-3 border border-white/30"
+              >
+                <div className="flex items-start gap-2">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm ${
+                    optionIndex === 0 ? 'bg-gradient-to-r from-pink-400 to-rose-400' : 'bg-gradient-to-r from-indigo-400 to-purple-400'
+                  }`}>
+                    {option.type}
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-bold text-sm text-gray-800 mb-1">
+                      {option.title}
+                    </h4>
+                    <p className="text-xs text-gray-600 leading-relaxed">
+                      {option.description}
+                    </p>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
