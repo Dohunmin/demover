@@ -77,7 +77,7 @@ const AdBanner: React.FC = () => {
                 <img 
                   src={banner.image} 
                   alt={banner.title}
-                  className="w-full h-32 sm:h-40 object-cover"
+                  className="w-full h-40 sm:h-48 object-cover"
                 />
                 <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
                   <div className="text-center text-white">

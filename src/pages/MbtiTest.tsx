@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ArrowLeft, PawPrint, Heart, MapPin, Compass, Mountain } from "lucide-react";
-import AdBanner from "@/components/AdBanner";
+
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -592,8 +592,6 @@ const MbtiTest = () => {
           </div>
         </main>
 
-        {/* Ad Banner */}
-        <AdBanner />
         
 
         {/* 여행 성향 설명 다이얼로그 */}
@@ -722,8 +720,6 @@ const MbtiTest = () => {
           </div>
         </div>
 
-        {/* Ad Banner */}
-        <AdBanner />
         
       </div>
     );
@@ -796,8 +792,6 @@ const MbtiTest = () => {
           </div>
         </div>
 
-        {/* Ad Banner */}
-        <AdBanner />
         
       </div>
     );
