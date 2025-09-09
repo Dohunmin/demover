@@ -16,76 +16,76 @@ import { useEffect } from "react";
 const dimensions = [
   {
     id: "energy",
-    title: "에너지레벨",
+    title: "에너지 레벨 (Energy Level)",
     subtitle: "활동적 vs 차분한",
     icon: "⚡",
     bgColor: "bg-red-100",
     options: [
       {
         type: "E",
-        title: "에너지 넘치는 탐험가",
+        title: "활동적인 탐험가 (Energetic Explorer)",
         description: "새로운 장소와 액티비티를 즐기는 에너자이저. 다양한 체험을 할 수 있는 여행지가 잘 맞아요."
       },
       {
         type: "C",
-        title: "차분한 힐링러",
+        title: "차분한 동반자 (Calm Companion)",
         description: "안정적이고 편안한 환경을 선호하는 힐링러. 한적한 산책로나 프라이빗 숙소가 더 어울려요."
       }
     ]
   },
   {
     id: "social",
-    title: "관계추구",
+    title: "관계 추구 (Relationship)",
     subtitle: "사교적 vs 주인바라기",
     icon: "🤝",
     bgColor: "bg-blue-100",
     options: [
       {
         type: "S",
-        title: "사교적인 소셜러",
+        title: "핵 인싸 (Social Star)",
         description: "다른 강아지·사람과 쉽게 친해지는 소셜러. 펫 카페, 체험 프로그램이 많은 여행지가 좋아요."
       },
       {
         type: "O",
-        title: "주인바라기 전용러버",
+        title: "주인 바라기 (Owner Only)",
         description: "보호자와 단둘이 있는 시간을 중요하게 생각하는 타입. 프라이빗한 공간, 조용한 코스의 여행이 편안해요."
       }
     ]
   },
   {
     id: "sense",
-    title: "발달감각",
+    title: "발달 감각 (Sense)",
     subtitle: "시각 중심 vs 후각 중심",
     icon: "👁️",
     bgColor: "bg-green-100",
     options: [
       {
         type: "V",
-        title: "시각적 풍경러버",
+        title: "시각 중심 (Visual-led)",
         description: "풍경과 장면을 눈으로 즐기는 시각형. 포토존, 전망대, 경치 명소에서 행복해해요."
       },
       {
         type: "N",
-        title: "후각적 탐험가",
+        title: "후각 중심 (Nose-led)",
         description: "냄새로 세상을 탐험하는 후각형. 시장, 피크닉 장소, 향이 풍부한 공간에서 즐거워해요."
       }
     ]
   },
   {
     id: "vibe",
-    title: "여행 바이브",
+    title: "여행 바이브 (Vibe)",
     subtitle: "꾸미기 vs 자연스러움",
     icon: "✨",
     bgColor: "bg-purple-100",
     options: [
       {
         type: "F",
-        title: "패션 스타일리스트",
+        title: "꾸꾸꾸 (Fashion Forward)",
         description: "귀엽게 꾸미고 특별한 경험을 추구하는 스타일. 포토존, 인스타 감성 숙소, 예쁜 소품이 많은 여행지가 좋아요."
       },
       {
         type: "B",
-        title: "자연스러운 프리덤러",
+        title: "꾸안꾸 (Back to Basics)",
         description: "편안함을 중시하는 자연주의자. 자유롭게 뛰어놀 수 있는 잔디밭, 한적한 산책로 같은 여행지가 어울려요."
       }
     ]
