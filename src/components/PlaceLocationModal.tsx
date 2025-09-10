@@ -232,43 +232,37 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
       const infoWindow = new window.kakao.maps.InfoWindow({
         content: `
           <div style="
-            padding: 8px; 
-            width: 180px; 
+            padding: 12px; 
+            max-width: 320px; 
+            min-width: 200px;
             box-sizing: border-box;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            overflow: hidden;
           ">
             <h4 style="
-              margin: 0 0 4px 0; 
+              margin: 0 0 8px 0; 
               font-weight: bold; 
-              font-size: 12px; 
+              font-size: 14px; 
               color: #333;
-              line-height: 1.2;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              white-space: nowrap;
+              line-height: 1.4;
+              word-wrap: break-word;
             ">
               ${place.title}
             </h4>
             <div style="
-              font-size: 10px; 
+              font-size: 12px; 
               color: #666; 
-              margin-bottom: 3px;
-              line-height: 1.3;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              white-space: nowrap;
+              margin-bottom: 6px;
+              line-height: 1.4;
+              word-wrap: break-word;
             ">
-              📍 ${place.addr1}
+              📍 ${place.addr1} ${place.addr2 || ''}
             </div>
             ${place.tel ? `
               <div style="
-                font-size: 9px; 
+                font-size: 11px; 
                 color: #666;
-                line-height: 1.3;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
+                line-height: 1.4;
+                word-wrap: break-word;
               ">
                 📞 ${place.tel}
               </div>
