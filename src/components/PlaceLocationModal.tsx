@@ -39,14 +39,38 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
   const [showReviewModal, setShowReviewModal] = useState(false);
 
   useEffect(() => {
-    if (isOpen && place && place.mapx && place.mapy) {
-      console.log('🗺️ 지도 모달 열림, 장소 정보:', place);
-      console.log('📍 좌표 정보:', { mapx: place.mapx, mapy: place.mapy });
-      loadKakaoMap();
+    console.log('🔄 PlaceLocationModal useEffect 실행:', { 
+      isOpen, 
+      place: place ? {
+        title: place.title,
+        mapx: place.mapx,
+        mapy: place.mapy,
+        hasMapx: !!place.mapx,
+        hasMapy: !!place.mapy
+      } : null 
+    });
+
+    if (isOpen && place) {
+      console.log('✅ 모달이 열림, 장소 정보:', place);
+      
+      if (!place.mapx || !place.mapy) {
+        console.log('❌ 좌표 정보 없음:', { mapx: place.mapx, mapy: place.mapy });
+        setMapError("위치 정보가 제공되지 않습니다.");
+        return;
+      }
+      
+      console.log('📍 좌표 정보 확인됨:', { mapx: place.mapx, mapy: place.mapy });
+      
+      // mapRef가 준비될 때까지 잠시 기다림
+      setTimeout(() => {
+        console.log('⏰ loadKakaoMap 호출 (지연 실행)');
+        loadKakaoMap();
+      }, 100);
     }
 
     return () => {
       // 정리
+      console.log('🧹 PlaceLocationModal 정리 중...');
       if (markerRef.current) {
         markerRef.current.setMap(null);
       }
@@ -59,8 +83,21 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
   }, [isOpen, place]);
 
   const loadKakaoMap = async () => {
-    if (!mapRef.current || !place) {
-      console.log('❌ 지도 로딩 실패: mapRef 또는 place 없음');
+    console.log('🚀 loadKakaoMap 호출됨:', { 
+      hasMapRef: !!mapRef.current, 
+      hasPlace: !!place,
+      place: place ? { title: place.title, mapx: place.mapx, mapy: place.mapy } : null
+    });
+    
+    if (!mapRef.current) {
+      console.log('❌ mapRef.current가 없음, DOM 요소가 준비되지 않음');
+      setMapError("지도 컨테이너를 찾을 수 없습니다.");
+      return;
+    }
+    
+    if (!place) {
+      console.log('❌ place 데이터가 없음');
+      setMapError("장소 정보가 없습니다.");
       return;
     }
 
