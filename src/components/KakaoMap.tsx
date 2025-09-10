@@ -273,6 +273,13 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           filteredPlaces = allPetData.filter(place => place.locationGubun === targetLocationGubun);
           console.log(`✅ ${categoryId} (${targetLocationGubun}) 카테고리 필터링: ${filteredPlaces.length}개`);
           
+          // 필터링된 장소들의 MBTI 정보 로그
+          filteredPlaces.forEach((place, index) => {
+            if (index < 3) { // 처음 3개만 로그
+              console.log(`   - ${place.title}: mbti=${place.mbti}, locationGubun=${place.locationGubun}`);
+            }
+          });
+          
           // 필터링 결과가 없을 때 디버깅 정보
           if (filteredPlaces.length === 0) {
             console.log("⚠️ 필터링 결과가 0개입니다.");
@@ -289,7 +296,10 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         const beforeCount = filteredPlaces.length;
         
         finalPlaces = filteredPlaces.filter((place) => {
-          if (!place.mbti) return false;
+          if (!place.mbti) {
+            console.log(`❌ MBTI 없음: ${place.title}`);
+            return false;
+          }
           
           // mbti가 "all"이면 모든 MBTI에 표시
           if (place.mbti === "all") {
@@ -298,9 +308,14 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           }
           
           if (Array.isArray(place.mbti)) {
-            return place.mbti.includes(selectedMbti);
+            const isIncluded = place.mbti.includes(selectedMbti);
+            console.log(`${isIncluded ? '✅' : '❌'} 배열 MBTI ${place.title}: ${place.mbti} includes ${selectedMbti} = ${isIncluded}`);
+            return isIncluded;
           }
-          return place.mbti === selectedMbti;
+          
+          const isMatch = place.mbti === selectedMbti;
+          console.log(`${isMatch ? '✅' : '❌'} 단일 MBTI ${place.title}: ${place.mbti} === ${selectedMbti} = ${isMatch}`);
+          return isMatch;
         });
         
         console.log(`✅ MBTI 필터링: ${beforeCount}개 → ${finalPlaces.length}개`);
