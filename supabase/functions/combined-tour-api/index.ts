@@ -607,8 +607,13 @@ serve(async (req) => {
             };
           });
 
-          // 캐시에 저장
-          setCache(cacheKey, simplifiedResults);
+          // 캐시에 저장 (100개 이하일 때만)
+          if (simplifiedResults.length <= 100) {
+            setCache(cacheKey, simplifiedResults);
+            console.log(`💾 캐시에 저장 완료: ${simplifiedResults.length}개`);
+          } else {
+            console.warn(`⚠️ 결과가 ${simplifiedResults.length}건이라 캐시에 저장하지 않음 (100개 초과)`);
+          }
 
           petTourismData = {
             response: {
