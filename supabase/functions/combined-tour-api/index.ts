@@ -286,8 +286,8 @@ serve(async (req) => {
     if (activeTab === "pet") {
       // 2. 한국관광공사 반려동물 동반 여행지 서비스 호출 (반려동물만)
       if (loadAllPetKeywords) {
-        // 캐시 확인 (완전 초기화)
-        const cacheKey = `pet_friendly_places_busan_${Date.now()}`; // 타임스탬프로 완전 초기화
+        // 캐시 확인 (고정 키 사용)
+        const cacheKey = "pet_friendly_places_busan";
         const cachedData = getCached(cacheKey);
 
         if (cachedData) {
@@ -781,19 +781,32 @@ serve(async (req) => {
           return sampleData; // API 데이터가 없으면 전체 sample data 반환
         }
         
-        // API 응답에서 title들을 추출
-        const apiTitles = new Set(
-          Array.isArray(petTourismData.response.body.items.item)
-            ? petTourismData.response.body.items.item.map(item => item.title)
-            : [petTourismData.response.body.items.item.title]
+        // API 응답에서 title + addr1을 조합한 키 추출
+        const apiKeys = new Set(
+          (Array.isArray(petTourismData.response.body.items.item)
+            ? petTourismData.response.body.items.item
+            : [petTourismData.response.body.items.item]
+          ).map(item => `${item.title}_${item.addr1 || ""}`)
         );
         
-        // sample-data 중 API에 없는 항목만 필터링
-        const missingItems = sampleData.filter(item => !apiTitles.has(item.title));
+        // sample-data 중 API에 없는 항목만 필터링 (title + addr1 기준)
+        const missingItems = sampleData.filter(
+          item => !apiKeys.has(`${item.title}_${item.addr1 || ""}`)
+        );
         
-        console.log(`🔄 Pet 탭 중복 제거: API ${apiTitles.size}개, sample-data ${sampleData.length}개 → 추가할 항목 ${missingItems.length}개`);
+        console.log(`🔄 Pet 탭 중복 제거: API ${apiKeys.size}개, sample-data ${sampleData.length}개 → 추가할 항목 ${missingItems.length}개`);
+        console.log(`📊 최종 데이터 검증: API ${apiKeys.size}개 + 추가 sample-data ${missingItems.length}개 = 총 ${apiKeys.size + missingItems.length}개`);
+        
         if (missingItems.length > 0) {
           console.log("추가할 sample-data 항목들:", missingItems.map(item => item.title));
+        }
+        
+        // 95개 내외 검증
+        const totalCount = apiKeys.size + missingItems.length;
+        if (totalCount < 90 || totalCount > 100) {
+          console.warn(`⚠️ 데이터 개수가 예상 범위를 벗어남: ${totalCount}개 (권장: 90-100개)`);
+        } else {
+          console.log(`✅ 데이터 개수 검증 통과: ${totalCount}개 (권장 범위 내)`);
         }
         
         return missingItems;
