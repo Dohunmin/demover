@@ -286,8 +286,8 @@ serve(async (req) => {
     if (activeTab === "pet") {
       // 2. 한국관광공사 반려동물 동반 여행지 서비스 호출 (반려동물만)
       if (loadAllPetKeywords) {
-        // 캐시 확인 (고정 키 사용)
-        const cacheKey = "pet_friendly_places_busan";
+        // 캐시 확인 (완전 초기화)
+        const cacheKey = `pet_friendly_places_busan_${Date.now()}`; // 타임스탬프로 완전 초기화
         const cachedData = getCached(cacheKey);
 
         if (cachedData) {
@@ -506,33 +506,14 @@ serve(async (req) => {
             `🎯 전체 수집 완료: 총 ${allResults.length}개 수집 (소요시간: ${totalTime}초)`
           );
 
-          // contentid 기준으로 중복 제거 (Set 활용) + 강화된 중복 제거
+          // contentid 기준으로 중복 제거 (Set 활용)
           const seen = new Set();
-          const uniqueByContentId = new Set();
-          const uniqueByTitleAddr = new Set();
-          
           const uniqueResults = allResults.filter(item => {
-            // 1차: contentid가 있는 경우 contentid로 중복 체크
-            if (item.contentid) {
-              if (uniqueByContentId.has(item.contentid)) {
-                console.log(`🔄 contentid 중복 제거: ${item.title} (${item.contentid})`);
-                return false;
-              }
-              uniqueByContentId.add(item.contentid);
-            }
-            
-            // 2차: title + addr1 조합으로 중복 체크
-            const titleAddrKey = `${item.title?.trim() || ''}_${item.addr1?.trim() || ''}`;
-            if (uniqueByTitleAddr.has(titleAddrKey)) {
-              console.log(`🔄 title+addr1 중복 제거: ${item.title} (${titleAddrKey})`);
-              return false;
-            }
-            uniqueByTitleAddr.add(titleAddrKey);
-            
-            // 3차: 기존 uniqueKey 방식도 병행
+            // contentid가 없는 경우는 title + mapx + mapy 조합으로 중복 체크
             const uniqueKey = item.contentid || `${item.title}_${item.mapx}_${item.mapy}`;
+            
             if (seen.has(uniqueKey)) {
-              console.log(`🔄 기존방식 중복 제거: ${item.title} (${uniqueKey})`);
+              console.log(`🔄 중복 제거: ${item.title} (${uniqueKey})`);
               return false;
             }
             seen.add(uniqueKey);
@@ -635,14 +616,6 @@ serve(async (req) => {
           });
 
           console.log(`🎯 최종 결과: API ${uniqueResults.length}개 → 최종 반환 ${simplifiedResults.length}개`);
-          console.log(`📊 최종 데이터 검증: 총 ${simplifiedResults.length}개 (목표: 95개 내외)`);
-          
-          // 95개 범위 검증
-          if (simplifiedResults.length < 90 || simplifiedResults.length > 100) {
-            console.warn(`⚠️ 데이터 개수가 예상 범위를 벗어남: ${simplifiedResults.length}개 (권장: 90-100개)`);
-          } else {
-            console.log(`✅ 데이터 개수 검증 통과: ${simplifiedResults.length}개 (권장 범위 내)`);
-          }
 
           console.log("=== 매칭 분석 ===");
           
@@ -808,32 +781,19 @@ serve(async (req) => {
           return sampleData; // API 데이터가 없으면 전체 sample data 반환
         }
         
-        // API 응답에서 title + addr1을 조합한 키 추출
-        const apiKeys = new Set(
-          (Array.isArray(petTourismData.response.body.items.item)
-            ? petTourismData.response.body.items.item
-            : [petTourismData.response.body.items.item]
-          ).map(item => `${item.title}_${item.addr1 || ""}`)
+        // API 응답에서 title들을 추출
+        const apiTitles = new Set(
+          Array.isArray(petTourismData.response.body.items.item)
+            ? petTourismData.response.body.items.item.map(item => item.title)
+            : [petTourismData.response.body.items.item.title]
         );
         
-        // sample-data 중 API에 없는 항목만 필터링 (title + addr1 기준)
-        const missingItems = sampleData.filter(
-          item => !apiKeys.has(`${item.title}_${item.addr1 || ""}`)
-        );
+        // sample-data 중 API에 없는 항목만 필터링
+        const missingItems = sampleData.filter(item => !apiTitles.has(item.title));
         
-        console.log(`🔄 Pet 탭 중복 제거: API ${apiKeys.size}개, sample-data ${sampleData.length}개 → 추가할 항목 ${missingItems.length}개`);
-        console.log(`📊 최종 데이터 검증: API ${apiKeys.size}개 + 추가 sample-data ${missingItems.length}개 = 총 ${apiKeys.size + missingItems.length}개`);
-        
+        console.log(`🔄 Pet 탭 중복 제거: API ${apiTitles.size}개, sample-data ${sampleData.length}개 → 추가할 항목 ${missingItems.length}개`);
         if (missingItems.length > 0) {
           console.log("추가할 sample-data 항목들:", missingItems.map(item => item.title));
-        }
-        
-        // 95개 내외 검증
-        const totalCount = apiKeys.size + missingItems.length;
-        if (totalCount < 90 || totalCount > 100) {
-          console.warn(`⚠️ 데이터 개수가 예상 범위를 벗어남: ${totalCount}개 (권장: 90-100개)`);
-        } else {
-          console.log(`✅ 데이터 개수 검증 통과: ${totalCount}개 (권장 범위 내)`);
         }
         
         return missingItems;
