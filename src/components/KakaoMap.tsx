@@ -500,20 +500,10 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           return;
         }
 
-        console.log("카카오 API 키 가져오는 중...");
-        const { data, error } = await supabase.functions.invoke("test-api-key");
-
-        if (error || !data?.kakaoJsKey) {
-          console.error("카카오 API 키 조회 실패:", error);
-          toast.error("카카오 지도 API 키를 가져올 수 없습니다.");
-          return;
-        }
-
-        const KAKAO_JS_KEY = data.kakaoJsKey;
-        console.log("카카오 지도 스크립트 로딩 시작...");
+        console.log("카카오 지도 프록시를 통해 스크립트 로딩 시작...");
 
         const existingScript = document.querySelector(
-          'script[src*="dapi.kakao.com"]'
+          'script[src*="kakao-map-proxy"]'
         );
         if (existingScript) {
           existingScript.remove();
@@ -525,7 +515,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
         const script = document.createElement("script");
         script.type = "text/javascript";
-        script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JS_KEY}&autoload=false&libraries=services,clusterer`;
+        script.src = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/kakao-map-proxy?autoload=false&libraries=services,clusterer`;
 
         await new Promise<void>((resolve, reject) => {
           const timeout = setTimeout(() => {
@@ -565,7 +555,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
             clearTimeout(timeout);
             console.error("카카오 스크립트 로딩 실패");
             console.error("스크립트 URL:", script.src);
-            console.error("API 키 상태:", KAKAO_JS_KEY ? "존재함" : "없음");
+            console.error("프록시를 통한 카카오 SDK 로딩 실패");
             reject(new Error("카카오 스크립트 로딩 실패"));
           };
 
