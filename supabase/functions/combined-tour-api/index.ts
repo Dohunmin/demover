@@ -549,6 +549,17 @@ serve(async (req) => {
             console.log(`   - ${category}: ${count}개`);
           });
 
+          console.log(`=== sample-data 통계 ===`);
+          const locationGubunStats = {};
+          sampleData.forEach((data) => {
+            const gubun = data.locationGubun;
+            locationGubunStats[gubun] = (locationGubunStats[gubun] || 0) + 1;
+          });
+          console.log("sample-data locationGubun 분포:");
+          Object.entries(locationGubunStats).forEach(([gubun, count]) => {
+            console.log(`   - ${gubun}: ${count}개`);
+          });
+
           // 샘플 데이터를 Map으로 변환 (O(1) 조회 성능)
           const sampleDataMap = new Map();
           sampleData.forEach((data) => {
