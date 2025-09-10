@@ -184,6 +184,32 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
     };
   }, [parkFilter, activeTab]);
 
+  // 사용자 변경시 캐시 상태 초기화 (로그아웃/로그인 처리)
+  useEffect(() => {
+    console.log('👤 사용자 상태 변경:', user?.id ? `로그인됨 (${user.id})` : '로그아웃됨');
+    
+    // 사용자가 변경되면 캐시 상태 초기화
+    setPetCacheLoaded(false);
+    setAllPetPlacesCache([]);
+    
+    // 다른 사용자의 캐시가 남아있지 않도록 현재 사용자가 아닌 캐시들 정리
+    if (typeof window !== 'undefined') {
+      const currentUserId = user?.id || 'anonymous';
+      
+      // localStorage에서 다른 사용자의 pet_places_cache 찾아서 제거
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('pet_places_cache_v3_') && !key.includes(currentUserId)) {
+          localStorage.removeItem(key);
+          console.log(`🧹 다른 사용자 캐시 정리: ${key}`);
+        }
+        if (key.startsWith('pet_places_cache_time_v3_') && !key.includes(currentUserId)) {
+          localStorage.removeItem(key);
+          console.log(`🧹 다른 사용자 캐시 시간 정리: ${key}`);
+        }
+      });
+    }
+  }, [user?.id]);
+
   useEffect(() => {
     if (userAreaCode) {
       console.log(`🔍 useEffect 실행: activeTab=${activeTab}, userAreaCode=${userAreaCode}`);
@@ -214,9 +240,9 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
       return;
     }
 
-    // localStorage에서 캐시 확인 (24시간 TTL) - 캐시 초기화
-    const cacheKey = 'pet_places_cache_v3'; // 캐시 초기화
-    const cacheTimeKey = 'pet_places_cache_time_v3'; // 캐시 초기화
+    // localStorage에서 캐시 확인 (24시간 TTL) - 사용자별 캐시
+    const cacheKey = `pet_places_cache_v3_${user?.id || 'anonymous'}`;
+    const cacheTimeKey = `pet_places_cache_time_v3_${user?.id || 'anonymous'}`;
     const CACHE_TTL = 24 * 60 * 60 * 1000; // 24시간
 
     try {
