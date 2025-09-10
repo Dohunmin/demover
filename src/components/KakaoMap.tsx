@@ -321,27 +321,12 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         console.log(`✅ MBTI 필터링: ${beforeCount}개 → ${finalPlaces.length}개`);
       }
 
-      // 3단계: 마커 생성 전 최종 중복 제거
-      const finalUniqueMap = new Map();
-      finalPlaces.forEach((place) => {
-        const key = place.title ? place.title.trim().toLowerCase() : 
-                   (place.contentid ? place.contentid : Math.random().toString());
-        if (!finalUniqueMap.has(key)) {
-          finalUniqueMap.set(key, place);
-        } else {
-          console.log(`🔄 마커 생성 단계에서 중복 제거: ${place.title}`);
-        }
-      });
-      
-      const uniqueFinalPlaces = Array.from(finalUniqueMap.values());
-      console.log(`🎯 마커 생성 전 최종 중복 제거: ${finalPlaces.length}개 → ${uniqueFinalPlaces.length}개`);
-      
-      // 4단계: 마커 생성
+      // 3단계: 마커 생성
       const newMarkers: any[] = [];
       let markerCount = 0;
       
-      uniqueFinalPlaces.forEach((place, index) => {
-        console.log(`🔍 마커 처리 ${index + 1}/${uniqueFinalPlaces.length}: ${place.title}`);
+      finalPlaces.forEach((place, index) => {
+        console.log(`🔍 마커 처리 ${index + 1}/${finalPlaces.length}: ${place.title}`);
         
         if (!place.mapx || !place.mapy || place.mapx === "0" || place.mapy === "0") {
           console.log(`❌ 좌표 없음: ${place.title}`);
@@ -906,72 +891,35 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         console.log(`🎯 "all" MBTI 장소들: ${allMbtiPlaces.length}개`, allMbtiPlaces.map((p: any) => p.title));
       }
 
-      // 3. 강화된 중복 제거 로직 (title 우선, contentid 보조)
+      // 3. 중복 제거 (contentid 기준)
       const uniqueDataMap = new Map();
-      
-      console.log(`🔍 중복 제거 전 데이터 분석: 총 ${allPetData.length}개`);
-      
-      allPetData.forEach((item: any, index: number) => {
-        if (!item.title) {
-          console.log(`⚠️ 제목 없는 데이터 스킵: ${index}번째 항목`);
-          return;
-        }
-        
-        // title을 기준으로 중복 체크 (가장 중요)
-        const normalizedTitle = item.title.trim().toLowerCase();
-        
-        if (!uniqueDataMap.has(normalizedTitle)) {
-          uniqueDataMap.set(normalizedTitle, item);
-          console.log(`✅ 추가: ${item.title} (${item.locationGubun || '분류없음'})`);
-        } else {
-          console.log(`❌ 중복 제거: ${item.title}`);
+      allPetData.forEach((item: any) => {
+        if (item.contentid && !uniqueDataMap.has(item.contentid)) {
+          uniqueDataMap.set(item.contentid, item);
+        } else if (!item.contentid && item.title) {
+          // contentid가 없는 경우 title로 중복 체크
+          const titleKey = `title_${item.title}`;
+          if (!uniqueDataMap.has(titleKey)) {
+            uniqueDataMap.set(titleKey, item);
+          }
         }
       });
       
       const deduplicatedData = Array.from(uniqueDataMap.values());
       console.log(`🔄 중복 제거: ${allPetData.length}개 → ${deduplicatedData.length}개`);
-      
-      // 좌표 유효성 검증
+
       const validData = deduplicatedData.filter(
-        (item: any) => {
-          if (!item.mapx || !item.mapy || item.mapx === "0" || item.mapy === "0") {
-            console.log(`❌ 좌표 없음으로 제외: ${item.title}`);
-            return false;
-          }
-          return true;
-        }
+        (item: any) => item.mapx && item.mapy && item.mapx !== "0" && item.mapy !== "0"
       );
 
-      // 4. 데이터 개수 검증 및 디버깅
+      // 4. 데이터 개수 검증 (90개 이상 100개 미만만 허용)
       const dataCount = validData.length;
-      console.log(`📊 최종 유효 데이터 개수: ${dataCount}개`);
-      
-      // 카테고리별 분포 확인
-      const categoryStats = {};
-      validData.forEach(item => {
-        const category = item.locationGubun || '분류없음';
-        categoryStats[category] = (categoryStats[category] || 0) + 1;
-      });
-      console.log(`📊 카테고리별 분포:`, categoryStats);
-      
-      // MBTI 분포 확인
-      const mbtiStats = {};
-      validData.forEach(item => {
-        const mbti = item.mbti || 'MBTI없음';
-        const mbtiKey = Array.isArray(mbti) ? 'Array' : mbti;
-        mbtiStats[mbtiKey] = (mbtiStats[mbtiKey] || 0) + 1;
-      });
-      console.log(`🧠 MBTI별 분포:`, mbtiStats);
+      console.log(`📊 최종 데이터 개수: ${dataCount}개`);
 
-      if (dataCount < 90) {
-        console.error(`❌ 데이터 부족: ${dataCount}개 (최소 90개 필요)`);
-        toast.warning(`데이터 부족: ${dataCount}개만 로드됨 (최소 90개 필요)`);
-      } else if (dataCount >= 100) {
-        console.error(`❌ 데이터 과다: ${dataCount}개 (최대 99개)`);
-        toast.warning(`데이터 과다: ${dataCount}개 로드됨 (최대 99개)`);
-      } else {
-        console.log(`✅ 정상 범위: ${dataCount}개 (90-99개)`);
-        toast.success(`${dataCount}개의 반려동물 동반 여행지 로드 완료`);
+      if (dataCount < 90 || dataCount >= 100) {
+        console.error(`❌ 비정상적인 데이터 개수 감지: ${dataCount}개 (정상 범위: 90-99개)`);
+        toast.error(`데이터 오류: 예상 개수(90-99개)와 다른 ${dataCount}개가 로드됨`);
+        return;
       }
 
       setAllPetData(validData);
