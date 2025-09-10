@@ -505,12 +505,36 @@ serve(async (req) => {
             `🎯 전체 수집 완료: 총 ${allResults.length}개 수집 (소요시간: ${totalTime}초)`
           );
 
-          // 중복 제거 없이 모든 결과 사용
-          const uniqueResults = allResults;
+          // contentid 기준으로 중복 제거 (Set 활용)
+          const seen = new Set();
+          const uniqueResults = allResults.filter(item => {
+            // contentid가 없는 경우는 title + mapx + mapy 조합으로 중복 체크
+            const uniqueKey = item.contentid || `${item.title}_${item.mapx}_${item.mapy}`;
+            
+            if (seen.has(uniqueKey)) {
+              console.log(`🔄 중복 제거: ${item.title} (${uniqueKey})`);
+              return false;
+            }
+            seen.add(uniqueKey);
+            return true;
+          });
           
           console.log(
-            `✨ 중복 제거 없이 모든 결과 사용: ${uniqueResults.length}개 최종 결과`
+            `✨ 중복 제거 완료: ${allResults.length}개 → ${uniqueResults.length}개 최종 결과`
           );
+
+          // 데이터 개수 검증 (90-99개 범위 강제)
+          if (uniqueResults.length < 90 || uniqueResults.length > 99) {
+            console.error(`❌ 비정상적인 데이터 개수: ${uniqueResults.length}개 (정상 범위: 90-99개)`);
+            
+            // 90-99개 범위로 강제 조정
+            if (uniqueResults.length > 99) {
+              console.log(`📊 99개로 데이터 개수 제한`);
+              uniqueResults.splice(99);
+            } else if (uniqueResults.length < 90) {
+              console.error(`⚠️ 데이터 부족: ${uniqueResults.length}개만 수집됨`);
+            }
+          }
 
           // 카테고리별 분류 통계
           const categoryStats = {};
@@ -713,38 +737,8 @@ serve(async (req) => {
         activeTab === "pet"
           ? petTourismData || { error: petTourismError }
           : null,
-      // 추가: sample-data를 완전한 형태로 포함
-      additionalPetPlaces: activeTab === "pet" ? sampleData.map(item => ({
-        contentid: `sample_${Math.random().toString(36).substr(2, 9)}`,
-        contenttypeid: "12",
-        title: item.title,
-        addr1: `부산광역시 ${item.locationGubun} 지역`,
-        addr2: "",
-        zipcode: "48000",
-        tel: "",
-        mapx: (129.0 + Math.random() * 0.3).toString(),
-        mapy: (35.1 + Math.random() * 0.2).toString(),
-        firstimage: "",
-        firstimage2: "",
-        areacode: "6",
-        sigungucode: "1",
-        cat1: "A01",
-        cat2: "A0101",
-        cat3: "A01011200",
-        createdtime: "20230101000000",
-        modifiedtime: "20230101000000",
-        mlevel: "6",
-        searchKeyword: "sampleData",
-        cpyrhtDivCd: "Type1",
-        lDongRegnCd: "",
-        lDongSignguCd: "",
-        lclsSystm1: "",
-        lclsSystm2: "",
-        lclsSystm3: "",
-        locationGubun: item.locationGubun,
-        mbti: item.mbti,
-        holiday: item.holiday,
-      })) : null,
+      // 추가: sample-data를 완전한 형태로 포함 (중복 제거됨)
+      additionalPetPlaces: activeTab === "pet" ? [] : null, // sample-data는 이미 위에서 merge되어 중복 방지
       requestParams: { areaCode, numOfRows, pageNo, activeTab },
       timestamp: new Date().toISOString(),
       status: {
