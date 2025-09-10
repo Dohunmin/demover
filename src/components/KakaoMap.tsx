@@ -355,7 +355,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
                 ${place.locationGubun ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px; background: #F3F4F6; padding: 3px 6px; border-radius: 8px; display: inline-block;">📍 ${place.locationGubun}</div>` : ""}
                 ${place.mbti && place.mbti !== "all" ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px; background: #E0F2FE; padding: 3px 6px; border-radius: 8px; display: inline-block;">🧠 MBTI: ${Array.isArray(place.mbti) ? place.mbti.join(', ') : place.mbti}</div>` : ""}
                 
-                ${place.holiday ? `<div style="font-size: 10px; color: #DC2626; margin-bottom: 6px; background: #FEF2F2; padding: 3px 6px; border-radius: 8px; display: inline-block; border: 1px solid #FCA5A5;">🚫 휴무일: ${place.holiday}</div>` : ""}
+                ${place.holiday ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px; background: #F3F4F6; padding: 3px 6px; border-radius: 8px; display: inline-block;">🚫 휴무일: ${place.holiday}</div>` : ""}
                 
                 <div style="font-size: 11px; color: #333; margin-bottom: 4px; line-height: 1.2;">${place.addr1 || '주소 정보 없음'}</div>
                 ${place.addr2 ? `<div style="font-size: 10px; color: #666; margin-bottom: 4px;">${place.addr2}</div>` : ""}
@@ -560,7 +560,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
             
             ${place.locationGubun ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px; background: #F3F4F6; padding: 3px 6px; border-radius: 8px; display: inline-block;">📍 ${place.locationGubun}</div>` : ""}
             
-            ${place.holiday ? `<div style="font-size: 10px; color: #DC2626; margin-bottom: 6px; background: #FEF2F2; padding: 3px 6px; border-radius: 8px; display: inline-block; border: 1px solid #FCA5A5;">🚫 휴무일: ${place.holiday}</div>` : ""}
+            ${place.holiday ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px; background: #F3F4F6; padding: 3px 6px; border-radius: 8px; display: inline-block;">🚫 휴무일: ${place.holiday}</div>` : ""}
             
             <div style="font-size: 11px; color: #333; margin-bottom: 4px; line-height: 1.2;">${place.addr1}</div>
             ${place.addr2 ? `<div style="font-size: 10px; color: #666; margin-bottom: 4px;">${place.addr2}</div>` : ""}
