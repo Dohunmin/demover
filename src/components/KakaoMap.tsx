@@ -831,9 +831,36 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         console.log(`🎯 "all" MBTI 장소들: ${allMbtiPlaces.length}개`, allMbtiPlaces.map((p: any) => p.title));
       }
 
-      const validData = allPetData.filter(
+      // 3. 중복 제거 (contentid 기준)
+      const uniqueDataMap = new Map();
+      allPetData.forEach((item: any) => {
+        if (item.contentid && !uniqueDataMap.has(item.contentid)) {
+          uniqueDataMap.set(item.contentid, item);
+        } else if (!item.contentid && item.title) {
+          // contentid가 없는 경우 title로 중복 체크
+          const titleKey = `title_${item.title}`;
+          if (!uniqueDataMap.has(titleKey)) {
+            uniqueDataMap.set(titleKey, item);
+          }
+        }
+      });
+      
+      const deduplicatedData = Array.from(uniqueDataMap.values());
+      console.log(`🔄 중복 제거: ${allPetData.length}개 → ${deduplicatedData.length}개`);
+
+      const validData = deduplicatedData.filter(
         (item: any) => item.mapx && item.mapy && item.mapx !== "0" && item.mapy !== "0"
       );
+
+      // 4. 데이터 개수 검증 (90개 이상 100개 미만만 허용)
+      const dataCount = validData.length;
+      console.log(`📊 최종 데이터 개수: ${dataCount}개`);
+
+      if (dataCount < 90 || dataCount >= 100) {
+        console.error(`❌ 비정상적인 데이터 개수 감지: ${dataCount}개 (정상 범위: 90-99개)`);
+        toast.error(`데이터 오류: 예상 개수(90-99개)와 다른 ${dataCount}개가 로드됨`);
+        return;
+      }
 
       setAllPetData(validData);
       console.log(`✅ 지도에서 자체 로드한 데이터 ${validData.length}개 설정 완료`);
@@ -842,9 +869,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       const finalAllMbtiPlaces = validData.filter((item: any) => item.mbti === 'all');
       console.log(`🔥 최종 "all" MBTI 장소들: ${finalAllMbtiPlaces.length}개`, finalAllMbtiPlaces.map((p: any) => p.title));
       
-      if (validData.length > 0) {
-        toast.success('반려동물 여행지 데이터를 불러왔습니다!');
-      }
+      toast.success(`반려동물 여행지 ${validData.length}개를 불러왔습니다!`);
       
     } catch (error) {
       console.error('반려동물 데이터 로드 중 오류:', error);
