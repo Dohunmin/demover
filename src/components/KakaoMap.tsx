@@ -289,9 +289,9 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         }
       }
 
-      // 2단계: MBTI 필터링 (전체 카테고리가 아닐 때만)
+      // 2단계: MBTI 필터링 (선택된 MBTI가 있을 때 적용)
       let finalPlaces = filteredPlaces;
-      if (selectedMbti && categoryId !== "all" && filteredPlaces.length > 0) {
+      if (selectedMbti && filteredPlaces.length > 0) {
         console.log(`🧠 MBTI 필터 적용: ${selectedMbti}`);
         const beforeCount = filteredPlaces.length;
         
