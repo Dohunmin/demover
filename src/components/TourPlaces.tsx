@@ -288,27 +288,38 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
 
       let allPetData = [];
 
-      // API에서 받은 데이터 처리
+      // API에서 받은 데이터 처리 (서버에서 이미 중복 제거 및 sample-data 통합 완료)
       if (data?.petTourismData?.response?.body?.items?.item) {
         const items = data.petTourismData.response.body.items.item;
         const processedItems = Array.isArray(items) ? items : [items];
-        allPetData.push(...processedItems);
+        allPetData = processedItems; // push 대신 할당으로 변경
       }
 
-      // 추가 샘플 데이터 (52개)
-      if (data?.additionalPetPlaces && Array.isArray(data.additionalPetPlaces)) {
-        allPetData.push(...data.additionalPetPlaces);
-      }
+      // additionalPetPlaces는 서버에서 이미 통합되었으므로 클라이언트에서 추가하지 않음
+      // (기존 중복 발생 원인)
 
-      console.log(`총 ${allPetData.length}개의 반려동물 여행지 로딩 완료`);
+      console.log(`서버에서 받은 반려동물 여행지: ${allPetData.length}개`);
       
-      // localStorage에 캐시 저장
-      try {
-        localStorage.setItem(cacheKey, JSON.stringify(allPetData));
-        localStorage.setItem(cacheTimeKey, Date.now().toString());
-        console.log('💾 localStorage에 반려동물 여행지 캐시 저장');
-      } catch (error) {
-        console.error('localStorage 캐시 저장 실패:', error);
+      // 100개 제한 적용
+      if (allPetData.length > 100) {
+        console.warn(`⚠️ 데이터가 ${allPetData.length}개로 100개를 초과합니다. 100개로 제한합니다.`);
+        allPetData = allPetData.slice(0, 100);
+        console.log(`✂️ 100개로 제한 후: ${allPetData.length}개`);
+      }
+
+      console.log(`🎯 최종 반려동물 여행지: ${allPetData.length}개`);
+      
+      // localStorage에 캐시 저장 (100개 이하일 때만)
+      if (allPetData.length <= 100) {
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify(allPetData));
+          localStorage.setItem(cacheTimeKey, Date.now().toString());
+          console.log('💾 localStorage에 반려동물 여행지 캐시 저장:', allPetData.length, '개');
+        } catch (error) {
+          console.error('localStorage 캐시 저장 실패:', error);
+        }
+      } else {
+        console.warn('⚠️ 데이터가 100개를 초과하여 캐시에 저장하지 않습니다.');
       }
       
       setAllPetPlacesCache(allPetData);
