@@ -728,7 +728,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     };
   }, [initializeMap]);
 
-  // petTourismData가 있을 때 데이터 설정
+  // petTourismData가 있을 때 데이터 설정 또는 자체 로드
   useEffect(() => {
     if (petTourismData && petTourismData.length > 0 && allPetData.length === 0) {
       const validData = petTourismData.filter(
@@ -755,8 +755,61 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         ))];
         console.log("🧠 사용 가능한 MBTI:", mbtis);
       }
+    } else if (showPetFilter && allPetData.length === 0 && (!petTourismData || petTourismData.length === 0)) {
+      // props로 데이터를 받지 못했고, 자체 데이터도 없다면 직접 로드
+      console.log('🔄 지도에서 자체적으로 반려동물 데이터 로드 시작');
+      loadPetTourismData();
     }
-  }, [petTourismData, allPetData.length]);
+  }, [petTourismData, allPetData.length, showPetFilter]);
+
+  // 반려동물 데이터 자체 로드 함수
+  const loadPetTourismData = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('combined-tour-api', {
+        body: {
+          areaCode: '6', // 부산 고정
+          numOfRows: '200',
+          pageNo: '1',
+          keyword: '',
+          activeTab: 'pet',
+          loadAllPetKeywords: true
+        }
+      });
+
+      if (error) {
+        console.error('반려동물 데이터 로드 실패:', error);
+        return;
+      }
+
+      let allPetData = [];
+
+      // API에서 받은 데이터 처리
+      if (data?.petTourismData?.response?.body?.items?.item) {
+        const items = data.petTourismData.response.body.items.item;
+        const processedItems = Array.isArray(items) ? items : [items];
+        allPetData.push(...processedItems);
+      }
+
+      // 추가 샘플 데이터
+      if (data?.additionalPetPlaces && Array.isArray(data.additionalPetPlaces)) {
+        allPetData.push(...data.additionalPetPlaces);
+      }
+
+      const validData = allPetData.filter(
+        (item: any) => item.mapx && item.mapy && item.mapx !== "0" && item.mapy !== "0"
+      );
+
+      setAllPetData(validData);
+      console.log(`✅ 지도에서 자체 로드한 데이터 ${validData.length}개 설정 완료`);
+      
+      if (validData.length > 0) {
+        toast.success('반려동물 여행지 데이터를 불러왔습니다!');
+      }
+      
+    } catch (error) {
+      console.error('반려동물 데이터 로드 중 오류:', error);
+    }
+  };
 
   // 초기 카테고리가 설정되었거나 카테고리가 변경되었을 때 자동으로 마커 로드
   useEffect(() => {

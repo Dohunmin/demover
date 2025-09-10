@@ -18,15 +18,29 @@ const Travel = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [petTourismData, setPetTourismData] = useState<any[]>([]);
 
-  // URL 파라미터에서 카테고리 확인하고 지도로 이동
+  // URL 파라미터에서 카테고리 확인하고 데이터 로드 후 지도로 이동
   useEffect(() => {
     const category = searchParams.get('category');
     if (category && user) {
       setSelectedCategory(category);
-      setCurrentView('map');
       setActiveTab('pet'); // 카테고리 선택시 pet 탭으로 설정
+      
+      // 데이터가 로드되지 않았다면 먼저 로드
+      if (petTourismData.length === 0) {
+        console.log('🔄 카테고리 진입 - 데이터 로드 필요');
+        // TourPlaces 컴포넌트가 마운트되어 데이터를 로드할 때까지 대기
+        setTimeout(() => {
+          if (petTourismData.length > 0) {
+            console.log('✅ 데이터 로드 완료 - 지도로 이동');
+            setCurrentView('map');
+          }
+        }, 2000); // 2초 후 데이터 확인
+      } else {
+        console.log('✅ 데이터 이미 존재 - 바로 지도로 이동');
+        setCurrentView('map');
+      }
     }
-  }, [searchParams, user]);
+  }, [searchParams, user, petTourismData.length]);
 
   const showMap = (tab: "general" | "pet") => {
     setActiveTab(tab);
@@ -35,7 +49,15 @@ const Travel = () => {
   const showPlaces = () => setCurrentView('places');
 
   const handlePetDataLoaded = (data: any[]) => {
+    console.log('🔄 Pet 데이터 로드됨:', data.length);
     setPetTourismData(data);
+    
+    // 카테고리가 설정되어 있고 지도 화면이 아니라면 지도로 이동
+    const category = searchParams.get('category');
+    if (category && currentView !== 'map' && data.length > 0) {
+      console.log('✅ 카테고리 데이터 로드 완료 - 지도로 이동');
+      setCurrentView('map');
+    }
   };
 
   // 로그인하지 않은 사용자를 위한 안내
