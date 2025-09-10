@@ -40,6 +40,8 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
 
   useEffect(() => {
     if (isOpen && place && place.mapx && place.mapy) {
+      console.log('🗺️ 지도 모달 열림, 장소 정보:', place);
+      console.log('📍 좌표 정보:', { mapx: place.mapx, mapy: place.mapy });
       loadKakaoMap();
     }
 
@@ -51,31 +53,57 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
       if (mapInstanceRef.current) {
         mapInstanceRef.current = null;
       }
+      setIsMapLoaded(false);
+      setMapError(null);
     };
   }, [isOpen, place]);
 
   const loadKakaoMap = async () => {
-    if (!mapRef.current || !place) return;
+    if (!mapRef.current || !place) {
+      console.log('❌ 지도 로딩 실패: mapRef 또는 place 없음');
+      return;
+    }
 
     try {
+      console.log('🔑 카카오 API 키 조회 시작...');
       const { data, error } = await supabase.functions.invoke('test-api-key');
 
       if (error) {
-        console.error("카카오 API 키 조회 실패:", error);
+        console.error("❌ 카카오 API 키 조회 실패:", error);
         setMapError("지도를 불러올 수 없습니다.");
         return;
       }
 
       const KAKAO_JS_KEY = data.kakaoJsKey;
+      console.log('✅ 카카오 API 키 조회 성공');
 
-      // 기존 스크립트 제거
-      const existingScript = document.querySelector('script[src*="dapi.kakao.com"]');
-      if (existingScript) {
-        existingScript.remove();
+      // 카카오 지도가 이미 로드되어 있는지 확인
+      if (window.kakao && window.kakao.maps) {
+        console.log('✅ 카카오 지도 이미 로드됨, 바로 초기화');
+        initializeMap();
+        return;
       }
 
-      if (window.kakao) {
-        delete window.kakao;
+      console.log('🔄 카카오 지도 스크립트 로딩...');
+
+      // 기존 스크립트가 있으면 제거하지 말고 기다림
+      const existingScript = document.querySelector('script[src*="dapi.kakao.com"]');
+      if (existingScript) {
+        console.log('⏳ 기존 스크립트 로딩 대기 중...');
+        // 기존 스크립트가 로드될 때까지 대기
+        let attempts = 0;
+        const checkInterval = setInterval(() => {
+          attempts++;
+          if (window.kakao && window.kakao.maps) {
+            clearInterval(checkInterval);
+            console.log('✅ 기존 스크립트로 카카오 지도 로드 완료');
+            initializeMap();
+          } else if (attempts > 50) { // 5초 대기
+            clearInterval(checkInterval);
+            setMapError("지도 로딩 시간이 초과되었습니다.");
+          }
+        }, 100);
+        return;
       }
 
       // 새 스크립트 로드
@@ -86,17 +114,20 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
       await new Promise<void>((resolve, reject) => {
         const timeout = setTimeout(() => {
           script.remove();
+          console.error('⏰ 카카오 지도 로딩 타임아웃');
           reject(new Error("카카오 지도 로딩 타임아웃"));
-        }, 10000);
+        }, 15000);
 
         script.onload = () => {
           clearTimeout(timeout);
+          console.log('✅ 카카오 지도 스크립트 로딩 완료');
           resolve();
         };
 
         script.onerror = () => {
           clearTimeout(timeout);
           script.remove();
+          console.error('❌ 카카오 지도 스크립트 로딩 실패');
           reject(new Error("카카오 지도 스크립트 로딩 실패"));
         };
 
@@ -104,27 +135,44 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
       });
 
       if (window.kakao && window.kakao.maps) {
+        console.log('🎯 카카오 지도 초기화 시작...');
         window.kakao.maps.load(() => {
           initializeMap();
         });
       }
     } catch (error) {
-      console.error("카카오 지도 로딩 중 오류:", error);
+      console.error("❌ 카카오 지도 로딩 중 오류:", error);
       setMapError("지도를 불러올 수 없습니다.");
     }
   };
 
   const initializeMap = () => {
-    if (!mapRef.current || !place) return;
+    if (!mapRef.current || !place) {
+      console.log('❌ 지도 초기화 실패: mapRef 또는 place 없음');
+      return;
+    }
 
     try {
+      console.log('🗺️ 지도 초기화 시작, 장소 정보:', place);
+      
       const lat = parseFloat(place.mapy);
       const lng = parseFloat(place.mapx);
 
+      console.log('📍 파싱된 좌표:', { lat, lng, original: { mapx: place.mapx, mapy: place.mapy } });
+
       if (isNaN(lat) || isNaN(lng)) {
+        console.error('❌ 좌표값이 올바르지 않음:', { lat, lng, mapx: place.mapx, mapy: place.mapy });
         setMapError("위치 정보가 올바르지 않습니다.");
         return;
       }
+
+      if (lat === 0 || lng === 0) {
+        console.error('❌ 좌표값이 0:', { lat, lng });
+        setMapError("위치 정보가 제공되지 않습니다.");
+        return;
+      }
+
+      console.log('✅ 좌표 검증 완료, 지도 생성 중...');
 
       const options = {
         center: new window.kakao.maps.LatLng(lat, lng),
@@ -132,6 +180,7 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
       };
 
       mapInstanceRef.current = new window.kakao.maps.Map(mapRef.current, options);
+      console.log('✅ 지도 인스턴스 생성 완료');
 
       // 마커 생성
       const position = new window.kakao.maps.LatLng(lat, lng);
@@ -139,6 +188,8 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
         position: position,
         map: mapInstanceRef.current
       });
+
+      console.log('✅ 마커 생성 완료');
 
       // 인포윈도우 생성
       const infoWindow = new window.kakao.maps.InfoWindow({
@@ -160,21 +211,30 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
         removable: true
       });
 
+      console.log('✅ 인포윈도우 생성 완료');
+
       // 마커 클릭 이벤트
       window.kakao.maps.event.addListener(markerRef.current, 'click', () => {
+        console.log('🖱️ 마커 클릭됨');
         infoWindow.open(mapInstanceRef.current, markerRef.current);
       });
 
       // 지도 크기 재조정
       setTimeout(() => {
         if (mapInstanceRef.current) {
+          console.log('🔄 지도 크기 재조정');
           mapInstanceRef.current.relayout();
+          
+          // 지도 중심을 다시 설정
+          const center = new window.kakao.maps.LatLng(lat, lng);
+          mapInstanceRef.current.setCenter(center);
         }
       }, 300);
 
       setIsMapLoaded(true);
+      console.log('✅ 지도 초기화 완료');
     } catch (error) {
-      console.error('지도 초기화 실패:', error);
+      console.error('❌ 지도 초기화 실패:', error);
       setMapError("지도 초기화에 실패했습니다.");
     }
   };

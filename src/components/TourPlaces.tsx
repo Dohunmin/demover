@@ -677,8 +677,11 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
         return;
       }
       
+      console.log('🖱️ 장소 카드 클릭됨:', place);
+      console.log('📍 좌표 데이터 확인:', { mapx: place.mapx, mapy: place.mapy });
+      
       // 지도 모달 열기
-      setSelectedPlaceForLocation({
+      const locationData = {
         contentid: contentId,
         contentId: contentId,
         title: place.title,
@@ -687,7 +690,11 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
         tel: place.tel,
         mapx: place.mapx,
         mapy: place.mapy
-      });
+      };
+      
+      console.log('🗺️ 지도 모달에 전달할 데이터:', locationData);
+      
+      setSelectedPlaceForLocation(locationData);
       setIsLocationModalOpen(true);
     };
 
