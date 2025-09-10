@@ -24,32 +24,60 @@ const AnimalHospitalMap: React.FC<AnimalHospitalMapProps> = ({ hospitals }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
+  const [mapError, setMapError] = React.useState<string | null>(null);
 
   useEffect(() => {
     if (!mapRef.current) return;
 
+    // 카카오 지도 API 키 확인
+    const apiKey = import.meta.env.VITE_KAKAO_MAP_API_KEY;
+    console.log('Kakao API Key available:', !!apiKey);
+    
+    if (!apiKey) {
+      console.error('VITE_KAKAO_MAP_API_KEY is not set');
+      setMapError('카카오 지도 API 키가 설정되지 않았습니다.');
+      return;
+    }
+
     const script = document.createElement('script');
     script.async = true;
-    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${import.meta.env.VITE_KAKAO_MAP_API_KEY}&autoload=false`;
+    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&autoload=false`;
     
     script.onload = () => {
-      window.kakao.maps.load(() => {
-        initializeMap();
-      });
+      console.log('Kakao Maps script loaded');
+      if (window.kakao && window.kakao.maps) {
+        window.kakao.maps.load(() => {
+          console.log('Kakao Maps loaded successfully');
+          initializeMap();
+        });
+      } else {
+        console.error('Kakao Maps not available after script load');
+        setMapError('카카오 지도를 불러올 수 없습니다.');
+      }
+    };
+
+    script.onerror = (error) => {
+      console.error('Failed to load Kakao Maps script:', error);
+      setMapError('카카오 지도 스크립트 로딩에 실패했습니다.');
     };
 
     if (!document.querySelector('script[src*="dapi.kakao.com"]')) {
       document.head.appendChild(script);
     } else {
-      window.kakao.maps.load(() => {
-        initializeMap();
-      });
+      if (window.kakao && window.kakao.maps) {
+        window.kakao.maps.load(() => {
+          console.log('Kakao Maps already loaded');
+          initializeMap();
+        });
+      }
     }
 
     return () => {
       // Cleanup markers
       markersRef.current.forEach(({ marker }) => {
-        marker.setMap(null);
+        if (marker && marker.setMap) {
+          marker.setMap(null);
+        }
       });
       markersRef.current = [];
     };
@@ -64,14 +92,21 @@ const AnimalHospitalMap: React.FC<AnimalHospitalMapProps> = ({ hospitals }) => {
   const initializeMap = () => {
     if (!mapRef.current) return;
 
-    const container = mapRef.current;
-    const options = {
-      center: new window.kakao.maps.LatLng(35.1595, 129.0519), // 부산 중심
-      level: 7 // 확대 레벨
-    };
+    try {
+      console.log('Initializing map with hospitals:', hospitals.length);
+      
+      const container = mapRef.current;
+      const options = {
+        center: new window.kakao.maps.LatLng(35.1595, 129.0519), // 부산 중심
+        level: 7 // 확대 레벨
+      };
 
-    mapInstanceRef.current = new window.kakao.maps.Map(container, options);
-    updateMarkers();
+      mapInstanceRef.current = new window.kakao.maps.Map(container, options);
+      console.log('Map instance created successfully');
+      updateMarkers();
+    } catch (error) {
+      console.error('Failed to initialize map:', error);
+    }
   };
 
   const updateMarkers = () => {
@@ -158,11 +193,27 @@ const AnimalHospitalMap: React.FC<AnimalHospitalMapProps> = ({ hospitals }) => {
   };
 
   return (
-    <div 
-      ref={mapRef} 
-      className="w-full h-full rounded-lg"
-      style={{ minHeight: '400px' }}
-    />
+    <div className="w-full h-full rounded-lg relative" style={{ minHeight: '400px' }}>
+      {mapError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-muted rounded-lg">
+          <div className="text-center p-6">
+            <div className="text-muted-foreground text-sm mb-2">⚠️ 지도 로딩 오류</div>
+            <div className="text-xs text-muted-foreground mb-4">{mapError}</div>
+            <div className="text-xs text-muted-foreground">
+              브라우저 개발자 도구(F12) 콘솔에서 자세한 오류를 확인하세요.
+            </div>
+            <div className="text-xs text-muted-foreground mt-2">
+              총 {hospitals.filter(h => h.lat && h.lon).length}개 병원의 위치 정보 보유
+            </div>
+          </div>
+        </div>
+      )}
+      <div 
+        ref={mapRef} 
+        className="w-full h-full rounded-lg"
+        style={{ minHeight: '400px' }}
+      />
+    </div>
   );
 };
 
