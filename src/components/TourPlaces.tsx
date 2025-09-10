@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import PlaceReviewModal from "./PlaceReviewModal";
+import PlaceLocationModal from "./PlaceLocationModal";
 
 interface TourPlace {
   contentId: string;
@@ -77,6 +78,8 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
   const [bookmarkedPlaces, setBookmarkedPlaces] = useState<Set<string>>(new Set());
   const [selectedPlaceForReview, setSelectedPlaceForReview] = useState<any>(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [selectedPlaceForLocation, setSelectedPlaceForLocation] = useState<any>(null);
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [placeReviews, setPlaceReviews] = useState<Record<string, {averageRating: number, totalReviews: number}>>({});
   
   // 반려동물 키워드 검색 결과 캐시
@@ -674,12 +677,18 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
         return;
       }
       
-      // 평점/후기 모달 열기
-      setSelectedPlaceForReview({
+      // 지도 모달 열기
+      setSelectedPlaceForLocation({
         contentid: contentId,
-        title: place.title
+        contentId: contentId,
+        title: place.title,
+        addr1: place.addr1,
+        addr2: place.addr2,
+        tel: place.tel,
+        mapx: place.mapx,
+        mapy: place.mapy
       });
-      setIsReviewModalOpen(true);
+      setIsLocationModalOpen(true);
     };
 
     const handleReviewUpdate = (stats: {averageRating: number, totalReviews: number}) => {
@@ -779,22 +788,39 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
               <Badge variant="secondary" className="text-xs px-2 py-1">
                 {activeTab === "pet" ? "반려동물 동반" : "일반 관광지"}
               </Badge>
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs px-3 py-1 h-auto"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedPlaceForReview({
-                    contentid: contentId,
-                    title: place.title
-                  });
-                  setIsReviewModalOpen(true);
-                }}
-              >
-                <Star className="w-3 h-3 mr-1" />
-                평점
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-500 hover:text-yellow-500 p-1"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedPlaceForReview({
+                      contentid: contentId,
+                      title: place.title
+                    });
+                    setIsReviewModalOpen(true);
+                  }}
+                >
+                  <Star className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs px-3 py-1 h-auto"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedPlaceForReview({
+                      contentid: contentId,
+                      title: place.title
+                    });
+                    setIsReviewModalOpen(true);
+                  }}
+                >
+                  <Star className="w-3 h-3 mr-1" />
+                  평점
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -1049,6 +1075,16 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
           }}
         />
       )}
+
+      {/* 지도 위치 모달 */}
+      <PlaceLocationModal
+        place={selectedPlaceForLocation}
+        isOpen={isLocationModalOpen}
+        onClose={() => {
+          setIsLocationModalOpen(false);
+          setSelectedPlaceForLocation(null);
+        }}
+      />
     </div>
   );
 };
