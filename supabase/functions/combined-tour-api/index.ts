@@ -543,13 +543,14 @@ serve(async (req) => {
             `✨ 중복 제거 완료: ${allResults.length}개 → ${uniqueResults.length}개 최종 결과`
           );
 
-          // 데이터 개수 검증 및 100개 제한 (서버에서 확실히 제한)
-          if (uniqueResults.length > 100) {
-            console.log(`📊 ${uniqueResults.length}개에서 100개로 강제 제한`);
-            uniqueResults.splice(100);
+          // 데이터 개수 검증 (95개 범위 목표)
+          if (uniqueResults.length < 95) {
+            console.log(`📊 현재 수집된 데이터: ${uniqueResults.length}개 (목표: 95개)`);
+            // 95개가 되도록 추가 데이터가 필요하지만, 현재 API에서 수집 가능한 만큼만 반환
+          } else if (uniqueResults.length > 99) {
+            console.log(`📊 99개로 데이터 개수 제한`);
+            uniqueResults.splice(99);
           }
-          
-          console.log(`✅ 최종 데이터 개수: ${uniqueResults.length}개 (100개 이하 보장)`);
 
           // 카테고리별 분류 통계
           const categoryStats = {};
