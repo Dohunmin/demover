@@ -1,8 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { sampleData } from "./sample-data.ts";
 
-// 인메모리 캐시 (24시간 TTL)
+// 인메모리 캐시 완전 초기화
 const cache = new Map<string, { data: any; timestamp: number }>();
+cache.clear(); // 기존 캐시 완전 삭제
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24시간
 
 function getCached(key: string) {
@@ -285,8 +286,8 @@ serve(async (req) => {
     if (activeTab === "pet") {
       // 2. 한국관광공사 반려동물 동반 여행지 서비스 호출 (반려동물만)
       if (loadAllPetKeywords) {
-        // 캐시 확인
-        const cacheKey = "pet_friendly_places_busan_v5"; // 캐시 초기화를 위해 버전 업
+        // 캐시 확인 (완전 초기화)
+        const cacheKey = `pet_friendly_places_busan_${Date.now()}`; // 타임스탬프로 완전 초기화
         const cachedData = getCached(cacheKey);
 
         if (cachedData) {

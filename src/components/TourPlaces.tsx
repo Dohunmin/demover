@@ -214,9 +214,9 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
       return;
     }
 
-    // localStorage에서 캐시 확인 (24시간 TTL)
-    const cacheKey = 'pet_places_cache_v2';
-    const cacheTimeKey = 'pet_places_cache_time_v2';
+    // localStorage에서 캐시 확인 (24시간 TTL) - 캐시 초기화
+    const cacheKey = 'pet_places_cache_v3'; // 캐시 초기화
+    const cacheTimeKey = 'pet_places_cache_time_v3'; // 캐시 초기화
     const CACHE_TTL = 24 * 60 * 60 * 1000; // 24시간
 
     try {
