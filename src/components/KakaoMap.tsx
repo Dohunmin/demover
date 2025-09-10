@@ -107,20 +107,20 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
   // 카테고리별 필터링
   const categories = [
     { id: "all", label: "전체", icon: MapPin },
+    { id: "cafe", label: "카페", icon: Coffee },
+    { id: "restaurant", label: "식당", icon: UtensilsCrossed },
+    { id: "brunch", label: "브런치", icon: Utensils },
+    { id: "accommodation", label: "숙소", icon: Bed },
+    { id: "beach", label: "해수욕장", icon: Waves },
     { id: "park", label: "공원", icon: TreePine },
+    { id: "trekking", label: "트레킹", icon: Mountain },
+    { id: "theme-street", label: "테마거리", icon: MapPin },
+    { id: "shopping", label: "쇼핑", icon: ShoppingBag },
+    { id: "temple", label: "사찰", icon: Church },
+    { id: "market", label: "재래시장", icon: Store },
     { id: "leisure", label: "레저", icon: Dumbbell },
     { id: "culture", label: "문화시설", icon: Building2 },
-    { id: "brunch", label: "브런치", icon: Utensils },
-    { id: "temple", label: "사찰", icon: Church },
-    { id: "shopping", label: "쇼핑", icon: ShoppingBag },
-    { id: "accommodation", label: "숙소", icon: Bed },
-    { id: "restaurant", label: "식당", icon: UtensilsCrossed },
-    { id: "market", label: "재래시장", icon: Store },
-    { id: "cafe", label: "카페", icon: Coffee },
-    { id: "theme-street", label: "테마거리", icon: MapPin },
-    { id: "trekking", label: "트레킹", icon: Mountain },
     { id: "port", label: "항구", icon: Anchor },
-    { id: "beach", label: "해수욕장", icon: Waves },
   ];
 
   const [petTourismMarkers, setPetTourismMarkers] = useState<any[]>([]);
