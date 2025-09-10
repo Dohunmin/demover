@@ -17,11 +17,12 @@ const Travel = () => {
   const [activeTab, setActiveTab] = useState<"general" | "pet">("general");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [petTourismData, setPetTourismData] = useState<any[]>([]);
+  const [isBackFromMap, setIsBackFromMap] = useState(false);
 
   // URL 파라미터에서 카테고리 확인하고 데이터 로드 후 지도로 이동
   useEffect(() => {
     const category = searchParams.get('category');
-    if (category && user) {
+    if (category && user && !isBackFromMap) {
       setSelectedCategory(category);
       setActiveTab('pet'); // 카테고리 선택시 pet 탭으로 설정
       
@@ -40,13 +41,17 @@ const Travel = () => {
         setCurrentView('map');
       }
     }
-  }, [searchParams, user, petTourismData.length]);
+  }, [searchParams, user, petTourismData.length, isBackFromMap]);
 
   const showMap = (tab: "general" | "pet") => {
     setActiveTab(tab);
     setCurrentView('map');
+    setIsBackFromMap(false); // 직접 지도로 갈 때는 뒤로가기 플래그 리셋
   };
-  const showPlaces = () => setCurrentView('places');
+  const showPlaces = () => {
+    setCurrentView('places');
+    setIsBackFromMap(true); // 지도에서 뒤로갈 때 플래그 설정
+  };
 
   const handlePetDataLoaded = (data: any[]) => {
     console.log('🔄 Pet 데이터 로드됨:', data.length);
