@@ -232,39 +232,41 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
       const infoWindow = new window.kakao.maps.InfoWindow({
         content: `
           <div style="
-            padding: 12px; 
-            max-width: 320px; 
-            min-width: 200px;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 8px 10px; 
+            width: 160px; 
+            font-size: 11px;
+            font-family: 'Malgun Gothic', sans-serif;
+            line-height: 1.3;
           ">
-            <h4 style="
-              margin: 0 0 8px 0; 
+            <div style="
               font-weight: bold; 
-              font-size: 14px; 
               color: #333;
-              line-height: 1.4;
-              word-wrap: break-word;
+              margin-bottom: 4px;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
             ">
               ${place.title}
-            </h4>
+            </div>
             <div style="
-              font-size: 12px; 
               color: #666; 
-              margin-bottom: 6px;
-              line-height: 1.4;
-              word-wrap: break-word;
+              font-size: 10px;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
             ">
-              📍 ${place.addr1} ${place.addr2 || ''}
+              ${place.addr1}
             </div>
             ${place.tel ? `
               <div style="
-                font-size: 11px; 
                 color: #666;
-                line-height: 1.4;
-                word-wrap: break-word;
+                font-size: 10px;
+                margin-top: 2px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
               ">
-                📞 ${place.tel}
+                ${place.tel}
               </div>
             ` : ''}
           </div>
