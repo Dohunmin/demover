@@ -232,40 +232,43 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
       const infoWindow = new window.kakao.maps.InfoWindow({
         content: `
           <div style="
-            padding: 10px; 
-            max-width: 250px; 
-            min-width: 180px;
+            padding: 8px; 
+            width: 180px; 
             box-sizing: border-box;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
           ">
             <h4 style="
-              margin: 0 0 6px 0; 
+              margin: 0 0 4px 0; 
               font-weight: bold; 
-              font-size: 13px; 
+              font-size: 12px; 
               color: #333;
-              line-height: 1.3;
-              word-wrap: break-word;
-              overflow-wrap: break-word;
+              line-height: 1.2;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
             ">
               ${place.title}
             </h4>
             <div style="
-              font-size: 11px; 
+              font-size: 10px; 
               color: #666; 
-              margin-bottom: 4px;
-              line-height: 1.4;
-              word-wrap: break-word;
-              overflow-wrap: break-word;
+              margin-bottom: 3px;
+              line-height: 1.3;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
             ">
-              📍 ${place.addr1} ${place.addr2 || ''}
+              📍 ${place.addr1}
             </div>
             ${place.tel ? `
               <div style="
-                font-size: 10px; 
+                font-size: 9px; 
                 color: #666;
-                line-height: 1.4;
-                word-wrap: break-word;
-                overflow-wrap: break-word;
+                line-height: 1.3;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
               ">
                 📞 ${place.tel}
               </div>
