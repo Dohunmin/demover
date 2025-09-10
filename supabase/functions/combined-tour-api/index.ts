@@ -775,8 +775,8 @@ serve(async (req) => {
         activeTab === "pet"
           ? petTourismData || { error: petTourismError }
           : null,
-      // 추가: sample-data를 완전한 형태로 포함 (중복 제거됨)
-      additionalPetPlaces: activeTab === "pet" ? [] : null, // sample-data는 이미 위에서 merge되어 중복 방지
+      // 추가: sample-data를 완전한 형태로 포함
+      additionalPetPlaces: activeTab === "pet" ? sampleData : null,
       requestParams: { areaCode, numOfRows, pageNo, activeTab },
       timestamp: new Date().toISOString(),
       status: {
