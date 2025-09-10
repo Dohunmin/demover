@@ -246,8 +246,16 @@ const AnimalHospitalMap: React.FC<AnimalHospitalMapProps> = ({ hospitals }) => {
           parseFloat(hospital.lon)
         ));
       });
-      mapInstanceRef.current.setBounds(bounds);
-      console.log('🗺️ 지도 범위 조정 완료');
+      
+      // 전체 지역(많은 마커) 선택 시 너무 멀리 축소되지 않도록 제한
+      if (validHospitals.length > 50) {
+        // 부산 중심으로 적절한 줌 레벨 유지
+        mapInstanceRef.current.setCenter(new window.kakao.maps.LatLng(35.1595, 129.0519));
+        mapInstanceRef.current.setLevel(8); // 부산 전체가 보이는 적절한 레벨
+      } else {
+        mapInstanceRef.current.setBounds(bounds);
+      }
+      console.log('🗺️ 지도 범위 조정 완료 (마커 수:', validHospitals.length, ')');
     }
   };
 
