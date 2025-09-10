@@ -572,16 +572,21 @@ serve(async (req) => {
 
           console.log("샘플 데이터 Map 생성 완료:", sampleDataMap.size, "개");
 
-          // 응답 형태로 구성 - 모든 필드 포함하여 완전한 데이터 제공
-          const simplifiedResults = uniqueResults.map((item) => {
-            // Map에서 빠르게 조회 (O(1) 성능)
-            const additionalInfo = sampleDataMap.get(item.title) || {
-              locationGubun: null,
-              mbti: null,
-              holiday: null,
-            };
+          // 응답 형태로 구성 - sample-data와 매칭된 데이터만 포함
+          const simplifiedResults = uniqueResults
+            .map((item) => {
+              // Map에서 빠르게 조회 (O(1) 성능)
+              const additionalInfo = sampleDataMap.get(item.title);
+              
+              // sample-data와 매칭되지 않은 데이터는 제외
+              if (!additionalInfo) {
+                console.log(`❌ sample-data와 매칭되지 않음: ${item.title}`);
+                return null;
+              }
 
-            return {
+              console.log(`✅ sample-data와 매칭됨: ${item.title} -> ${additionalInfo.locationGubun}`);
+
+              return {
               contentid: item.contentid || "",
               contenttypeid: item.contenttypeid || "",
               title: item.title || "",
@@ -614,7 +619,10 @@ serve(async (req) => {
               mbti: additionalInfo.mbti,
               holiday: additionalInfo.holiday,
             };
-          });
+          })
+          .filter(item => item !== null); // null 값 제거
+
+          console.log(`🎯 최종 결과: API ${uniqueResults.length}개 → sample-data 매칭 ${simplifiedResults.length}개`);
 
           console.log("=== 매칭 분석 ===");
           
