@@ -1,4 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface AnimalHospital {
   animal_hospital: string;
@@ -24,53 +26,76 @@ const AnimalHospitalMap: React.FC<AnimalHospitalMapProps> = ({ hospitals }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
-  const [mapError, setMapError] = React.useState<string | null>(null);
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const [mapError, setMapError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!mapRef.current) return;
+    const loadKakaoMap = async () => {
+      if (!mapRef.current) return;
 
-    // 카카오 지도 API 키 확인
-    const apiKey = import.meta.env.VITE_KAKAO_MAP_API_KEY;
-    console.log('Kakao API Key available:', !!apiKey);
-    
-    if (!apiKey) {
-      console.error('VITE_KAKAO_MAP_API_KEY is not set');
-      setMapError('카카오 지도 API 키가 설정되지 않았습니다.');
-      return;
-    }
+      try {
+        console.log("카카오 지도 API 키 조회 중...");
+        const { data, error } = await supabase.functions.invoke('test-api-key');
 
-    const script = document.createElement('script');
-    script.async = true;
-    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&autoload=false`;
-    
-    script.onload = () => {
-      console.log('Kakao Maps script loaded');
-      if (window.kakao && window.kakao.maps) {
-        window.kakao.maps.load(() => {
-          console.log('Kakao Maps loaded successfully');
-          initializeMap();
+        if (error) {
+          console.error("카카오 API 키 조회 실패:", error);
+          setMapError("카카오 지도 API 키를 가져올 수 없습니다.");
+          return;
+        }
+
+        const KAKAO_JS_KEY = data.kakaoJsKey;
+        console.log("카카오 지도 스크립트 로딩 시작...");
+
+        const existingScript = document.querySelector('script[src*="dapi.kakao.com"]');
+        if (existingScript) {
+          existingScript.remove();
+        }
+
+        if (window.kakao) {
+          delete window.kakao;
+        }
+
+        const script = document.createElement("script");
+        script.type = "text/javascript";
+        script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JS_KEY}&autoload=false&libraries=services,clusterer`;
+
+        await new Promise<void>((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            script.remove();
+            console.error("카카오 지도 로딩 타임아웃");
+            reject(new Error("카카오 지도 로딩 타임아웃"));
+          }, 15000);
+
+          script.onload = () => {
+            clearTimeout(timeout);
+            console.log("카카오 지도 스크립트 로딩 완료");
+            resolve();
+          };
+
+          script.onerror = () => {
+            clearTimeout(timeout);
+            script.remove();
+            console.error("카카오 지도 스크립트 로딩 실패");
+            reject(new Error("카카오 지도 스크립트 로딩 실패"));
+          };
+
+          document.head.appendChild(script);
         });
-      } else {
-        console.error('Kakao Maps not available after script load');
-        setMapError('카카오 지도를 불러올 수 없습니다.');
+
+        if (window.kakao && window.kakao.maps) {
+          window.kakao.maps.load(() => {
+            console.log("카카오 지도 초기화 시작");
+            initializeMap();
+            setIsMapLoaded(true);
+          });
+        }
+      } catch (error) {
+        console.error("카카오 지도 로딩 중 오류:", error);
+        setMapError("카카오 지도를 불러올 수 없습니다.");
       }
     };
 
-    script.onerror = (error) => {
-      console.error('Failed to load Kakao Maps script:', error);
-      setMapError('카카오 지도 스크립트 로딩에 실패했습니다.');
-    };
-
-    if (!document.querySelector('script[src*="dapi.kakao.com"]')) {
-      document.head.appendChild(script);
-    } else {
-      if (window.kakao && window.kakao.maps) {
-        window.kakao.maps.load(() => {
-          console.log('Kakao Maps already loaded');
-          initializeMap();
-        });
-      }
-    }
+    loadKakaoMap();
 
     return () => {
       // Cleanup markers
@@ -84,10 +109,10 @@ const AnimalHospitalMap: React.FC<AnimalHospitalMapProps> = ({ hospitals }) => {
   }, []);
 
   useEffect(() => {
-    if (mapInstanceRef.current) {
+    if (isMapLoaded && mapInstanceRef.current) {
       updateMarkers();
     }
-  }, [hospitals]);
+  }, [hospitals, isMapLoaded]);
 
   const initializeMap = () => {
     if (!mapRef.current) return;
