@@ -384,7 +384,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
                 
                 <div style="text-align: center;">
                   <button id="review-btn-${place.contentid}" 
-                     onclick="event.stopPropagation(); (window.openReviewModal && window.openReviewModal(${JSON.stringify(place).replace(/"/g, '&quot;')}))"
+                     onclick="event.stopPropagation(); window.openReviewModal && window.openReviewModal('${place.contentid}', '${place.title.replace(/'/g, "\\'")}')"
                      style="color: #DC2626; font-size: 10px; text-decoration: none; background: #FEF2F2; padding: 4px 8px; border-radius: 6px; display: inline-block; border: 1px solid #FCA5A5; cursor: pointer;">
                     ⭐ 평점 및 후기
                   </button>
@@ -400,9 +400,16 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
             };
 
             // 평점 후기 버튼 이벤트 처리를 전역 함수로 등록
-            (window as any).openReviewModal = (placeData: any) => {
-              console.log('평점 후기 모달 열기:', placeData);
-              setSelectedPlaceForReview(placeData);
+            (window as any).openReviewModal = (contentid: string, title: string) => {
+              console.log('평점 후기 모달 열기 - contentid:', contentid, 'title:', title);
+              
+              // 중복 실행 방지
+              if (isReviewModalOpen) {
+                console.log('이미 모달이 열려있음, 무시');
+                return;
+              }
+              
+              setSelectedPlaceForReview({ contentid, title });
               setIsReviewModalOpen(true);
             };
 
@@ -416,8 +423,16 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
                   newReviewBtn.addEventListener("click", (e) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    
+                    // 중복 실행 방지
+                    if (isReviewModalOpen) {
+                      console.log('이미 모달이 열려있음, 무시');
+                      return;
+                    }
+                    
                     console.log('평점 후기 버튼 클릭됨:', place);
-                    (window as any).openReviewModal(place);
+                    setSelectedPlaceForReview(place);
+                    setIsReviewModalOpen(true);
                   });
                 }
               }
@@ -612,7 +627,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
             
             <div style="text-align: center;">
               <button id="review-btn-${place.contentid}" 
-                 onclick="event.stopPropagation(); (window.openReviewModal && window.openReviewModal(${JSON.stringify(place).replace(/"/g, '&quot;')}))"
+                 onclick="event.stopPropagation(); window.openReviewModal && window.openReviewModal('${place.contentid}', '${place.title.replace(/'/g, "\\'")}')"
                  style="color: #DC2626; font-size: 10px; text-decoration: none; background: #FEF2F2; padding: 4px 8px; border-radius: 6px; display: inline-block; border: 1px solid #FCA5A5; cursor: pointer;">
                 ⭐ 평점 및 후기
               </button>
@@ -628,9 +643,16 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         };
         
         // 평점 후기 버튼 이벤트 처리를 전역 함수로 등록
-        (window as any).openReviewModal = (placeData: any) => {
-          console.log('평점 후기 모달 열기:', placeData);
-          setSelectedPlaceForReview(placeData);
+        (window as any).openReviewModal = (contentid: string, title: string) => {
+          console.log('평점 후기 모달 열기 - contentid:', contentid, 'title:', title);
+          
+          // 중복 실행 방지
+          if (isReviewModalOpen) {
+            console.log('이미 모달이 열려있음, 무시');
+            return;
+          }
+          
+          setSelectedPlaceForReview({ contentid, title });
           setIsReviewModalOpen(true);
         };
         
@@ -644,8 +666,16 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
               newReviewBtn.addEventListener("click", (e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                
+                // 중복 실행 방지
+                if (isReviewModalOpen) {
+                  console.log('이미 모달이 열려있음, 무시');
+                  return;
+                }
+                
                 console.log('평점 후기 버튼 클릭됨:', place);
-                (window as any).openReviewModal(place);
+                setSelectedPlaceForReview(place);
+                setIsReviewModalOpen(true);
               });
             }
           }
@@ -1252,9 +1282,9 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
             setIsReviewModalOpen(false);
             setSelectedPlaceForReview(null);
           }}
-          onReviewUpdate={() => {
-            setIsReviewModalOpen(false);
-            setSelectedPlaceForReview(null);
+          onReviewUpdate={(stats) => {
+            // 리뷰 통계만 업데이트하고 모달은 닫지 않음
+            console.log('리뷰 통계 업데이트:', stats);
           }}
         />
       )}
