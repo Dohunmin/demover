@@ -51,6 +51,13 @@ const Travel = () => {
   const showPlaces = () => {
     setCurrentView('places');
     setIsBackFromMap(true); // 지도에서 뒤로갈 때 플래그 설정
+    
+    // URL 파라미터 제거하여 자동 지도 이동 방지
+    const currentParams = new URLSearchParams(window.location.search);
+    if (currentParams.has('category')) {
+      navigate('/travel', { replace: true });
+      setSelectedCategory(null);
+    }
   };
 
   const handlePetDataLoaded = (data: any[]) => {
