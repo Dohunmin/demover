@@ -581,9 +581,6 @@ serve(async (req) => {
               holiday: null,
             };
 
-            console.log("title: ", item.title);
-            console.log("additionalInfo: ", additionalInfo);
-
             return {
               contentid: item.contentid || "",
               contenttypeid: item.contenttypeid || "",
@@ -618,6 +615,29 @@ serve(async (req) => {
               holiday: additionalInfo.holiday,
             };
           });
+
+          console.log("=== 매칭 분석 ===");
+          
+          // sample-data에서 카페 데이터만 추출
+          const sampleCafes = sampleData.filter(data => data.locationGubun === "카페");
+          console.log(`sample-data의 카페: ${sampleCafes.length}개`);
+          sampleCafes.forEach(cafe => console.log(`   - ${cafe.title}`));
+          
+          // API 데이터 중 sample-data와 매칭되는 카페 찾기
+          const matchedCafes = simplifiedResults.filter(item => 
+            item.locationGubun === "카페"
+          );
+          console.log(`API 데이터에서 매칭된 카페: ${matchedCafes.length}개`);
+          matchedCafes.forEach(cafe => console.log(`   - ${cafe.title}`));
+          
+          // 매칭되지 않은 sample-data 카페 찾기
+          const unmatchedSampleCafes = sampleCafes.filter(sampleCafe => 
+            !simplifiedResults.some(apiItem => apiItem.title === sampleCafe.title)
+          );
+          if (unmatchedSampleCafes.length > 0) {
+            console.log(`⚠️ API 데이터에서 찾을 수 없는 sample-data 카페: ${unmatchedSampleCafes.length}개`);
+            unmatchedSampleCafes.forEach(cafe => console.log(`   - ${cafe.title}`));
+          }
 
           // 캐시에 저장 (100개 이하일 때만)
           if (simplifiedResults.length <= 100) {
