@@ -262,6 +262,11 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
     try {
       console.log('=== 반려동물 여행지 API 로딩 시작 ===');
       
+      // 로딩 안내 토스트 표시
+      toast.info('최초 로딩시 1분 정도 소요됩니다. 잠시만 기다려 주세요!', {
+        duration: 5000
+      });
+      
       const { data, error } = await supabase.functions.invoke('combined-tour-api', {
         body: {
           areaCode: userAreaCode,
@@ -916,11 +921,25 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
       {/* 콘텐츠 영역 */}
       <div className="px-5">
         {loading || petDataLoading ? (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground mx-auto"></div>
-            <p className="text-gray-600 mt-2">
-              {petDataLoading ? '반려동물 여행지 로딩중...' : '로딩 중...'}
-            </p>
+          <div className="text-center py-12">
+            {petDataLoading ? (
+              <>
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-6">
+                  <PawPrint className="w-8 h-8 text-primary animate-pulse" />
+                </div>
+                <h3 className="text-xl font-semibold mb-3">반려동물 여행지 로딩 중</h3>
+                <p className="text-muted-foreground mb-2">최초 로딩시 1분 정도 소요됩니다</p>
+                <p className="text-sm text-muted-foreground">잠시만 기다려 주세요...</p>
+                <div className="mt-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent mx-auto"></div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground mx-auto"></div>
+                <p className="text-gray-600 mt-2">로딩 중...</p>
+              </>
+            )}
           </div>
         ) : (
           <div className="space-y-4">
