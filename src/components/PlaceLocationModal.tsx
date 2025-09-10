@@ -232,41 +232,52 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
       const infoWindow = new window.kakao.maps.InfoWindow({
         content: `
           <div style="
-            padding: 8px 10px; 
-            width: 160px; 
-            font-size: 11px;
-            font-family: 'Malgun Gothic', sans-serif;
-            line-height: 1.3;
+            padding: 15px 18px; 
+            max-width: 400px; 
+            min-width: 280px;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Malgun Gothic', sans-serif;
+            background: white;
+            border-radius: 8px;
           ">
-            <div style="
+            <h4 style="
+              margin: 0 0 10px 0; 
               font-weight: bold; 
+              font-size: 16px; 
               color: #333;
-              margin-bottom: 4px;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              white-space: nowrap;
+              line-height: 1.4;
+              word-wrap: break-word;
+              overflow-wrap: break-word;
             ">
               ${place.title}
-            </div>
+            </h4>
             <div style="
+              font-size: 13px; 
               color: #666; 
-              font-size: 10px;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              white-space: nowrap;
+              margin-bottom: 8px;
+              line-height: 1.5;
+              word-wrap: break-word;
+              overflow-wrap: break-word;
+              display: flex;
+              align-items: flex-start;
+              gap: 6px;
             ">
-              ${place.addr1}
+              <span style="color: #4285f4; font-size: 14px;">📍</span>
+              <span>${place.addr1} ${place.addr2 || ''}</span>
             </div>
             ${place.tel ? `
               <div style="
+                font-size: 12px; 
                 color: #666;
-                font-size: 10px;
-                margin-top: 2px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
+                line-height: 1.5;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+                display: flex;
+                align-items: center;
+                gap: 6px;
               ">
-                ${place.tel}
+                <span style="color: #34a853; font-size: 14px;">📞</span>
+                <span>${place.tel}</span>
               </div>
             ` : ''}
           </div>
