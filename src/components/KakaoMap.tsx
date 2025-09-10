@@ -252,12 +252,12 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       } else {
         const locationGubunMap = {
           cafe: "카페",
-          restaurant: "식당",
+          restaurant: "식당", 
           brunch: "브런치",
           accommodation: "숙소",
           beach: "해수욕장",
           park: "공원",
-          trekking: "레저", // 트레킹은 실제 데이터에서 "레저"로 분류됨
+          trekking: "레저", // 트레킹 관련 장소들이 실제로는 "레저"로 분류됨
           "theme-street": "테마거리",
           shopping: "쇼핑",
           temple: "사찰",
