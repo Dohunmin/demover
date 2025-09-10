@@ -1,575 +1,767 @@
 export const sampleData = [
   // 기존 반려동물 API 43건 데이터 (1단계 areaBasedList)
   {
-    title: "광안리해변 테마거리",
-    locationGubun: "테마거리",
-    mbti: "all",
-    holiday: null,
-  },
-  {
-    title: "광안리해수욕장",
-    locationGubun: "해수욕장",
-    mbti: "all",
-    holiday: null,
-  },
-  {
-    title: "구포시장",
-    locationGubun: "재래시장",
-    mbti: ["ESVF", "EOVF", "CSVF", "CSVB"],
-    holiday: null,
-  },
-  {
-    title: "국립부산과학관",
-    locationGubun: "문화시설",
-    mbti: ["ENVF", "EOVF", "ESVF", "CSVF"],
-    holiday: "월요일",
-  },
-  {
-    title: "금강사(부산)",
-    locationGubun: "사찰",
-    mbti: ["CSVF", "CSVB", "CSNF", "CSNB"],
-    holiday: null,
-  },
-  {
-    title: "다대포 꿈의 낙조분수",
-    locationGubun: "레저",
-    mbti: "all",
-    holiday: null,
-  },
-  {
-    title: "다대포해수욕장",
-    locationGubun: "해수욕장",
-    mbti: "all",
-    holiday: null,
-  },
-  {
-    title: "더펫텔프리미엄스위트",
-    locationGubun: "숙소",
-    mbti: ["EOVF", "ENVF", "ESVF", "CSVF"],
-    holiday: null,
-  },
-  {
-    title: "드림서프라운지",
-    locationGubun: "카페",
-    mbti: ["ENVF", "EOVF", "ESVF", "CSVF"],
-    holiday: null,
-  },
-  {
-    title: "문탠로드",
-    locationGubun: "테마거리",
-    mbti: "all",
-    holiday: null,
-  },
-  {
-    title: "민락수변공원",
-    locationGubun: "공원",
-    mbti: "all",
-    holiday: null,
-  },
-  {
-    title: "밀락더마켓",
-    locationGubun: "쇼핑",
-    mbti: ["ESVF", "EOVF", "CSVF", "ENVF"],
-    holiday: null,
-  },
-  {
-    title: "부산 감천문화마을",
-    locationGubun: "문화시설",
-    mbti: "all",
-    holiday: null,
-  },
-  {
-    title: "부산 송도해상케이블카",
-    locationGubun: "레저",
-    mbti: "all",
-    holiday: null,
-  },
-  {
-    title: "부산 송도해수욕장",
-    locationGubun: "해수욕장",
-    mbti: "all",
-    holiday: null,
-  },
-  {
-    title: "부산 암남공원",
-    locationGubun: "공원",
-    mbti: "all",
-    holiday: null,
-  },
-  {
-    title: "부산북항 친수공원",
-    locationGubun: "공원",
-    mbti: "all",
-    holiday: null,
-  },
-  {
-    title: "부산 어린이대공원",
-    locationGubun: "공원",
-    mbti: ["ESVF", "EOVF", "ENVF", "CSVF"],
-    holiday: null,
-  },
-  {
-    title: "빅토리아 베이커리 가든",
-    locationGubun: "카페",
-    mbti: ["ENVF", "EOVF", "ESVF", "CSVF"],
-    holiday: null,
-  },
-  {
-    title: "삼락생태공원",
-    locationGubun: "공원",
-    mbti: "all",
-    holiday: null,
-  },
-  {
-    title: "송도 구름산책로",
-    locationGubun: "레저",
-    mbti: "all",
-    holiday: null,
-  },
-  {
-    title: "송정해수욕장",
-    locationGubun: "해수욕장",
-    mbti: "all",
-    holiday: null,
-  },
-  {
-    title: "스포원파크",
-    locationGubun: "레저",
-    mbti: ["ESVF", "EOVF", "ENVF", "CSVF"],
-    holiday: null,
-  },
-  {
-    title: "신세계사이먼 부산 프리미엄 아울렛",
-    locationGubun: "쇼핑",
-    mbti: ["ESVF", "EOVF", "CSVF", "CSVB"],
-    holiday: null,
-  },
-  {
-    title: "아르반호텔[한국관광 품질인증/Korea Quality]",
-    locationGubun: "숙소",
-    mbti: ["EOVF", "ENVF", "ESVF", "CSVF"],
-    holiday: null,
-  },
-  {
-    title: "아미르공원",
-    locationGubun: "공원",
-    mbti: "all",
-    holiday: null,
-  },
-  {
-    title: "옐로우라이트하우스",
-    locationGubun: "카페",
-    mbti: ["ENVF", "EOVF", "CSVF", "ESVF"],
-    holiday: null,
-  },
-  {
-    title: "용소웰빙공원",
-    locationGubun: "공원",
-    mbti: "all",
-    holiday: null,
-  },
-  {
-    title: "원시학",
-    locationGubun: "식당",
-    mbti: ["CSVF", "CSVB", "ESVF", "ESVB"],
-    holiday: null,
-  },
-  {
-    title: "장림포구",
-    locationGubun: "항구",
-    mbti: "all",
-    holiday: null,
-  },
-  {
-    title: "절영해안산책로",
-    locationGubun: "레저",
-    mbti: "all",
-    holiday: null,
-  },
-  {
-    title: "죽성드림세트장",
-    locationGubun: "문화시설",
-    mbti: ["ENVF", "EOVF", "ESVF", "CSVF"],
-    holiday: null,
-  },
-  {
-    title: "카페윤",
-    locationGubun: "카페",
-    mbti: ["ENVF", "EOVF", "CSVF", "ESVF"],
-    holiday: null,
-  },
-  {
-    title: "캐빈스위트광안",
-    locationGubun: "숙소",
-    mbti: ["EOVF", "ENVF", "ESVF", "CSVF"],
-    holiday: null,
-  },
-  {
-    title: "캔버스",
-    locationGubun: "카페",
-    mbti: ["ENVF", "EOVF", "CSVF", "ESVF"],
-    holiday: null,
-  },
-  {
-    title: "캔버스 블랙",
-    locationGubun: "카페",
-    mbti: ["ENVF", "EOVF", "CSVF", "ESVF"],
-    holiday: null,
-  },
-  {
-    title: "태종대",
-    locationGubun: "레저",
-    mbti: "all",
-    holiday: null,
-  },
-  {
-    title: "해동용궁사",
-    locationGubun: "사찰",
-    mbti: "all",
-    holiday: null,
-  },
-  {
-    title: "해운대 달맞이길",
-    locationGubun: "테마거리",
-    mbti: "all",
-    holiday: null,
-  },
-  {
-    title: "해운대 동백섬",
-    locationGubun: "레저",
-    mbti: "all",
-    holiday: null,
-  },
-  {
-    title: "해운대 블루라인파크",
-    locationGubun: "레저",
-    mbti: "all",
-    holiday: null,
-  },
-  {
-    title: "해운대 영무파라드호텔",
-    locationGubun: "숙소",
-    mbti: ["EOVF", "ENVF", "ESVF", "CSVF"],
-    holiday: null,
-  },
-  {
-    title: "해운대해수욕장",
-    locationGubun: "해수욕장",
-    mbti: "all",
-    holiday: null,
-  },
-  
-  // 추가 검색 키워드 52개 (2단계 searchKeyword2)
-  {
     title: "롯데프리미엄아울렛 동부산점",
     locationGubun: "쇼핑",
-    mbti: ["ESVF", "EOVF", "CSVF", "CSVB"],
-    holiday: null,
+    mbti: [
+      "ESNF",
+      "EOVF",
+      "CONF",
+      "CONB"
+    ],
+    holiday: null
   },
   {
     title: "몽작",
     locationGubun: "식당",
     mbti: "all",
-    holiday: null,
+    holiday: null
   },
   {
     title: "부산시민공원",
     locationGubun: "공원",
-    mbti: "all",
-    holiday: null,
+    mbti: [
+      "EONB",
+      "CONB",
+      "CSVF"
+    ],
+    holiday: null
   },
   {
     title: "센텀 APEC나루공원",
     locationGubun: "공원",
-    mbti: ["ESVF", "EOVF", "ENVF", "EOVB"],
-    holiday: null,
+    mbti: [
+      "EONF",
+      "CONB",
+      "CSVF"
+    ],
+    holiday: null
   },
   {
     title: "신호공원",
     locationGubun: "공원",
-    mbti: ["CSVF", "CSVB", "CSNF", "CSNB"],
-    holiday: null,
+    mbti: [
+      "CSVB",
+      "CONB"
+    ],
+    holiday: null
   },
   {
     title: "오르디",
     locationGubun: "카페",
-    mbti: ["CSVF", "ENVF", "EOVF", "CSVB"],
-    holiday: null,
+    mbti: "all",
+    holiday: null
   },
   {
     title: "온천천시민공원",
     locationGubun: "공원",
-    mbti: "all",
-    holiday: null,
+    mbti: [
+      "EONF",
+      "COVB"
+    ],
+    holiday: null
   },
   {
     title: "칠암만장",
     locationGubun: "식당",
     mbti: "all",
-    holiday: "월요일",
+    holiday: "월요일"
   },
   {
     title: "카페 만디",
     locationGubun: "카페",
-    mbti: ["ENVF", "EOVF", "ESVF", "CSVF"],
-    holiday: null,
+    mbti: "all",
+    holiday: null
   },
   {
     title: "포레스트3002",
     locationGubun: "브런치",
     mbti: "all",
-    holiday: "화요일",
+    holiday: "화요일"
   },
   {
     title: "홍법사(부산)",
     locationGubun: "사찰",
-    mbti: ["CSVF", "CSVB", "CSNF", "CSNB"],
-    holiday: null,
+    mbti: [
+      "CSVB",
+      "CSNB",
+      "COVB"
+    ],
+    holiday: null
   },
   {
     title: "감나무집",
     locationGubun: "식당",
-    mbti: ["CSVF", "CSVB", "ESVF", "ESVB"],
-    holiday: null,
+    mbti: "all",
+    holiday: null
+  },
+  {
+    title: "광안리해변 테마거리",
+    locationGubun: "테마거리",
+    mbti: [
+      "ESVB",
+      "EOVF",
+      "CSVF"
+    ],
+    holiday: null
+  },
+  {
+    title: "광안리해수욕장",
+    locationGubun: "해수욕장",
+    mbti: [
+      "ESVF",
+      "EOVB",
+      "EONB"
+    ],
+    holiday: null
   },
   {
     title: "구덕포끝집고기",
     locationGubun: "식당",
-    mbti: ["ESVF", "EOVF", "CSVF", "ENVF"],
-    holiday: null,
+    mbti: "all",
+    holiday: null
+  },
+  {
+    title: "구포시장",
+    locationGubun: "재래시장",
+    mbti: [
+      "CSNF",
+      "CSNB",
+      "CONF"
+    ],
+    holiday: null
+  },
+  {
+    title: "국립부산과학관",
+    locationGubun: "문화시설",
+    mbti: [
+      "EONF",
+      "COVF",
+      "CONB"
+    ],
+    holiday: "월요일"
   },
   {
     title: "그림하우스",
-    locationGubun: "카페",
-    mbti: ["ENVF", "CSVF", "EOVF", "ESVF"],
-    holiday: null,
+    locationGubun: "숙소",
+    mbti: "all",
+    holiday: null
+  },
+  {
+    title: "금강사(부산)",
+    locationGubun: "사찰",
+    mbti: [
+      "CSVF",
+      "CSNB",
+      "COVB"
+    ],
+    holiday: null
+  },
+  {
+    title: "다대포 꿈의 낙조분수",
+    locationGubun: "해수욕장",
+    mbti: [
+      "ESVF",
+      "EOVB",
+      "EONB"
+    ],
+    holiday: null
+  },
+  {
+    title: "다대포해수욕장",
+    locationGubun: "해수욕장",
+    mbti: [
+      "ESVF",
+      "ESNB",
+      "EONB"
+    ],
+    holiday: null
   },
   {
     title: "대보름",
-    locationGubun: "식당",
+    locationGubun: "카페",
     mbti: "all",
-    holiday: null,
+    holiday: "월요일"
   },
   {
     title: "대저생태공원",
     locationGubun: "공원",
-    mbti: "all",
-    holiday: null,
+    mbti: [
+      "ESNB",
+      "EOVB",
+      "CSVB"
+    ],
+    holiday: null
   },
   {
     title: "대저수문 생태공원",
     locationGubun: "공원",
-    mbti: ["ENVF", "EOVF", "CSVF", "CSNF"],
-    holiday: null,
+    mbti: [
+      "ESNB",
+      "EOVB",
+      "CSVB"
+    ],
+    holiday: null
   },
   {
     title: "더웨이브",
-    locationGubun: "카페",
-    mbti: ["EOVF", "ENVF", "ESVF", "CSVF"],
-    holiday: null,
+    locationGubun: "숙소",
+    mbti: "all",
+    holiday: null
+  },
+  {
+    title: "더펫텔프리미엄스위트",
+    locationGubun: "숙소",
+    mbti: "all",
+    holiday: null
   },
   {
     title: "덕미",
-    locationGubun: "식당",
-    mbti: ["CSVF", "CSVB", "ESVF", "ESVB"],
-    holiday: null,
+    locationGubun: "카페",
+    mbti: "all",
+    holiday: null
   },
   {
     title: "듀스포레",
-    locationGubun: "카페",
-    mbti: ["ENVF", "EOVF", "ESVF", "CSVF"],
-    holiday: null,
+    locationGubun: "브런치",
+    mbti: "all",
+    holiday: "9월까지 휴무"
+  },
+  {
+    title: "드림서프라운지",
+    locationGubun: "레저",
+    mbti: [
+      "ESVF",
+      "EOVF",
+      "CSVB"
+    ],
+    holiday: null
   },
   {
     title: "만달리",
-    locationGubun: "식당",
+    locationGubun: "브런치",
     mbti: "all",
-    holiday: null,
+    holiday: "월요일"
   },
   {
     title: "맥도생태공원",
     locationGubun: "공원",
-    mbti: "all",
-    holiday: null,
+    mbti: [
+      "EONF",
+      "COVF",
+      "CSNB"
+    ],
+    holiday: null
   },
   {
     title: "모닝듀 게스트 하우스(모닝듀)",
     locationGubun: "숙소",
-    mbti: ["EOVF", "ENVF", "ESVF", "CSVF"],
-    holiday: null,
+    mbti: "all",
+    holiday: null
   },
   {
     title: "무명일기",
     locationGubun: "카페",
-    mbti: ["CSVF", "ENVF", "EOVF", "CSVB"],
-    holiday: null,
+    mbti: "all",
+    holiday: "월요일, 화요일"
+  },
+  {
+    title: "문탠로드",
+    locationGubun: "트레킹",
+    mbti: [
+      "COVB",
+      "CONF",
+      "ESNF"
+    ],
+    holiday: null
+  },
+  {
+    title: "민락수변공원",
+    locationGubun: "공원",
+    mbti: [
+      "ESVB",
+      "CSNF"
+    ],
+    holiday: null
+  },
+  {
+    title: "밀락더마켓",
+    locationGubun: "테마거리",
+    mbti: [
+      "ESVB",
+      "ESNF",
+      "CSNF",
+      "CONF"
+    ],
+    holiday: null
+  },
+  {
+    title: "부산 감천문화마을",
+    locationGubun: "테마거리",
+    mbti: [
+      "ESVB",
+      "EONF",
+      "COVF"
+    ],
+    holiday: null
+  },
+  {
+    title: "부산 송도해상케이블카",
+    locationGubun: "해수욕장",
+    mbti: [
+      "CSVF",
+      "COVF",
+      "CONF"
+    ],
+    holiday: null
+  },
+  {
+    title: "부산 송도해수욕장",
+    locationGubun: "해수욕장",
+    mbti: [
+      "ESVF",
+      "EOVF",
+      "CSNF"
+    ],
+    holiday: null
+  },
+  {
+    title: "부산 암남공원",
+    locationGubun: "공원",
+    mbti: [
+      "EONF",
+      "COVB"
+    ],
+    holiday: null
+  },
+  {
+    title: "부산북항 친수공원",
+    locationGubun: "공원",
+    mbti: [
+      "EOVF",
+      "COVF",
+      "ESVB"
+    ],
+    holiday: null
+  },
+  {
+    title: "부산어린이대공원",
+    locationGubun: "공원",
+    mbti: [
+      "EOVB",
+      "CSVB",
+      "CONF"
+    ],
+    holiday: null
   },
   {
     title: "불란서그로서리",
-    locationGubun: "카페",
-    mbti: ["ENVF", "EOVF", "ESVF", "CSVF"],
-    holiday: null,
+    locationGubun: "브런치",
+    mbti: "all",
+    holiday: null
   },
   {
     title: "브리타니",
     locationGubun: "카페",
-    mbti: ["ENVF", "EOVF", "CSVF", "ESVF"],
-    holiday: null,
+    mbti: "all",
+    holiday: "월요일, 화요일"
   },
   {
     title: "비아조",
-    locationGubun: "식당",
-    mbti: ["EOVF", "ENVF", "ESVF", "CSVF"],
-    holiday: null,
+    locationGubun: "카페",
+    mbti: "all",
+    holiday: null
+  },
+  {
+    title: "빅토리아 베이커리 가든",
+    locationGubun: "카페",
+    mbti: "all",
+    holiday: null
+  },
+  {
+    title: "삼락생태공원",
+    locationGubun: "공원",
+    mbti: [
+      "ESNB",
+      "CSNB"
+    ],
+    holiday: null
   },
   {
     title: "성안집",
     locationGubun: "식당",
-    mbti: ["CSVF", "CSVB", "ESVF", "ESVB"],
-    holiday: null,
+    mbti: "all",
+    holiday: null
+  },
+  {
+    title: "송도 구름산책로",
+    locationGubun: "해수욕장",
+    mbti: [
+      "ESVF",
+      "ESNF",
+      "CSNF"
+    ],
+    holiday: null
   },
   {
     title: "송정물총칼국수",
     locationGubun: "식당",
     mbti: "all",
-    holiday: null,
+    holiday: null
+  },
+  {
+    title: "송정해수욕장",
+    locationGubun: "해수욕장",
+    mbti: [
+      "ESVF",
+      "ESNB",
+      "EOVF"
+    ],
+    holiday: null
   },
   {
     title: "스노잉클라우드",
     locationGubun: "카페",
-    mbti: ["ENVF", "EOVF", "ESVF", "CSVF"],
-    holiday: null,
+    mbti: "all",
+    holiday: null
+  },
+  {
+    title: "스포원파크",
+    locationGubun: "공원",
+    mbti: [
+      "ESVB",
+      "CSVF",
+      "CSVB"
+    ],
+    holiday: null
+  },
+  {
+    title: "신세계사이먼 부산 프리미엄 아울렛",
+    locationGubun: "쇼핑",
+    mbti: [
+      "ESNF",
+      "EOVF",
+      "CONF",
+      "CONB"
+    ],
+    holiday: null
+  },
+  {
+    title: "아르반호텔[한국관광 품질인증/Korea Quality]",
+    locationGubun: "숙소",
+    mbti: "all",
+    holiday: null
+  },
+  {
+    title: "아미르공원",
+    locationGubun: "공원",
+    mbti: [
+      "COVF",
+      "CONB",
+      "COVB"
+    ],
+    holiday: null
   },
   {
     title: "알로이삥삥",
-    locationGubun: "카페",
-    mbti: ["EOVF", "ENVF", "ESVF", "CSVF"],
-    holiday: null,
+    locationGubun: "식당",
+    mbti: "all",
+    holiday: null
+  },
+  {
+    title: "옐로우라이트하우스",
+    locationGubun: "숙소",
+    mbti: "all",
+    holiday: null
   },
   {
     title: "오구카페",
+    locationGubun: "브런치",
+    mbti: "all",
+    holiday: null
+  },
+  {
+    title: "용소웰빙공원",
+    locationGubun: "공원",
+    mbti: [
+      "ESNB",
+      "EONB",
+      "CSVB"
+    ],
+    holiday: null
+  },
+  {
+    title: "원시학",
     locationGubun: "카페",
-    mbti: ["ENVF", "EOVF", "CSVF", "ESVF"],
-    holiday: null,
+    mbti: "all",
+    holiday: "수요일"
   },
   {
     title: "웨스턴챔버",
     locationGubun: "카페",
-    mbti: ["EOVF", "ENVF", "ESVF", "CSVF"],
-    holiday: null,
+    mbti: "all",
+    holiday: null
   },
   {
     title: "웨이브온 커피",
     locationGubun: "카페",
-    mbti: ["ENVF", "EOVF", "ESVF", "CSVF"],
-    holiday: null,
+    mbti: "all",
+    holiday: null
   },
   {
     title: "윙민박",
     locationGubun: "숙소",
-    mbti: ["CSVF", "CSVB", "ESVF", "ESVB"],
-    holiday: null,
+    mbti: "all",
+    holiday: null
   },
   {
     title: "유정1995 기장 본점",
-    locationGubun: "식당",
-    mbti: ["EOVF", "ENVF", "ESVF", "CSVF"],
-    holiday: null,
+    locationGubun: "카페",
+    mbti: "all",
+    holiday: "명절당일"
   },
   {
     title: "을숙도 공원",
     locationGubun: "공원",
-    mbti: "all",
-    holiday: null,
+    mbti: [
+      "ESNB",
+      "CSVB",
+      "CONB"
+    ],
+    holiday: null
   },
   {
     title: "이바구캠프",
     locationGubun: "숙소",
-    mbti: ["ENVF", "EOVF", "ESVF", "CSVF"],
-    holiday: null,
+    mbti: "all",
+    holiday: null
+  },
+  {
+    title: "장림포구",
+    locationGubun: "항구",
+    mbti: [
+      "ESVB",
+      "EONF",
+      "CSNF"
+    ],
+    holiday: null
+  },
+  {
+    title: "절영해안산책로",
+    locationGubun: "트레킹",
+    mbti: [
+      "ESNB",
+      "EONF",
+      "ESVB"
+    ],
+    holiday: null
+  },
+  {
+    title: "죽성드림세트장",
+    locationGubun: "테마거리",
+    mbti: [
+      "EOVF",
+      "CSVF",
+      "COVF"
+    ],
+    holiday: null
   },
   {
     title: "카페베이스",
     locationGubun: "카페",
-    mbti: ["ENVF", "EOVF", "CSVF", "ESVF"],
-    holiday: null,
+    mbti: "all",
+    holiday: "수요일, 목요일"
+  },
+  {
+    title: "카페윤",
+    locationGubun: "카페",
+    mbti: "all",
+    holiday: null
+  },
+  {
+    title: "캐빈스위트광안",
+    locationGubun: "숙소",
+    mbti: "all",
+    holiday: null
+  },
+  {
+    title: "캔버스",
+    locationGubun: "숙소",
+    mbti: "all",
+    holiday: null
+  },
+  {
+    title: "캔버스 블랙",
+    locationGubun: "숙소",
+    mbti: "all",
+    holiday: null
+  },
+  {
+    title: "태종대",
+    locationGubun: "트레킹",
+    mbti: [
+      "ESVF",
+      "COVB"
+    ],
+    holiday: null
   },
   {
     title: "팝콘 호스텔 해운대점",
     locationGubun: "숙소",
-    mbti: ["EOVF", "ENVF", "ESVF", "CSVF"],
-    holiday: null,
+    mbti: "all",
+    holiday: null
   },
   {
     title: "프루터리포레스트",
-    locationGubun: "카페",
-    mbti: ["ENVF", "EOVF", "CSVF", "ESVF"],
-    holiday: null,
+    locationGubun: "브런치",
+    mbti: "all",
+    holiday: null
+  },
+  {
+    title: "해동용궁사",
+    locationGubun: "사찰",
+    mbti: [
+      "EONB",
+      "CSNB",
+      "COVF"
+    ],
+    holiday: null
+  },
+  {
+    title: "해운대 달맞이길",
+    locationGubun: "트레킹",
+    mbti: [
+      "EOVF",
+      "CSNF",
+      "COVB"
+    ],
+    holiday: null
+  },
+  {
+    title: "해운대 동백섬",
+    locationGubun: "트레킹",
+    mbti: [
+      "EONF",
+      "CSVB",
+      "CSVF"
+    ],
+    holiday: null
+  },
+  {
+    title: "해운대 블루라인파크",
+    locationGubun: "테마거리",
+    mbti: [
+      "ESVF",
+      "ESVB",
+      "ESNF"
+    ],
+    holiday: null
+  },
+  {
+    title: "해운대 영무파라드호텔",
+    locationGubun: "숙소",
+    mbti: "all",
+    holiday: null
+  },
+  {
+    title: "해운대해수욕장",
+    locationGubun: "해수욕장",
+    mbti: [
+      "ESVF",
+      "ESNF",
+      "CONF"
+    ],
+    holiday: null
   },
   {
     title: "해월전망대",
-    locationGubun: "레저",
-    mbti: ["ENVF", "EOVF", "ESVF", "CSVF"],
-    holiday: null,
+    locationGubun: "트레킹",
+    mbti: [
+      "ESNB",
+      "EOVB",
+      "CONB"
+    ],
+    holiday: null
   },
   {
     title: "형제가든",
     locationGubun: "식당",
     mbti: "all",
-    holiday: null,
+    holiday: null
   },
   {
     title: "황령산",
-    locationGubun: "레저",
-    mbti: "all",
-    holiday: null,
+    locationGubun: "트레킹",
+    mbti: [
+      "EOVB",
+      "EONB",
+      "CSNB"
+    ],
+    holiday: null
   },
   {
     title: "황령산 전망대",
-    locationGubun: "레저",
-    mbti: "all",
-    holiday: null,
+    locationGubun: "트레킹",
+    mbti: [
+      "EONB",
+      "CONB",
+      "ESNF"
+    ],
+    holiday: null
   },
   {
     title: "황령산레포츠공원",
-    locationGubun: "레저",
-    mbti: "all",
-    holiday: null,
+    locationGubun: "트레킹",
+    mbti: [
+      "EONF",
+      "CSVB",
+      "CONF"
+    ],
+    holiday: null
   },
   {
     title: "회동수원지",
     locationGubun: "공원",
-    mbti: "all",
-    holiday: null,
+    mbti: [
+      "ESNB",
+      "EOVB",
+      "COVF"
+    ],
+    holiday: null
   },
   {
     title: "회동수원지 둘레길",
-    locationGubun: "레저",
-    mbti: "all",
-    holiday: null,
+    locationGubun: "트레킹",
+    mbti: [
+      "ESNB",
+      "EOVB",
+      "CSNB",
+      "COVB"
+    ],
+    holiday: null
   },
   {
     title: "AJ하우스(AJ House)",
     locationGubun: "숙소",
-    mbti: ["EOVF", "ENVF", "ESVF", "CSVF"],
-    holiday: null,
+    mbti: "all",
+    holiday: null
   },
   {
     title: "EL16.52",
     locationGubun: "카페",
-    mbti: ["ENVF", "EOVF", "CSVF", "ESVF"],
-    holiday: null,
+    mbti: "all",
+    holiday: null
   },
   {
     title: "JSTAY",
     locationGubun: "숙소",
-    mbti: ["EOVF", "ENVF", "ESVF", "CSVF"],
-    holiday: null,
+    mbti: "all",
+    holiday: null
   },
   {
     title: "The Park Guest House",
     locationGubun: "숙소",
-    mbti: ["ENVF", "EOVF", "ESVF", "CSVF"],
-    holiday: null,
-  },
+    mbti: "all",
+    holiday: null
+  }
 ];
