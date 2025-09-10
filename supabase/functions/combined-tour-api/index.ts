@@ -442,9 +442,9 @@ serve(async (req) => {
                         const parsedData = parseXmlToJson(responseText);
                         
                         if (parsedData?.response?.body?.items?.item) {
-                          // 다건 응답 시 첫 번째 아이템만 사용
+                          // 다건 응답 시 최대 3개 아이템까지 사용 (더 많은 데이터 수집)
                           const items = Array.isArray(parsedData.response.body.items.item)
-                            ? [parsedData.response.body.items.item[0]]
+                            ? parsedData.response.body.items.item.slice(0, 3)
                             : [parsedData.response.body.items.item];
 
                           items.forEach((item) => {
@@ -524,17 +524,13 @@ serve(async (req) => {
             `✨ 중복 제거 완료: ${allResults.length}개 → ${uniqueResults.length}개 최종 결과`
           );
 
-          // 데이터 개수 검증 (90-99개 범위 강제)
-          if (uniqueResults.length < 90 || uniqueResults.length > 99) {
-            console.error(`❌ 비정상적인 데이터 개수: ${uniqueResults.length}개 (정상 범위: 90-99개)`);
-            
-            // 90-99개 범위로 강제 조정
-            if (uniqueResults.length > 99) {
-              console.log(`📊 99개로 데이터 개수 제한`);
-              uniqueResults.splice(99);
-            } else if (uniqueResults.length < 90) {
-              console.error(`⚠️ 데이터 부족: ${uniqueResults.length}개만 수집됨`);
-            }
+          // 데이터 개수 검증 (95개 범위 목표)
+          if (uniqueResults.length < 95) {
+            console.log(`📊 현재 수집된 데이터: ${uniqueResults.length}개 (목표: 95개)`);
+            // 95개가 되도록 추가 데이터가 필요하지만, 현재 API에서 수집 가능한 만큼만 반환
+          } else if (uniqueResults.length > 99) {
+            console.log(`📊 99개로 데이터 개수 제한`);
+            uniqueResults.splice(99);
           }
 
           // 카테고리별 분류 통계
