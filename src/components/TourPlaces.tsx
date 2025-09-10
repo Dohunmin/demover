@@ -797,21 +797,6 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
               </Badge>
               <div className="flex items-center gap-1">
                 <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-gray-500 hover:text-yellow-500 p-1"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedPlaceForReview({
-                      contentid: contentId,
-                      title: place.title
-                    });
-                    setIsReviewModalOpen(true);
-                  }}
-                >
-                  <Star className="w-4 h-4" />
-                </Button>
-                <Button
                   variant="outline"
                   size="sm"
                   className="text-xs px-3 py-1 h-auto"
