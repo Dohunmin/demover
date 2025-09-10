@@ -384,6 +384,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
                 
                 <div style="text-align: center;">
                   <button id="review-btn-${place.contentid}" 
+                     onclick="event.stopPropagation(); (window.openReviewModal && window.openReviewModal(${JSON.stringify(place).replace(/"/g, '&quot;')}))"
                      style="color: #DC2626; font-size: 10px; text-decoration: none; background: #FEF2F2; padding: 4px 8px; border-radius: 6px; display: inline-block; border: 1px solid #FCA5A5; cursor: pointer;">
                     ⭐ 평점 및 후기
                   </button>
@@ -398,15 +399,29 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
               infoWindow.current.close();
             };
 
+            // 평점 후기 버튼 이벤트 처리를 전역 함수로 등록
+            (window as any).openReviewModal = (placeData: any) => {
+              console.log('평점 후기 모달 열기:', placeData);
+              setSelectedPlaceForReview(placeData);
+              setIsReviewModalOpen(true);
+            };
+
             setTimeout(() => {
               const reviewBtn = document.getElementById(`review-btn-${place.contentid}`);
               if (reviewBtn) {
-                reviewBtn.addEventListener("click", () => {
-                  setSelectedPlaceForReview(place);
-                  setIsReviewModalOpen(true);
-                });
+                // 기존 이벤트 리스너 제거
+                reviewBtn.replaceWith(reviewBtn.cloneNode(true));
+                const newReviewBtn = document.getElementById(`review-btn-${place.contentid}`);
+                if (newReviewBtn) {
+                  newReviewBtn.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('평점 후기 버튼 클릭됨:', place);
+                    (window as any).openReviewModal(place);
+                  });
+                }
               }
-            }, 100);
+            }, 150);
           });
           
         } catch (error) {
@@ -597,6 +612,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
             
             <div style="text-align: center;">
               <button id="review-btn-${place.contentid}" 
+                 onclick="event.stopPropagation(); (window.openReviewModal && window.openReviewModal(${JSON.stringify(place).replace(/"/g, '&quot;')}))"
                  style="color: #DC2626; font-size: 10px; text-decoration: none; background: #FEF2F2; padding: 4px 8px; border-radius: 6px; display: inline-block; border: 1px solid #FCA5A5; cursor: pointer;">
                 ⭐ 평점 및 후기
               </button>
@@ -611,15 +627,29 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           infoWindow.current.close();
         };
         
+        // 평점 후기 버튼 이벤트 처리를 전역 함수로 등록
+        (window as any).openReviewModal = (placeData: any) => {
+          console.log('평점 후기 모달 열기:', placeData);
+          setSelectedPlaceForReview(placeData);
+          setIsReviewModalOpen(true);
+        };
+        
         setTimeout(() => {
           const reviewBtn = document.getElementById(`review-btn-${place.contentid}`);
           if (reviewBtn) {
-            reviewBtn.addEventListener("click", () => {
-              setSelectedPlaceForReview(place);
-              setIsReviewModalOpen(true);
-            });
+            // 기존 이벤트 리스너 제거
+            reviewBtn.replaceWith(reviewBtn.cloneNode(true));
+            const newReviewBtn = document.getElementById(`review-btn-${place.contentid}`);
+            if (newReviewBtn) {
+              newReviewBtn.addEventListener("click", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('평점 후기 버튼 클릭됨:', place);
+                (window as any).openReviewModal(place);
+              });
+            }
           }
-        }, 100);
+        }, 150);
       });
     });
     
