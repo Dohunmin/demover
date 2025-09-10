@@ -251,20 +251,20 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         console.log(`✅ 전체 카테고리: ${filteredPlaces.length}개`);
       } else {
         const locationGubunMap = {
-          restaurant: "식당",
-          shopping: "쇼핑", 
-          brunch: "브런치",
           cafe: "카페",
+          restaurant: "식당",
+          brunch: "브런치",
+          accommodation: "숙소",
+          beach: "해수욕장",
           park: "공원",
+          trekking: "레저", // 트레킹은 실제 데이터에서 "레저"로 분류됨
+          "theme-street": "테마거리",
+          shopping: "쇼핑",
+          temple: "사찰",
+          market: "재래시장",
           leisure: "레저",
           culture: "문화시설",
-          temple: "사찰",
-          accommodation: "숙소",
-          market: "재래시장",
-          "theme-street": "테마거리",
-          trekking: "트레킹",
           port: "항구",
-          beach: "해수욕장",
         };
 
         const targetLocationGubun = locationGubunMap[categoryId as keyof typeof locationGubunMap];
