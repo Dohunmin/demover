@@ -48,7 +48,7 @@ const AnimalHospitalMap: React.FC<AnimalHospitalMapProps> = ({ hospitals }) => {
 
     return () => {
       // Cleanup markers
-      markersRef.current.forEach(marker => {
+      markersRef.current.forEach(({ marker }) => {
         marker.setMap(null);
       });
       markersRef.current = [];
@@ -78,7 +78,7 @@ const AnimalHospitalMap: React.FC<AnimalHospitalMapProps> = ({ hospitals }) => {
     if (!mapInstanceRef.current) return;
 
     // 기존 마커들 제거
-    markersRef.current.forEach(marker => {
+    markersRef.current.forEach(({ marker }) => {
       marker.setMap(null);
     });
     markersRef.current = [];
