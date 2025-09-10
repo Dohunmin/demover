@@ -231,15 +231,42 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
       // 인포윈도우 생성
       const infoWindow = new window.kakao.maps.InfoWindow({
         content: `
-          <div style="padding: 12px; min-width: 200px;">
-            <h4 style="margin: 0 0 8px 0; font-weight: bold; font-size: 14px; color: #333;">
+          <div style="
+            padding: 10px; 
+            max-width: 250px; 
+            min-width: 180px;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          ">
+            <h4 style="
+              margin: 0 0 6px 0; 
+              font-weight: bold; 
+              font-size: 13px; 
+              color: #333;
+              line-height: 1.3;
+              word-wrap: break-word;
+              overflow-wrap: break-word;
+            ">
               ${place.title}
             </h4>
-            <div style="font-size: 12px; color: #666; margin-bottom: 4px;">
+            <div style="
+              font-size: 11px; 
+              color: #666; 
+              margin-bottom: 4px;
+              line-height: 1.4;
+              word-wrap: break-word;
+              overflow-wrap: break-word;
+            ">
               📍 ${place.addr1} ${place.addr2 || ''}
             </div>
             ${place.tel ? `
-              <div style="font-size: 11px; color: #666;">
+              <div style="
+                font-size: 10px; 
+                color: #666;
+                line-height: 1.4;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+              ">
                 📞 ${place.tel}
               </div>
             ` : ''}
