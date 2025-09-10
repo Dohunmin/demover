@@ -128,7 +128,15 @@ const AnimalHospitalMap: React.FC<AnimalHospitalMapProps> = ({ hospitals }) => {
 
       mapInstanceRef.current = new window.kakao.maps.Map(container, options);
       console.log('Map instance created successfully');
-      updateMarkers();
+
+      // 지도 크기 재조정 및 마커 업데이트
+      setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.relayout();
+          console.log('🔄 지도 리사이즈 완료');
+          updateMarkers();
+        }
+      }, 300);
     } catch (error) {
       console.error('Failed to initialize map:', error);
     }
@@ -262,7 +270,13 @@ const AnimalHospitalMap: React.FC<AnimalHospitalMapProps> = ({ hospitals }) => {
       <div 
         ref={mapRef} 
         className="w-full h-full rounded-lg"
-        style={{ minHeight: '400px' }}
+        style={{ 
+          minHeight: '400px', 
+          height: '400px',
+          width: '100%',
+          position: 'relative',
+          backgroundColor: '#f8f9fa'
+        }}
       />
     </div>
   );
