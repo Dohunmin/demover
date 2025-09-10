@@ -525,7 +525,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
         const script = document.createElement("script");
         script.type = "text/javascript";
-        script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JS_KEY}&autoload=false&libraries=services,clusterer`;
+        script.src = `https://fffcagbbbikhfcydncjb.supabase.co/functions/v1/kakao-map-proxy?autoload=false&libraries=services,clusterer`;
 
         await new Promise<void>((resolve, reject) => {
           const timeout = setTimeout(() => {
