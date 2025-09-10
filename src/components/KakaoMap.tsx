@@ -812,16 +812,23 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
       let allPetData = [];
 
-      // API에서 받은 데이터 처리
+      // 1. API에서 받은 데이터 처리
       if (data?.petTourismData?.response?.body?.items?.item) {
         const items = data.petTourismData.response.body.items.item;
         const processedItems = Array.isArray(items) ? items : [items];
         allPetData.push(...processedItems);
+        console.log(`📡 API 데이터: ${processedItems.length}개`);
       }
 
-      // 추가 샘플 데이터
+      // 2. Sample 데이터 (additionalPetPlaces) 추가 - "all" MBTI 값 보존
       if (data?.additionalPetPlaces && Array.isArray(data.additionalPetPlaces)) {
-        allPetData.push(...data.additionalPetPlaces);
+        const sampleData = data.additionalPetPlaces;
+        allPetData.push(...sampleData);
+        console.log(`🌟 Sample 데이터: ${sampleData.length}개 추가`);
+        
+        // "all" MBTI 장소들 확인
+        const allMbtiPlaces = sampleData.filter((item: any) => item.mbti === 'all');
+        console.log(`🎯 "all" MBTI 장소들: ${allMbtiPlaces.length}개`, allMbtiPlaces.map((p: any) => p.title));
       }
 
       const validData = allPetData.filter(
@@ -830,6 +837,10 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
       setAllPetData(validData);
       console.log(`✅ 지도에서 자체 로드한 데이터 ${validData.length}개 설정 완료`);
+      
+      // 전체 데이터에서 "all" MBTI 확인
+      const finalAllMbtiPlaces = validData.filter((item: any) => item.mbti === 'all');
+      console.log(`🔥 최종 "all" MBTI 장소들: ${finalAllMbtiPlaces.length}개`, finalAllMbtiPlaces.map((p: any) => p.title));
       
       if (validData.length > 0) {
         toast.success('반려동물 여행지 데이터를 불러왔습니다!');
