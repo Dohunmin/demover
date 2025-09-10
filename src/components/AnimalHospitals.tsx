@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AdBanner from '@/components/AdBanner';
 import Footer from '@/components/Footer';
+import AnimalHospitalMap from '@/components/AnimalHospitalMap';
 import { supabase } from '@/integrations/supabase/client';
 
 interface AnimalHospital {
@@ -180,16 +181,8 @@ const AnimalHospitals = () => {
           </div>
 
           {/* 지도 */}
-          <div className="h-[400px] w-full">
-            <div className="w-full h-full bg-muted rounded-lg flex items-center justify-center">
-              <div className="text-center">
-                <MapPin className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-muted-foreground text-sm">지도 기능 준비 중입니다</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {filteredHospitals.filter(h => h.lat && h.lon).length}개 병원의 위치 정보 확인 가능
-                </p>
-              </div>
-            </div>
+          <div className="h-[500px] w-full">
+            <AnimalHospitalMap hospitals={filteredHospitals} />
           </div>
         </div>
 
