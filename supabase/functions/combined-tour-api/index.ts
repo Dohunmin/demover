@@ -775,8 +775,29 @@ serve(async (req) => {
         activeTab === "pet"
           ? petTourismData || { error: petTourismError }
           : null,
-      // 추가: sample-data를 완전한 형태로 포함
-      additionalPetPlaces: activeTab === "pet" ? sampleData : null,
+      // 추가: sample-data 중 pet API에 없는 항목만 포함 (중복 방지)
+      additionalPetPlaces: activeTab === "pet" ? (() => {
+        if (!petTourismData?.response?.body?.items?.item) {
+          return sampleData; // API 데이터가 없으면 전체 sample data 반환
+        }
+        
+        // API 응답에서 title들을 추출
+        const apiTitles = new Set(
+          Array.isArray(petTourismData.response.body.items.item)
+            ? petTourismData.response.body.items.item.map(item => item.title)
+            : [petTourismData.response.body.items.item.title]
+        );
+        
+        // sample-data 중 API에 없는 항목만 필터링
+        const missingItems = sampleData.filter(item => !apiTitles.has(item.title));
+        
+        console.log(`🔄 Pet 탭 중복 제거: API ${apiTitles.size}개, sample-data ${sampleData.length}개 → 추가할 항목 ${missingItems.length}개`);
+        if (missingItems.length > 0) {
+          console.log("추가할 sample-data 항목들:", missingItems.map(item => item.title));
+        }
+        
+        return missingItems;
+      })() : null,
       requestParams: { areaCode, numOfRows, pageNo, activeTab },
       timestamp: new Date().toISOString(),
       status: {
