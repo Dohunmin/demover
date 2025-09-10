@@ -326,6 +326,30 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
 
       console.log(`서버에서 받은 반려동물 여행지: ${allPetData.length}개`);
       
+      // 📋 서버 응답 상세 디버깅 로그
+      console.log('=== 서버 응답 상세 분석 ===');
+      console.log('API 원본 데이터:', data?.petTourismData?.response?.body?.items?.item ? 
+        (Array.isArray(data.petTourismData.response.body.items.item) ? 
+          data.petTourismData.response.body.items.item.length : 1) + '개' : '없음');
+      console.log('additionalPetPlaces:', data?.additionalPetPlaces ? data.additionalPetPlaces.length + '개' : '없음');
+      console.log('전체 응답 구조:', {
+        petTourismData: !!data?.petTourismData,
+        additionalPetPlaces: !!data?.additionalPetPlaces,
+        hasItems: !!data?.petTourismData?.response?.body?.items?.item
+      });
+      
+      // 🔍 받은 데이터의 제목들 샘플링 (처음 10개)
+      if (allPetData.length > 0) {
+        console.log('=== 받은 관광지 목록 (처음 10개) ===');
+        allPetData.slice(0, 10).forEach((item, index) => {
+          console.log(`${index + 1}. ${item.title || item.name || '제목없음'} (ID: ${item.contentid || item.contentId || 'N/A'})`);
+        });
+        
+        if (allPetData.length > 10) {
+          console.log(`... 그 외 ${allPetData.length - 10}개 더`);
+        }
+      }
+      
       // 100개 제한 적용
       if (allPetData.length > 100) {
         console.warn(`⚠️ 데이터가 ${allPetData.length}개로 100개를 초과합니다. 100개로 제한합니다.`);
@@ -384,12 +408,29 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
     const keywordToUse = searchKeyword !== undefined ? searchKeyword : petSearchKeyword;
     const pageToUse = page !== undefined ? page : petCurrentPage;
     
-    console.log('=== 캐시된 데이터 처리 ===', { 
+    console.log('=== 캐시된 데이터 처리 시작 ===', { 
       totalCached: dataToUse.length, 
       searchKeyword: keywordToUse, 
-      page: pageToUse,
-      parkFilter: parkFilter
+      page: pageToUse, 
+      parkFilter: parkFilter 
     });
+    
+    // 🔍 입력 데이터 상세 분석
+    if (dataToUse.length !== allPetPlacesCache.length) {
+      console.log('⚠️ 데이터 불일치 감지:', {
+        'dataToUse.length': dataToUse.length,
+        'allPetPlacesCache.length': allPetPlacesCache.length,
+        'cachedData 제공됨': !!cachedData
+      });
+    }
+    
+    // 🏷️ 데이터 샘플 확인 (처음 5개)
+    if (dataToUse.length > 0) {
+      console.log('=== 처리할 데이터 샘플 (처음 5개) ===');
+      dataToUse.slice(0, 5).forEach((item, index) => {
+        console.log(`${index + 1}. ${item.title || item.name} (ID: ${item.contentid || item.contentId})`);
+      });
+    }
     
     // 검색 필터링
     let filteredData = dataToUse;

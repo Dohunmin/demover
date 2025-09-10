@@ -564,6 +564,8 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           script.onerror = () => {
             clearTimeout(timeout);
             console.error("카카오 스크립트 로딩 실패");
+            console.error("스크립트 URL:", script.src);
+            console.error("API 키 상태:", KAKAO_JS_KEY ? "존재함" : "없음");
             reject(new Error("카카오 스크립트 로딩 실패"));
           };
 
