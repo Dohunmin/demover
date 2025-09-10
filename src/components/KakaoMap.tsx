@@ -277,6 +277,13 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         if (targetLocationGubun) {
           filteredPlaces = deduplicatedData.filter(place => place.locationGubun === targetLocationGubun);
           console.log(`✅ ${categoryId} (${targetLocationGubun}) 카테고리 필터링: ${filteredPlaces.length}개`);
+          
+          // 카페인 경우 상세 로그 추가
+          if (categoryId === "cafe") {
+            const allCafeData = deduplicatedData.filter(place => place.locationGubun === "카페");
+            console.log(`🔍 전체 데이터에서 카페 검색 결과: ${allCafeData.length}개`);
+            console.log(`☕ 카페 데이터 목록:`, allCafeData.map(p => ({ title: p.title, locationGubun: p.locationGubun })));
+          }
         }
       }
 
