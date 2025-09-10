@@ -178,10 +178,19 @@ const AnimalHospitalMap: React.FC<AnimalHospitalMapProps> = ({ hospitals }) => {
     // 새 마커들 생성
     validHospitals.forEach((hospital, index) => {
       try {
-        const position = new window.kakao.maps.LatLng(
-          parseFloat(hospital.lat), 
-          parseFloat(hospital.lon)
-        );
+        // 좌표 검증 및 수정 (일부 데이터에서 lat/lon이 뒤바뀌어 있는 경우)
+        let lat = parseFloat(hospital.lat);
+        let lon = parseFloat(hospital.lon);
+        
+        // 부산 지역 좌표 범위 체크 (대략적인 범위)
+        // 위도: 35.0 ~ 35.4, 경도: 128.8 ~ 129.3
+        if (lat > 128 && lat < 130 && lon > 35 && lon < 36) {
+          // lat/lon이 뒤바뀐 경우 - swap
+          [lat, lon] = [lon, lat];
+          console.log(`🔄 좌표 교정: ${hospital.animal_hospital} - lat: ${hospital.lat} → ${lat}, lon: ${hospital.lon} → ${lon}`);
+        }
+        
+        const position = new window.kakao.maps.LatLng(lat, lon);
 
         const marker = new window.kakao.maps.Marker({
           position: position,
@@ -241,10 +250,16 @@ const AnimalHospitalMap: React.FC<AnimalHospitalMapProps> = ({ hospitals }) => {
     if (validHospitals.length > 0) {
       const bounds = new window.kakao.maps.LatLngBounds();
       validHospitals.forEach(hospital => {
-        bounds.extend(new window.kakao.maps.LatLng(
-          parseFloat(hospital.lat), 
-          parseFloat(hospital.lon)
-        ));
+        // 좌표 검증 및 수정 (범위 조정에서도 동일한 로직 적용)
+        let lat = parseFloat(hospital.lat);
+        let lon = parseFloat(hospital.lon);
+        
+        // 부산 지역 좌표 범위 체크
+        if (lat > 128 && lat < 130 && lon > 35 && lon < 36) {
+          [lat, lon] = [lon, lat];
+        }
+        
+        bounds.extend(new window.kakao.maps.LatLng(lat, lon));
       });
       
       // 전체 지역(많은 마커) 선택 시 너무 멀리 축소되지 않도록 제한
