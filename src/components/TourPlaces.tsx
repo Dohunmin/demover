@@ -184,32 +184,6 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
     };
   }, [parkFilter, activeTab]);
 
-  // 사용자 변경시 캐시 상태 초기화 (로그아웃/로그인 처리)
-  useEffect(() => {
-    console.log('👤 사용자 상태 변경:', user?.id ? `로그인됨 (${user.id})` : '로그아웃됨');
-    
-    // 사용자가 변경되면 캐시 상태 초기화
-    setPetCacheLoaded(false);
-    setAllPetPlacesCache([]);
-    
-    // 다른 사용자의 캐시가 남아있지 않도록 현재 사용자가 아닌 캐시들 정리
-    if (typeof window !== 'undefined') {
-      const currentUserId = user?.id || 'anonymous';
-      
-      // localStorage에서 다른 사용자의 pet_places_cache 찾아서 제거
-      Object.keys(localStorage).forEach(key => {
-        if (key.startsWith('pet_places_cache_v3_') && !key.includes(currentUserId)) {
-          localStorage.removeItem(key);
-          console.log(`🧹 다른 사용자 캐시 정리: ${key}`);
-        }
-        if (key.startsWith('pet_places_cache_time_v3_') && !key.includes(currentUserId)) {
-          localStorage.removeItem(key);
-          console.log(`🧹 다른 사용자 캐시 시간 정리: ${key}`);
-        }
-      });
-    }
-  }, [user?.id]);
-
   useEffect(() => {
     if (userAreaCode) {
       console.log(`🔍 useEffect 실행: activeTab=${activeTab}, userAreaCode=${userAreaCode}`);
@@ -240,9 +214,9 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
       return;
     }
 
-    // localStorage에서 캐시 확인 (24시간 TTL) - 사용자별 캐시
-    const cacheKey = `pet_places_cache_v3_${user?.id || 'anonymous'}`;
-    const cacheTimeKey = `pet_places_cache_time_v3_${user?.id || 'anonymous'}`;
+    // localStorage에서 캐시 확인 (24시간 TTL) - 캐시 초기화
+    const cacheKey = 'pet_places_cache_v3'; // 캐시 초기화
+    const cacheTimeKey = 'pet_places_cache_time_v3'; // 캐시 초기화
     const CACHE_TTL = 24 * 60 * 60 * 1000; // 24시간
 
     try {
@@ -288,11 +262,6 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
     try {
       console.log('=== 반려동물 여행지 API 로딩 시작 ===');
       
-      // 로딩 안내 토스트 표시
-      toast.info('최초 로딩시 1분 정도 소요됩니다. 잠시만 기다려 주세요!', {
-        duration: 5000
-      });
-      
       const { data, error } = await supabase.functions.invoke('combined-tour-api', {
         body: {
           areaCode: userAreaCode,
@@ -314,62 +283,27 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
 
       let allPetData = [];
 
-      // API에서 받은 데이터 처리 (서버에서 이미 중복 제거 및 sample-data 통합 완료)
+      // API에서 받은 데이터 처리
       if (data?.petTourismData?.response?.body?.items?.item) {
         const items = data.petTourismData.response.body.items.item;
         const processedItems = Array.isArray(items) ? items : [items];
-        allPetData = processedItems; // push 대신 할당으로 변경
+        allPetData.push(...processedItems);
       }
 
-      // additionalPetPlaces는 서버에서 이미 통합되었으므로 클라이언트에서 추가하지 않음
-      // (기존 중복 발생 원인)
-
-      console.log(`서버에서 받은 반려동물 여행지: ${allPetData.length}개`);
-      
-      // 📋 서버 응답 상세 디버깅 로그
-      console.log('=== 서버 응답 상세 분석 ===');
-      console.log('API 원본 데이터:', data?.petTourismData?.response?.body?.items?.item ? 
-        (Array.isArray(data.petTourismData.response.body.items.item) ? 
-          data.petTourismData.response.body.items.item.length : 1) + '개' : '없음');
-      console.log('additionalPetPlaces:', data?.additionalPetPlaces ? data.additionalPetPlaces.length + '개' : '없음');
-      console.log('전체 응답 구조:', {
-        petTourismData: !!data?.petTourismData,
-        additionalPetPlaces: !!data?.additionalPetPlaces,
-        hasItems: !!data?.petTourismData?.response?.body?.items?.item
-      });
-      
-      // 🔍 받은 데이터의 제목들 샘플링 (처음 10개)
-      if (allPetData.length > 0) {
-        console.log('=== 받은 관광지 목록 (처음 10개) ===');
-        allPetData.slice(0, 10).forEach((item, index) => {
-          console.log(`${index + 1}. ${item.title || item.name || '제목없음'} (ID: ${item.contentid || item.contentId || 'N/A'})`);
-        });
-        
-        if (allPetData.length > 10) {
-          console.log(`... 그 외 ${allPetData.length - 10}개 더`);
-        }
-      }
-      
-      // 100개 제한 적용
-      if (allPetData.length > 100) {
-        console.warn(`⚠️ 데이터가 ${allPetData.length}개로 100개를 초과합니다. 100개로 제한합니다.`);
-        allPetData = allPetData.slice(0, 100);
-        console.log(`✂️ 100개로 제한 후: ${allPetData.length}개`);
+      // 추가 샘플 데이터 (52개)
+      if (data?.additionalPetPlaces && Array.isArray(data.additionalPetPlaces)) {
+        allPetData.push(...data.additionalPetPlaces);
       }
 
-      console.log(`🎯 최종 반려동물 여행지: ${allPetData.length}개`);
+      console.log(`총 ${allPetData.length}개의 반려동물 여행지 로딩 완료`);
       
-      // localStorage에 캐시 저장 (100개 이하일 때만)
-      if (allPetData.length <= 100) {
-        try {
-          localStorage.setItem(cacheKey, JSON.stringify(allPetData));
-          localStorage.setItem(cacheTimeKey, Date.now().toString());
-          console.log('💾 localStorage에 반려동물 여행지 캐시 저장:', allPetData.length, '개');
-        } catch (error) {
-          console.error('localStorage 캐시 저장 실패:', error);
-        }
-      } else {
-        console.warn('⚠️ 데이터가 100개를 초과하여 캐시에 저장하지 않습니다.');
+      // localStorage에 캐시 저장
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify(allPetData));
+        localStorage.setItem(cacheTimeKey, Date.now().toString());
+        console.log('💾 localStorage에 반려동물 여행지 캐시 저장');
+      } catch (error) {
+        console.error('localStorage 캐시 저장 실패:', error);
       }
       
       setAllPetPlacesCache(allPetData);
@@ -408,29 +342,12 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
     const keywordToUse = searchKeyword !== undefined ? searchKeyword : petSearchKeyword;
     const pageToUse = page !== undefined ? page : petCurrentPage;
     
-    console.log('=== 캐시된 데이터 처리 시작 ===', { 
+    console.log('=== 캐시된 데이터 처리 ===', { 
       totalCached: dataToUse.length, 
       searchKeyword: keywordToUse, 
-      page: pageToUse, 
-      parkFilter: parkFilter 
+      page: pageToUse,
+      parkFilter: parkFilter
     });
-    
-    // 🔍 입력 데이터 상세 분석
-    if (dataToUse.length !== allPetPlacesCache.length) {
-      console.log('⚠️ 데이터 불일치 감지:', {
-        'dataToUse.length': dataToUse.length,
-        'allPetPlacesCache.length': allPetPlacesCache.length,
-        'cachedData 제공됨': !!cachedData
-      });
-    }
-    
-    // 🏷️ 데이터 샘플 확인 (처음 5개)
-    if (dataToUse.length > 0) {
-      console.log('=== 처리할 데이터 샘플 (처음 5개) ===');
-      dataToUse.slice(0, 5).forEach((item, index) => {
-        console.log(`${index + 1}. ${item.title || item.name} (ID: ${item.contentid || item.contentId})`);
-      });
-    }
     
     // 검색 필터링
     let filteredData = dataToUse;
@@ -999,25 +916,11 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
       {/* 콘텐츠 영역 */}
       <div className="px-5">
         {loading || petDataLoading ? (
-          <div className="text-center py-12">
-            {petDataLoading ? (
-              <>
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-6">
-                  <PawPrint className="w-8 h-8 text-primary animate-pulse" />
-                </div>
-                <h3 className="text-xl font-semibold mb-3">반려동물 여행지 로딩 중</h3>
-                <p className="text-muted-foreground mb-2">최초 로딩시 1분 정도 소요됩니다</p>
-                <p className="text-sm text-muted-foreground">잠시만 기다려 주세요...</p>
-                <div className="mt-4">
-                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent mx-auto"></div>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground mx-auto"></div>
-                <p className="text-gray-600 mt-2">로딩 중...</p>
-              </>
-            )}
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground mx-auto"></div>
+            <p className="text-gray-600 mt-2">
+              {petDataLoading ? '반려동물 여행지 로딩중...' : '로딩 중...'}
+            </p>
           </div>
         ) : (
           <div className="space-y-4">

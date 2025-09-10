@@ -506,33 +506,14 @@ serve(async (req) => {
             `🎯 전체 수집 완료: 총 ${allResults.length}개 수집 (소요시간: ${totalTime}초)`
           );
 
-          // contentid 기준으로 중복 제거 (Set 활용) + 강화된 중복 제거
+          // contentid 기준으로 중복 제거 (Set 활용)
           const seen = new Set();
-          const uniqueByContentId = new Set();
-          const uniqueByTitleAddr = new Set();
-          
           const uniqueResults = allResults.filter(item => {
-            // 1차: contentid가 있는 경우 contentid로 중복 체크
-            if (item.contentid) {
-              if (uniqueByContentId.has(item.contentid)) {
-                console.log(`🔄 contentid 중복 제거: ${item.title} (${item.contentid})`);
-                return false;
-              }
-              uniqueByContentId.add(item.contentid);
-            }
-            
-            // 2차: title + addr1 조합으로 중복 체크
-            const titleAddrKey = `${item.title?.trim() || ''}_${item.addr1?.trim() || ''}`;
-            if (uniqueByTitleAddr.has(titleAddrKey)) {
-              console.log(`🔄 title+addr1 중복 제거: ${item.title} (${titleAddrKey})`);
-              return false;
-            }
-            uniqueByTitleAddr.add(titleAddrKey);
-            
-            // 3차: 기존 uniqueKey 방식도 병행
+            // contentid가 없는 경우는 title + mapx + mapy 조합으로 중복 체크
             const uniqueKey = item.contentid || `${item.title}_${item.mapx}_${item.mapy}`;
+            
             if (seen.has(uniqueKey)) {
-              console.log(`🔄 기존방식 중복 제거: ${item.title} (${uniqueKey})`);
+              console.log(`🔄 중복 제거: ${item.title} (${uniqueKey})`);
               return false;
             }
             seen.add(uniqueKey);
@@ -543,13 +524,14 @@ serve(async (req) => {
             `✨ 중복 제거 완료: ${allResults.length}개 → ${uniqueResults.length}개 최종 결과`
           );
 
-          // 데이터 개수 검증 및 100개 제한 (서버에서 확실히 제한)
-          if (uniqueResults.length > 100) {
-            console.log(`📊 ${uniqueResults.length}개에서 100개로 강제 제한`);
-            uniqueResults.splice(100);
+          // 데이터 개수 검증 (95개 범위 목표)
+          if (uniqueResults.length < 95) {
+            console.log(`📊 현재 수집된 데이터: ${uniqueResults.length}개 (목표: 95개)`);
+            // 95개가 되도록 추가 데이터가 필요하지만, 현재 API에서 수집 가능한 만큼만 반환
+          } else if (uniqueResults.length > 99) {
+            console.log(`📊 99개로 데이터 개수 제한`);
+            uniqueResults.splice(99);
           }
-          
-          console.log(`✅ 최종 데이터 개수: ${uniqueResults.length}개 (100개 이하 보장)`);
 
           // 카테고리별 분류 통계
           const categoryStats = {};
@@ -634,14 +616,6 @@ serve(async (req) => {
           });
 
           console.log(`🎯 최종 결과: API ${uniqueResults.length}개 → 최종 반환 ${simplifiedResults.length}개`);
-          console.log(`📊 최종 데이터 검증: 총 ${simplifiedResults.length}개 (목표: 95개 내외)`);
-          
-          // 95개 범위 검증
-          if (simplifiedResults.length < 90 || simplifiedResults.length > 100) {
-            console.warn(`⚠️ 데이터 개수가 예상 범위를 벗어남: ${simplifiedResults.length}개 (권장: 90-100개)`);
-          } else {
-            console.log(`✅ 데이터 개수 검증 통과: ${simplifiedResults.length}개 (권장 범위 내)`);
-          }
 
           console.log("=== 매칭 분석 ===");
           
