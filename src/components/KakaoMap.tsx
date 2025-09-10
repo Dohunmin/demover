@@ -290,7 +290,13 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         
         finalPlaces = filteredPlaces.filter((place) => {
           if (!place.mbti) return false;
-          if (place.mbti === "all") return true;
+          
+          // mbti가 "all"이면 모든 MBTI에 표시
+          if (place.mbti === "all") {
+            console.log(`✅ "all" MBTI 장소 포함: ${place.title}`);
+            return true;
+          }
+          
           if (Array.isArray(place.mbti)) {
             return place.mbti.includes(selectedMbti);
           }
@@ -497,18 +503,26 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     
     // MBTI 필터링 (전체 카테고리가 아닐 때만 적용)
     if (selectedMbti && selectedCategory !== "all") {
-      console.log(`MBTI 필터 적용: ${selectedMbti}`);
+      console.log(`🧠 MBTI 필터 적용: ${selectedMbti}`);
       const beforeCount = filteredPlaces.length;
       filteredPlaces = filteredPlaces.filter((place) => {
         // place.mbti가 없으면 제외
-        if (!place.mbti) return false;
+        if (!place.mbti) {
+          console.log(`❌ MBTI 없음: ${place.title}`);
+          return false;
+        }
         
         // place.mbti가 "all"이면 모든 MBTI에 해당하므로 포함
-        if (place.mbti === "all") return true;
+        if (place.mbti === "all") {
+          console.log(`✅ "all" MBTI 장소 포함: ${place.title}`);
+          return true;
+        }
         
         // place.mbti가 배열이면 selectedMbti가 포함되어 있는지 확인
         if (Array.isArray(place.mbti)) {
-          return place.mbti.includes(selectedMbti);
+          const isIncluded = place.mbti.includes(selectedMbti);
+          console.log(`${isIncluded ? '✅' : '❌'} 배열 MBTI ${place.title}: ${place.mbti} includes ${selectedMbti} = ${isIncluded}`);
+          return isIncluded;
         }
         
         // place.mbti가 문자열이면 정확히 매치하는지 확인
