@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Calendar, Tag, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import useEmblaCarousel from "embla-carousel-react";
-import logoImage from "@/assets/logo.png";
 
 interface TourPlace {
   id: string;
@@ -183,29 +182,21 @@ const RecommendationSlider = () => {
                     src={(item as TourPlace & { type: 'tour' }).firstimage} 
                     alt={(item as TourPlace & { type: 'tour' }).title}
                     className="absolute inset-0 w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = logoImage;
-                      target.className = "absolute inset-0 w-full h-full object-contain p-6 bg-gradient-to-br from-sky-100 via-background to-amber-100";
-                    }}
                   />
                 ) : item.type === 'news' && (item as NewsItem & { type: 'news' }).image_url ? (
                   <img 
                     src={(item as NewsItem & { type: 'news' }).image_url} 
                     alt={(item as NewsItem & { type: 'news' }).title}
                     className="absolute inset-0 w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = logoImage;
-                      target.className = "absolute inset-0 w-full h-full object-contain p-6 bg-gradient-to-br from-sky-100 via-background to-amber-100";
-                    }}
                   />
                 ) : (
-                  <img 
-                    src={logoImage}
-                    alt="멍멍 여행 로고"
-                    className="absolute inset-0 w-full h-full object-contain p-6 bg-gradient-to-br from-sky-100 via-background to-amber-100"
-                  />
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                    {item.type === 'tour' ? (
+                      <MapPin className="w-8 h-8 text-primary" />
+                    ) : (
+                      <Calendar className="w-8 h-8 text-primary" />
+                    )}
+                  </div>
                 )}
                 
                 {/* Overlay */}
