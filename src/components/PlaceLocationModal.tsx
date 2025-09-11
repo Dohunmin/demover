@@ -148,43 +148,26 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
       script.type = "text/javascript";
       script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JS_KEY}&autoload=false`;
 
-      await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          script.remove();
-          console.error('⏰ 카카오 지도 로딩 타임아웃');
-          setMapError("지도 로딩 시간이 초과되었습니다. 카카오 개발자 콘솔에서 도메인을 확인해주세요.");
-          reject(new Error("카카오 지도 로딩 타임아웃"));
-        }, 15000);
+      document.head.appendChild(script);
 
-        script.onload = () => {
-          clearTimeout(timeout);
-          console.log('✅ 카카오 지도 스크립트 로딩 완료');
-          
-          // 스크립트가 로드된 후 kakao 객체가 준비될 때까지 기다림
-          const checkKakao = () => {
-            if (window.kakao && window.kakao.maps) {
-              window.kakao.maps.load(() => {
-                console.log('✅ 카카오 지도 SDK 초기화 완료');
-                initializeMap();
-                resolve();
-              });
-            } else {
-              setTimeout(checkKakao, 100);
-            }
-          };
-          checkKakao();
-        };
+      script.onload = () => {
+        console.log('✅ 카카오 지도 스크립트 로딩 완료');
+        
+        if (window.kakao && window.kakao.maps) {
+          window.kakao.maps.load(() => {
+            console.log('✅ 카카오 지도 SDK 초기화 완료');
+            initializeMap();
+          });
+        } else {
+          console.error('❌ 카카오 지도 객체를 찾을 수 없습니다');
+          setMapError("카카오 지도를 로드할 수 없습니다.");
+        }
+      };
 
-        script.onerror = () => {
-          clearTimeout(timeout);
-          script.remove();
-          console.error('❌ 카카오 지도 스크립트 로딩 실패 - 도메인이 등록되었는지 확인하세요');
-          setMapError("카카오 지도를 불러올 수 없습니다. 카카오 개발자 콘솔에서 현재 도메인을 등록해주세요.");
-          reject(new Error("카카오 지도 스크립트 로딩 실패"));
-        };
-
-        document.head.appendChild(script);
-      });
+      script.onerror = () => {
+        console.error('❌ 카카오 지도 스크립트 로딩 실패');
+        setMapError("카카오 지도를 불러올 수 없습니다.");
+      };
 
       // 스크립트 로드 완료 후 자동으로 지도 초기화됨
       document.head.appendChild(script);
