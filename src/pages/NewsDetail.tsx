@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { linkifyMultilineText } from "@/utils/linkify";
 
 interface NewsPost {
   id: string;
@@ -285,8 +286,8 @@ const NewsDetail = () => {
 
           {/* 내용 */}
           <div className="prose prose-sm max-w-none">
-            <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-              {post.content}
+            <div className="text-gray-700 leading-relaxed">
+              {linkifyMultilineText(post.content)}
             </div>
           </div>
         </Card>
