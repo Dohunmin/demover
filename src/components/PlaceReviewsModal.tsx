@@ -46,10 +46,37 @@ const PlaceReviewsModal: React.FC<PlaceReviewsModalProps> = ({
     }
   }, [isOpen, placeName]);
 
+  // 주소 유사도 확인 함수
+  const isAddressSimilar = (address1?: string, address2?: string): boolean => {
+    if (!address1 || !address2) return true; // 주소가 없으면 매칭 허용
+    
+    // 주소 정규화 (공백, 특수문자 제거)
+    const normalize = (addr: string) => 
+      addr.replace(/[^\w가-힣]/g, '').toLowerCase();
+    
+    const addr1 = normalize(address1);
+    const addr2 = normalize(address2);
+    
+    // 정확한 일치
+    if (addr1 === addr2) return true;
+    
+    // 부분 일치 확인 (핵심 키워드 기반)
+    const keywords1 = addr1.split(/\s+/).filter(word => word.length > 1);
+    const keywords2 = addr2.split(/\s+/).filter(word => word.length > 1);
+    
+    // 공통 키워드가 2개 이상이면 유사한 주소로 판단
+    const commonKeywords = keywords1.filter(keyword => 
+      keywords2.some(k => k.includes(keyword) || keyword.includes(k))
+    );
+    
+    return commonKeywords.length >= 2;
+  };
+
   const fetchReviews = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // 장소명으로 기본 검색
+      let query = supabase
         .from('travel_records')
         .select(`
           id,
@@ -62,24 +89,41 @@ const PlaceReviewsModal: React.FC<PlaceReviewsModalProps> = ({
           rating,
           created_at
         `)
-        .eq('location_name', placeName)
         .eq('is_public', true)
         .not('rating', 'is', null)
         .order('created_at', { ascending: false });
+
+      // 장소명으로 먼저 필터링
+      query = query.or(`location_name.eq.${placeName},location_name.ilike.%${placeName}%`);
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching reviews:', error);
         return;
       }
 
+      // 클라이언트 사이드에서 더 정교한 매칭 수행
+      const filteredData = (data || []).filter(review => {
+        // 장소명 정확 매칭 또는 유사 매칭
+        const nameMatch = review.location_name === placeName || 
+                         review.location_name.includes(placeName) ||
+                         placeName.includes(review.location_name);
+        
+        // 주소 유사도 확인
+        const addressMatch = isAddressSimilar(review.location_address, placeAddress);
+        
+        return nameMatch && addressMatch;
+      });
+
       // 각 리뷰에 대해 프로필 정보를 별도로 가져오기
       const reviewsWithProfiles = await Promise.all(
-        (data || []).map(async (review) => {
+        filteredData.map(async (review) => {
           const { data: profile } = await supabase
             .from('profiles')
             .select('pet_name, pet_image_url')
             .eq('user_id', review.user_id)
-            .single();
+            .maybeSingle();
 
           return {
             ...review,
