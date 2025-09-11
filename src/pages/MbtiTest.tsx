@@ -1,15 +1,14 @@
-import { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { ArrowLeft, PawPrint, Heart, MapPin, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ArrowLeft, PawPrint, Heart, MapPin, Compass, Mountain } from "lucide-react";
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useEffect } from "react";
+import html2canvas from "html2canvas";
 
 
 // 4가지 평가차원 데이터
@@ -428,6 +427,36 @@ const MbtiTest = () => {
   const [result, setResult] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const resultRef = useRef<HTMLDivElement>(null);
+
+  // 기존 MBTI 결과 불러오기
+  useEffect(() => {
+    const fetchExistingResult = async () => {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('mbti_result')
+          .eq('user_id', user.id)
+          .single();
+
+        if (data?.mbti_result) {
+          setResult(data.mbti_result);
+        }
+      } catch (error) {
+        console.error('기존 MBTI 결과 불러오기 실패:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchExistingResult();
+  }, [user]);
 
   // 멍BTI 결과 저장 함수
   const saveMbtiResult = async (mbtiResult: string) => {
@@ -531,6 +560,51 @@ const MbtiTest = () => {
   const handleRecommendTravel = () => {
     navigate("/travel");
   };
+
+  // 결과 이미지로 저장하기
+  const handleShareResult = async () => {
+    if (!resultRef.current) return;
+
+    try {
+      const canvas = await html2canvas(resultRef.current, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+        allowTaint: false
+      });
+
+      // Canvas를 Blob으로 변환
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `멍BTI_${result}_결과.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          
+          toast.success("결과 이미지가 저장되었습니다!");
+        }
+      }, 'image/png');
+    } catch (error) {
+      console.error('이미지 저장 실패:', error);
+      toast.error("이미지 저장에 실패했습니다.");
+    }
+  };
+
+  // 로딩 중
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background max-w-md mx-auto pb-20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">멍BTI 결과를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
 
   // 메인 소개 화면
   if (!isTestStarted && !result) {
@@ -756,18 +830,37 @@ const MbtiTest = () => {
     return (
       <div className="min-h-screen bg-background max-w-md mx-auto pb-20">
         {/* Header */}
-        <div className="text-center py-8">
-          <div className="text-6xl mb-4">{resultData.icon}</div>
-          <div className="header-title text-2xl mb-2">
-            {result}
+        <header className="header p-6">
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/")}
+              className="text-foreground hover:bg-muted p-2"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              <h1 className="header-title">멍BTI 결과</h1>
+              <p className="header-subtitle">반려견 여행 성향</p>
+            </div>
           </div>
-          <div className="text-lg font-semibold text-foreground">
-            {resultData.title}
-          </div>
-        </div>
+        </header>
 
-        {/* Result Card */}
-        <div className="p-5">
+        {/* Result Content */}
+        <div ref={resultRef} className="bg-background p-5">
+          {/* Result Header */}
+          <div className="text-center py-8">
+            <div className="text-6xl mb-4">{resultData.icon}</div>
+            <div className="header-title text-2xl mb-2">
+              {result}
+            </div>
+            <div className="text-lg font-semibold text-foreground">
+              {resultData.title}
+            </div>
+          </div>
+
+          {/* Result Card */}
           <Card className="card mb-6">
             {/* 캐릭터 이미지 */}
             {mbtiImages[result] && (
@@ -796,27 +889,35 @@ const MbtiTest = () => {
               </span>
             ))}
           </div>
+        </div>
 
-          {/* Action Buttons */}
-          <div className="space-y-3">
-            <Button
-              onClick={handleRecommendTravel}
-              className="button-primary w-full py-4"
-            >
-              <Heart className="w-5 h-5 mr-2" />
-              추천 여행지 보기
-            </Button>
+        {/* Action Buttons */}
+        <div className="p-5 space-y-3">
+          <Button
+            onClick={handleRecommendTravel}
+            className="button-primary w-full py-4"
+          >
+            <Heart className="w-5 h-5 mr-2" />
+            추천 여행지 보기
+          </Button>
+          <div className="grid grid-cols-2 gap-3">
             <Button
               variant="outline"
               onClick={handleRetakeTest}
-              className="w-full py-3 rounded-xl"
+              className="py-3 rounded-xl"
             >
               다시 테스트하기
             </Button>
+            <Button
+              variant="outline"
+              onClick={handleShareResult}
+              className="py-3 rounded-xl"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              결과 저장하기
+            </Button>
           </div>
         </div>
-
-        
       </div>
     );
   }
