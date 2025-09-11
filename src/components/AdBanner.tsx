@@ -12,22 +12,22 @@ const banners: BannerData[] = [
   {
     id: 1,
     image: "/lovable-uploads/ef62330e-d2c8-436c-a93b-94b280eb17ea.png",
-    title: "털 끝까지 사랑을 담다",
-    subtitle: "펫 그루밍 전문 서비스",
+    title: "#",
+    subtitle: "#",
     link: "#"
   },
   {
     id: 2,
     image: "/lovable-uploads/ec9c4fd4-6c05-4760-8af9-ff63c429f4bb.png",
-    title: "우리동네 동물병원",
-    subtitle: "언제나, 당신 곁에 든든한",
+    title: "#",
+    subtitle: "#",
     link: "#"
   },
   {
     id: 3,
     image: "/lovable-uploads/23447610-d606-420e-aa28-dab6485249b2.png",
-    title: "반려동물과 함께",
-    subtitle: "완벽한 스테이!",
+    title: "#",
+    subtitle: "#",
     link: "#"
   },
   {
