@@ -722,14 +722,17 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.style.display = 'none';
-                  target.parentElement!.innerHTML = '<div class="w-full h-full bg-gray-100 flex items-center justify-center"><svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path></svg></div>';
+                  target.nextElementSibling?.classList.remove('hidden');
                 }}
               />
-            ) : (
-              <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                <MapPin className="w-8 h-8 text-gray-400" />
-              </div>
-            )}
+            ) : null}
+            <div className={`w-full h-full bg-gradient-to-br from-blue-400 via-blue-300 to-yellow-300 flex items-center justify-center p-2 ${(place.firstimage || place.image) ? 'hidden' : ''}`}>
+              <img 
+                src="/lovable-uploads/ac67abbc-77f6-49be-9553-8f14fcad6271.png" 
+                alt="로고"
+                className="w-12 h-12 object-contain"
+              />
+            </div>
           </div>
           
           {/* 콘텐츠 영역 */}

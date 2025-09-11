@@ -182,22 +182,35 @@ const RecommendationSlider = () => {
                     src={(item as TourPlace & { type: 'tour' }).firstimage} 
                     alt={(item as TourPlace & { type: 'tour' }).title}
                     className="absolute inset-0 w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      target.nextElementSibling?.classList.remove('hidden');
+                    }}
                   />
                 ) : item.type === 'news' && (item as NewsItem & { type: 'news' }).image_url ? (
                   <img 
                     src={(item as NewsItem & { type: 'news' }).image_url} 
                     alt={(item as NewsItem & { type: 'news' }).title}
                     className="absolute inset-0 w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      target.nextElementSibling?.classList.remove('hidden');
+                    }}
                   />
-                ) : (
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                    {item.type === 'tour' ? (
-                      <MapPin className="w-8 h-8 text-primary" />
-                    ) : (
-                      <Calendar className="w-8 h-8 text-primary" />
-                    )}
-                  </div>
-                )}
+                ) : null}
+                
+                <div className={`absolute inset-0 bg-gradient-to-br from-blue-400 via-blue-300 to-yellow-300 flex items-center justify-center p-4 ${
+                  (item.type === 'tour' && (item as TourPlace & { type: 'tour' }).firstimage) || 
+                  (item.type === 'news' && (item as NewsItem & { type: 'news' }).image_url) ? 'hidden' : ''
+                }`}>
+                  <img 
+                    src="/lovable-uploads/ac67abbc-77f6-49be-9553-8f14fcad6271.png" 
+                    alt="로고"
+                    className="w-12 h-12 object-contain"
+                  />
+                </div>
                 
                 {/* Overlay */}
                 <div className="absolute inset-0 bg-black/40" />
