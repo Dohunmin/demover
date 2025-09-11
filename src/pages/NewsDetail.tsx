@@ -7,7 +7,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { linkifyMultilineText } from "@/utils/linkify";
-import ShareModal from "@/components/ShareModal";
 
 interface NewsPost {
   id: string;
@@ -26,7 +25,6 @@ const NewsDetail = () => {
   const [loading, setLoading] = useState(true);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
-  const [showShareModal, setShowShareModal] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -139,8 +137,38 @@ const NewsDetail = () => {
     }
   };
 
-  const handleShare = () => {
-    setShowShareModal(true);
+  const handleShare = async () => {
+    try {
+      const currentUrl = window.location.href;
+      
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(currentUrl);
+        toast.success('링크가 복사되었습니다!');
+      } else {
+        // Fallback for older browsers or non-secure contexts
+        const textArea = document.createElement('textarea');
+        textArea.value = currentUrl;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+          document.execCommand('copy');
+          toast.success('링크가 복사되었습니다!');
+        } catch (err) {
+          console.error('Fallback copy failed:', err);
+          toast.error('링크 복사에 실패했습니다.');
+        }
+        
+        document.body.removeChild(textArea);
+      }
+    } catch (error) {
+      console.error('Error copying link:', error);
+      toast.error('링크 복사에 실패했습니다.');
+    }
   };
 
   if (loading) {
@@ -286,7 +314,7 @@ const NewsDetail = () => {
             className="flex items-center justify-center py-3 bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             <Share2 className="w-4 h-4 mr-2" />
-            공유하기
+            링크복사
           </Button>
           <Button
             variant="outline"
@@ -298,17 +326,6 @@ const NewsDetail = () => {
           </Button>
         </div>
       </main>
-
-      {/* 공유 모달 */}
-      {post && (
-        <ShareModal
-          isOpen={showShareModal}
-          onClose={() => setShowShareModal(false)}
-          title={post.title}
-          content={post.content}
-          url={window.location.href}
-        />
-      )}
     </div>
   );
 };
