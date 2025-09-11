@@ -918,6 +918,80 @@ const MbtiTest = () => {
             </Button>
           </div>
         </div>
+
+        {/* Additional Content - Same as main screen */}
+        <div className="p-5 space-y-6">
+          {/* 16가지 여행 성향 설명 */}
+          <div className="card p-6">
+            <h3 className="card-title text-lg mb-4 flex items-center">
+              <MapPin className="w-5 h-5 mr-2" style={{ color: "var(--primary-color)" }} />
+              16가지 여행 성향 설명
+            </h3>
+            <div className="grid grid-cols-4 gap-2">
+              {travelTypes.map((type) => (
+                <button 
+                  key={type.code} 
+                  onClick={() => handleTypeClick(type.code)}
+                  className="tab-item p-1 text-center transition-all duration-200 cursor-pointer hover:shadow-md rounded-lg overflow-hidden"
+                >
+                  {mbtiImages[type.code] && (
+                    <img 
+                      src={mbtiImages[type.code]} 
+                      alt={`${type.code} 캐릭터`}
+                      className="w-full h-16 object-contain"
+                    />
+                  )}
+                  <div className="text-xs font-medium mt-1" style={{ color: "var(--text-primary)" }}>
+                    {type.code}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 4가지 차원 설명 */}
+          <div className="card p-6">
+            <h3 className="card-title text-lg mb-4 flex items-center">
+              <PawPrint className="w-5 h-5 mr-2" style={{ color: "var(--primary-color)" }} />
+              멍BTI 4가지 성향 차원
+            </h3>
+            <DimensionText />
+          </div>
+        </div>
+
+        {/* Dialog for type details */}
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent className="w-[95%] max-w-md mx-auto rounded-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-center">
+                {selectedTypeData?.code} - {selectedTypeData?.title}
+              </DialogTitle>
+            </DialogHeader>
+            {selectedTypeData && (
+              <div className="space-y-4">
+                {mbtiImages[selectedTypeData.code] && (
+                  <div className="flex justify-center">
+                    <img 
+                      src={mbtiImages[selectedTypeData.code]} 
+                      alt={`${selectedTypeData.code} 캐릭터`}
+                      className="w-24 h-24 object-contain"
+                    />
+                  </div>
+                )}
+                <p className="text-sm text-center leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                  {selectedTypeData.description}
+                </p>
+                <div className="flex flex-wrap gap-1 justify-center">
+                  {selectedTypeData.tags.map((tag, index) => (
+                    <span key={index} className="px-2 py-1 bg-secondary text-muted-foreground text-xs rounded-full">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
