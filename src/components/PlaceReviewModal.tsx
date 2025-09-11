@@ -38,10 +38,17 @@ const PlaceReviewModal: React.FC<PlaceReviewModalProps> = ({ isOpen, onClose, on
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [averageRating, setAverageRating] = useState(0);
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (isOpen) {
       fetchReviews();
+      // 모달이 열릴 때 textarea의 포커스를 명시적으로 제거
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.blur();
+        }
+      }, 100);
     }
   }, [isOpen, place.contentid]);
 
@@ -226,11 +233,18 @@ const PlaceReviewModal: React.FC<PlaceReviewModalProps> = ({ isOpen, onClose, on
                     후기 (선택사항)
                   </label>
                   <Textarea
+                    ref={textareaRef}
                     placeholder="이 장소에 대한 경험을 공유해주세요..."
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     className="min-h-[100px]"
                     autoFocus={false}
+                    onFocus={(e) => {
+                      // 자동 포커스가 아닌 사용자 클릭일 때만 포커스 유지
+                      if (document.activeElement !== e.target) {
+                        e.target.blur();
+                      }
+                    }}
                   />
                 </div>
 
