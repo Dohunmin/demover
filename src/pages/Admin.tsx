@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Edit, Trash2, Calendar, Tag, Users, UserPlus, Shield, User, X, Camera, Image } from "lucide-react";
+import { ArrowLeft, Plus, Edit, Trash2, Calendar, Tag, Users, UserPlus, Shield, User, X, Camera, Image, MapPin, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -40,13 +40,50 @@ interface UserProfile {
   kakao_id?: string;
 }
 
+interface TravelRecord {
+  id: string;
+  user_id: string;
+  location_name: string;
+  visit_date: string;
+  rating?: number;
+  memo?: string;
+  images?: any;
+  created_at: string;
+  is_public: boolean;
+  profiles?: {
+    pet_name?: string;
+    pet_image_url?: string;
+  };
+}
+
+interface CommunityPost {
+  id: string;
+  user_id: string;
+  title: string;
+  content: string;
+  post_type: string;
+  location_name?: string;
+  location_address?: string;
+  image_url?: string;
+  is_anonymous: boolean;
+  created_at: string;
+  profiles?: {
+    pet_name?: string;
+    pet_image_url?: string;
+  };
+}
+
 const Admin = () => {
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
   const [posts, setPosts] = useState<NewsPost[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
+  const [travelRecords, setTravelRecords] = useState<TravelRecord[]>([]);
+  const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [usersLoading, setUsersLoading] = useState(false);
+  const [travelLoading, setTravelLoading] = useState(false);
+  const [communityLoading, setCommunityLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<NewsPost | null>(null);
@@ -54,6 +91,7 @@ const Admin = () => {
   const [isUserDetailOpen, setIsUserDetailOpen] = useState(false);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("news");
+  const [activeNewsTab, setActiveNewsTab] = useState("events");
   
   // Form state
   const [formData, setFormData] = useState({
@@ -77,8 +115,14 @@ const Admin = () => {
   useEffect(() => {
     if (activeTab === "users" && isAdmin) {
       fetchUsers();
+    } else if (activeTab === "news") {
+      if (activeNewsTab === "travel") {
+        fetchTravelRecords();
+      } else if (activeNewsTab === "community") {
+        fetchCommunityPosts();
+      }
     }
-  }, [activeTab, isAdmin]);
+  }, [activeTab, activeNewsTab, isAdmin]);
 
   const checkAdminRole = async () => {
     if (!currentUser) return;
@@ -400,6 +444,88 @@ const Admin = () => {
     }
   };
 
+  const fetchTravelRecords = async () => {
+    setTravelLoading(true);
+    try {
+      const { data: records, error } = await supabase
+        .from('travel_records')
+        .select('*')
+        .eq('is_public', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Get profiles for each record
+      const userIds = records?.map(r => r.user_id) || [];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, pet_name, pet_image_url')
+        .in('user_id', userIds);
+
+      const recordsWithProfiles = records?.map(record => ({
+        ...record,
+        profiles: profiles?.find(p => p.user_id === record.user_id)
+      })) || [];
+
+      setTravelRecords(recordsWithProfiles as any);
+    } catch (error) {
+      console.error('Error fetching travel records:', error);
+      toast.error('여행 기록을 불러오는데 실패했습니다.');
+    } finally {
+      setTravelLoading(false);
+    }
+  };
+
+  const fetchCommunityPosts = async () => {
+    setCommunityLoading(true);
+    try {
+      const { data: posts, error } = await supabase
+        .from('community_posts')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Get profiles for each post
+      const userIds = posts?.map(p => p.user_id) || [];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, pet_name, pet_image_url')
+        .in('user_id', userIds);
+
+      const postsWithProfiles = posts?.map(post => ({
+        ...post,
+        profiles: profiles?.find(p => p.user_id === post.user_id)
+      })) || [];
+
+      setCommunityPosts(postsWithProfiles as any);
+    } catch (error) {
+      console.error('Error fetching community posts:', error);
+      toast.error('커뮤니티 글을 불러오는데 실패했습니다.');
+    } finally {
+      setCommunityLoading(false);
+    }
+  };
+
+  const handleDeleteCommunityPost = async (postId: string) => {
+    if (!confirm('정말 이 커뮤니티 글을 삭제하시겠습니까?')) return;
+    
+    try {
+      const { error } = await supabase
+        .from('community_posts')
+        .delete()
+        .eq('id', postId);
+
+      if (error) throw error;
+      
+      toast.success('커뮤니티 글이 삭제되었습니다.');
+      fetchCommunityPosts();
+    } catch (error) {
+      console.error('Error deleting community post:', error);
+      toast.error('삭제에 실패했습니다.');
+    }
+  };
+
   const resetForm = () => {
     setFormData({ title: '', content: '', category: 'event' });
     setEditingPost(null);
@@ -467,21 +593,44 @@ const Admin = () => {
           </TabsList>
 
           <TabsContent value="news" className="space-y-6">
-            {/* Create Button */}
-            <Card className="p-4 bg-white rounded-2xl shadow-lg">
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button 
-                    className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
-                    onClick={() => {
-                      resetForm();
-                      setIsDialogOpen(true);
-                    }}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    새 소식 등록
-                  </Button>
-                </DialogTrigger>
+            {/* News Sub-tabs */}
+            <Tabs value={activeNewsTab} onValueChange={setActiveNewsTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="events" className="flex items-center space-x-1 text-xs">
+                  <Calendar className="w-3 h-3" />
+                  <span>축제/이벤트</span>
+                </TabsTrigger>
+                <TabsTrigger value="sales" className="flex items-center space-x-1 text-xs">
+                  <Tag className="w-3 h-3" />
+                  <span>세일</span>
+                </TabsTrigger>
+                <TabsTrigger value="travel" className="flex items-center space-x-1 text-xs">
+                  <MapPin className="w-3 h-3" />
+                  <span>다른 멍멍이들</span>
+                </TabsTrigger>
+                <TabsTrigger value="community" className="flex items-center space-x-1 text-xs">
+                  <MessageCircle className="w-3 h-3" />
+                  <span>커뮤니티</span>
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="events" className="space-y-4">
+                {/* Create Button for Events */}
+                <Card className="p-4 bg-white rounded-2xl shadow-lg">
+                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+                        onClick={() => {
+                          resetForm();
+                          setFormData(prev => ({ ...prev, category: 'event' }));
+                          setIsDialogOpen(true);
+                        }}
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        새 축제/이벤트 등록
+                      </Button>
+                    </DialogTrigger>
                 <DialogContent className="max-w-md">
                   <DialogHeader>
                     <DialogTitle>
@@ -589,20 +738,14 @@ const Admin = () => {
               </Dialog>
             </Card>
 
-            {/* Posts List */}
+            {/* Events List */}
             <div className="space-y-4">
-              {posts.map((post) => (
+              {posts.filter(post => post.category === 'event').map((post) => (
                 <Card key={post.id} className="p-4 bg-white rounded-2xl shadow-lg">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center space-x-2">
-                      {post.category === 'event' ? (
-                        <Calendar className="w-4 h-4 text-blue-600" />
-                      ) : (
-                        <Tag className="w-4 h-4 text-red-600" />
-                      )}
-                      <span className="text-xs font-medium text-gray-500">
-                        {post.category === 'event' ? '축제/이벤트' : '세일/할인'}
-                      </span>
+                      <Calendar className="w-4 h-4 text-blue-600" />
+                      <span className="text-xs font-medium text-gray-500">축제/이벤트</span>
                     </div>
                     <div className="flex space-x-1">
                       <Button
@@ -646,13 +789,228 @@ const Admin = () => {
                 </Card>
               ))}
               
-              {posts.length === 0 && (
+              {posts.filter(post => post.category === 'event').length === 0 && (
                 <Card className="p-8 text-center">
-                  <p className="text-gray-500">등록된 소식이 없습니다.</p>
+                  <p className="text-gray-500">등록된 축제/이벤트가 없습니다.</p>
                 </Card>
               )}
             </div>
           </TabsContent>
+
+          <TabsContent value="sales" className="space-y-4">
+            {/* Create Button for Sales */}
+            <Card className="p-4 bg-white rounded-2xl shadow-lg">
+              <Button 
+                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+                onClick={() => {
+                  resetForm();
+                  setFormData(prev => ({ ...prev, category: 'sale' }));
+                  setIsDialogOpen(true);
+                }}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                새 세일/할인 등록
+              </Button>
+            </Card>
+
+            {/* Sales List */}
+            <div className="space-y-4">
+              {posts.filter(post => post.category === 'sale').map((post) => (
+                <Card key={post.id} className="p-4 bg-white rounded-2xl shadow-lg">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <Tag className="w-4 h-4 text-red-600" />
+                      <span className="text-xs font-medium text-gray-500">세일/할인</span>
+                    </div>
+                    <div className="flex space-x-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleEdit(post)}
+                        className="p-1 h-auto"
+                      >
+                        <Edit className="w-4 h-4 text-gray-600" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDelete(post.id)}
+                        className="p-1 h-auto"
+                      >
+                        <Trash2 className="w-4 h-4 text-red-600" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="flex space-x-3">
+                    {post.image_url && (
+                      <div className="flex-shrink-0">
+                        <img 
+                          src={post.image_url} 
+                          alt={post.title}
+                          className="w-16 h-16 object-cover rounded-lg"
+                        />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 mb-2">{post.title}</h3>
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{post.content}</p>
+                      
+                      <div className="text-xs text-gray-400">
+                        {new Date(post.created_at).toLocaleDateString('ko-KR')}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+              
+              {posts.filter(post => post.category === 'sale').length === 0 && (
+                <Card className="p-8 text-center">
+                  <p className="text-gray-500">등록된 세일/할인이 없습니다.</p>
+                </Card>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="travel" className="space-y-4">
+            {/* Travel Records List */}
+            {travelLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+                <p className="text-gray-600 mt-2">여행 기록을 불러오는 중...</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {travelRecords.map((record) => (
+                  <Card key={record.id} className="p-4 bg-white rounded-2xl shadow-lg">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center space-x-2">
+                        <MapPin className="w-4 h-4 text-green-600" />
+                        <span className="text-xs font-medium text-gray-500">여행 기록</span>
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        {new Date(record.created_at).toLocaleDateString('ko-KR')}
+                      </div>
+                    </div>
+                    
+                    <div className="flex space-x-3">
+                      <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                        {record.profiles?.pet_image_url ? (
+                          <img 
+                            src={record.profiles.pet_image_url} 
+                            alt={record.profiles.pet_name || "반려견"} 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-400 to-indigo-400">
+                            <User className="w-5 h-5 text-white" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <h3 className="font-semibold text-gray-900">{record.location_name}</h3>
+                          <span className="text-xs text-gray-500">by {record.profiles?.pet_name || "익명"}</span>
+                        </div>
+                        {record.memo && (
+                          <p className="text-sm text-gray-600 mb-2 line-clamp-2">{record.memo}</p>
+                        )}
+                        <div className="text-xs text-gray-400">
+                          방문일: {new Date(record.visit_date).toLocaleDateString('ko-KR')}
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+                
+                {travelRecords.length === 0 && (
+                  <Card className="p-8 text-center">
+                    <p className="text-gray-500">공개된 여행 기록이 없습니다.</p>
+                  </Card>
+                )}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="community" className="space-y-4">
+            {/* Community Posts List */}
+            {communityLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+                <p className="text-gray-600 mt-2">커뮤니티 글을 불러오는 중...</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {communityPosts.map((post) => (
+                  <Card key={post.id} className="p-4 bg-white rounded-2xl shadow-lg">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center space-x-2">
+                        <MessageCircle className="w-4 h-4 text-purple-600" />
+                        <span className="text-xs font-medium text-gray-500">{post.post_type}</span>
+                        {post.is_anonymous && (
+                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">익명</span>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="text-xs text-gray-400">
+                          {new Date(post.created_at).toLocaleDateString('ko-KR')}
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDeleteCommunityPost(post.id)}
+                          className="p-1 h-auto"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-600" />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="flex space-x-3">
+                      {!post.is_anonymous && (
+                        <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                          {post.profiles?.pet_image_url ? (
+                            <img 
+                              src={post.profiles.pet_image_url} 
+                              alt={post.profiles.pet_name || "반려견"} 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-400 to-indigo-400">
+                              <User className="w-5 h-5 text-white" />
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <h3 className="font-semibold text-gray-900">{post.title}</h3>
+                          {!post.is_anonymous && (
+                            <span className="text-xs text-gray-500">by {post.profiles?.pet_name || "익명"}</span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600 mb-2 line-clamp-2">{post.content}</p>
+                        {post.location_name && (
+                          <div className="text-xs text-gray-400 flex items-center space-x-1">
+                            <MapPin className="w-3 h-3" />
+                            <span>{post.location_name}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+                
+                {communityPosts.length === 0 && (
+                  <Card className="p-8 text-center">
+                    <p className="text-gray-500">등록된 커뮤니티 글이 없습니다.</p>
+                  </Card>
+                )}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      </TabsContent>
 
           <TabsContent value="users" className="space-y-6">
             <Card className="p-4 bg-white rounded-2xl shadow-lg">
