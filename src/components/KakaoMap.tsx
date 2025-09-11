@@ -531,18 +531,19 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           const timeout = setTimeout(() => {
             script.remove();
             console.error(
-              "카카오 지도 로딩 타임아웃 - 도메인 등록을 확인하세요"
+              "⏰ 카카오 지도 로딩 타임아웃 - 도메인 등록을 확인하세요"
             );
+            toast.error("지도 로딩 시간이 초과되었습니다. 카카오 개발자 콘솔에서 도메인 등록을 확인해주세요.");
             reject(new Error("카카오 지도 로딩 타임아웃"));
           }, 15000);
 
           script.onload = () => {
             clearTimeout(timeout);
-            console.log("카카오 스크립트 로드 성공");
+            console.log("✅ 카카오 지도 스크립트 로드 성공");
 
             const checkKakao = () => {
               if (window.kakao && window.kakao.maps) {
-                console.log("카카오 지도 초기화 시작");
+                console.log("✅ 카카오 지도 초기화 시작");
                 try {
                   window.kakao.maps.load(() => {
                     if (isMounted) {
@@ -551,7 +552,8 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
                     }
                   });
                 } catch (err) {
-                  console.error("카카오 지도 로드 오류:", err);
+                  console.error("❌ 카카오 지도 로드 오류:", err);
+                  toast.error("카카오 지도 초기화에 실패했습니다. 도메인 설정을 확인해주세요.");
                   reject(err);
                 }
               } else {
@@ -563,7 +565,8 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
           script.onerror = () => {
             clearTimeout(timeout);
-            console.error("카카오 스크립트 로딩 실패");
+            console.error("❌ 카카오 지도 스크립트 로딩 실패 - 도메인이 등록되었는지 확인하세요");
+            toast.error("카카오 지도를 불러올 수 없습니다. 카카오 개발자 콘솔에서 현재 도메인을 등록해주세요.");
             reject(new Error("카카오 스크립트 로딩 실패"));
           };
 
