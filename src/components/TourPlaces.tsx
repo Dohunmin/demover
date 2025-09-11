@@ -723,14 +723,14 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = logoImage;
-                  target.className = "w-full h-full object-contain p-2 bg-gradient-to-br from-blue-50 to-orange-50";
+                  target.className = "w-full h-full object-contain p-4 bg-gradient-to-br from-sky-100 via-background to-amber-100";
                 }}
               />
             ) : (
               <img 
                 src={logoImage}
                 alt="멍멍 여행 로고"
-                className="w-full h-full object-contain p-2 bg-gradient-to-br from-blue-50 to-orange-50"
+                className="w-full h-full object-contain p-4 bg-gradient-to-br from-sky-100 via-background to-amber-100"
               />
             )}
           </div>

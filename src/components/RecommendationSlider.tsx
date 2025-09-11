@@ -186,7 +186,7 @@ const RecommendationSlider = () => {
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.src = logoImage;
-                      target.className = "absolute inset-0 w-full h-full object-contain p-4 bg-gradient-to-br from-blue-50 to-orange-50";
+                      target.className = "absolute inset-0 w-full h-full object-contain p-6 bg-gradient-to-br from-sky-100 via-background to-amber-100";
                     }}
                   />
                 ) : item.type === 'news' && (item as NewsItem & { type: 'news' }).image_url ? (
@@ -197,14 +197,14 @@ const RecommendationSlider = () => {
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.src = logoImage;
-                      target.className = "absolute inset-0 w-full h-full object-contain p-4 bg-gradient-to-br from-blue-50 to-orange-50";
+                      target.className = "absolute inset-0 w-full h-full object-contain p-6 bg-gradient-to-br from-sky-100 via-background to-amber-100";
                     }}
                   />
                 ) : (
                   <img 
                     src={logoImage}
                     alt="멍멍 여행 로고"
-                    className="absolute inset-0 w-full h-full object-contain p-4 bg-gradient-to-br from-blue-50 to-orange-50"
+                    className="absolute inset-0 w-full h-full object-contain p-6 bg-gradient-to-br from-sky-100 via-background to-amber-100"
                   />
                 )}
                 
