@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-ro
 import { AuthProvider } from "@/hooks/useAuth";
 import BottomNavigation from "@/components/BottomNavigation";
 import Footer from "@/components/Footer";
+import ScrollToTop from "@/components/ScrollToTop";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import MbtiTest from "./pages/MbtiTest";
@@ -44,10 +45,7 @@ const AppWithNavigation = () => {
 
   const activeTab = getActiveTab();
 
-  // 페이지 변경 시 최상단으로 스크롤
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [location.pathname]);
+  // ScrollToTop 컴포넌트로 대체됨
 
 
   const handleTabChange = (tab: string) => {
@@ -111,6 +109,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ScrollToTop />
           <AppWithNavigation />
         </BrowserRouter>
       </TooltipProvider>
