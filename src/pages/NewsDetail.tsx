@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { linkifyMultilineText } from "@/utils/linkify";
+import ShareModal from "@/components/ShareModal";
 
 interface NewsPost {
   id: string;
@@ -25,6 +26,7 @@ const NewsDetail = () => {
   const [loading, setLoading] = useState(true);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -137,23 +139,8 @@ const NewsDetail = () => {
     }
   };
 
-  const handleShare = async () => {
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: post?.title,
-          text: post?.content,
-          url: window.location.href,
-        });
-      } else {
-        // 브라우저가 Web Share API를 지원하지 않는 경우 클립보드에 복사
-        await navigator.clipboard.writeText(window.location.href);
-        toast.success('링크가 클립보드에 복사되었습니다!');
-      }
-    } catch (error) {
-      console.error('Error sharing:', error);
-      toast.error('공유에 실패했습니다.');
-    }
+  const handleShare = () => {
+    setShowShareModal(true);
   };
 
   if (loading) {
@@ -295,9 +282,8 @@ const NewsDetail = () => {
         {/* 하단 액션 버튼들 */}
         <div className="mt-6 grid grid-cols-2 gap-3">
           <Button
-            variant="outline"
             onClick={handleShare}
-            className="flex items-center justify-center py-3"
+            className="flex items-center justify-center py-3 bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             <Share2 className="w-4 h-4 mr-2" />
             공유하기
@@ -312,6 +298,17 @@ const NewsDetail = () => {
           </Button>
         </div>
       </main>
+
+      {/* 공유 모달 */}
+      {post && (
+        <ShareModal
+          isOpen={showShareModal}
+          onClose={() => setShowShareModal(false)}
+          title={post.title}
+          content={post.content}
+          url={window.location.href}
+        />
+      )}
     </div>
   );
 };
