@@ -322,35 +322,24 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-2xl max-h-[90vh] p-0 overflow-hidden">
           <DialogHeader className="p-6 pb-4">
-            <div className="flex items-start justify-between">
-              <div className="flex-1 pr-4">
-                <DialogTitle className="text-lg font-bold text-gray-900 mb-2">
-                  {place.title}
-                </DialogTitle>
-                <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
-                  <MapPin className="w-4 h-4" />
-                  <span>{place.addr1} {place.addr2}</span>
-                </div>
-                {place.tel && (
-                  <div className="flex items-center gap-1 text-sm text-gray-600">
-                    <Phone className="w-4 h-4" />
-                    <span>{place.tel}</span>
-                  </div>
-                )}
+            <div className="flex-1">
+              <DialogTitle className="text-lg font-bold text-gray-900 mb-2">
+                {place.title}
+              </DialogTitle>
+              <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
+                <MapPin className="w-4 h-4" />
+                <span>{place.addr1} {place.addr2}</span>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowReviewModal(true)}
-                className="flex items-center gap-2 text-sm"
-              >
-                <Star className="h-4 w-4" />
-                평점
-              </Button>
+              {place.tel && (
+                <div className="flex items-center gap-1 text-sm text-gray-600">
+                  <Phone className="w-4 h-4" />
+                  <span>{place.tel}</span>
+                </div>
+              )}
             </div>
           </DialogHeader>
 
-          <div className="px-6 pb-6">
+          <div className="px-6 pb-6 space-y-4">
             {mapError ? (
               <div className="h-80 flex items-center justify-center bg-gray-100 rounded-lg">
                 <div className="text-center">
@@ -365,6 +354,19 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
                 style={{ minHeight: '320px' }}
               />
             )}
+            
+            {/* 평점 버튼을 지도 아래로 이동 */}
+            <div className="flex justify-center pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowReviewModal(true)}
+                className="flex items-center gap-2 text-sm"
+              >
+                <Star className="h-4 w-4" />
+                평점
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

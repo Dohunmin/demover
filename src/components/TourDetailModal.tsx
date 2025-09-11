@@ -94,20 +94,9 @@ const TourDetailModal: React.FC<TourDetailModalProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden">
         <DialogHeader className="p-6 pb-4">
-          <div className="flex items-start justify-between">
-            <DialogTitle className="text-xl font-bold text-gray-900 pr-8">
-              {title}
-            </DialogTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowReviewsModal(true)}
-              className="flex items-center gap-2 text-sm"
-            >
-              <Star className="h-4 w-4" />
-              리뷰 보기
-            </Button>
-          </div>
+          <DialogTitle className="text-xl font-bold text-gray-900">
+            {title}
+          </DialogTitle>
         </DialogHeader>
 
         <ScrollArea className="max-h-[calc(90vh-100px)]">
@@ -303,6 +292,19 @@ const TourDetailModal: React.FC<TourDetailModalProps> = ({
                 <p className="text-gray-600">데이터를 불러올 수 없습니다.</p>
               </div>
             )}
+            
+            {/* 리뷰 보기 버튼을 본문 하단으로 이동 */}
+            <div className="flex justify-center pt-6 pb-4 border-t mt-6">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowReviewsModal(true)}
+                className="flex items-center gap-2 text-sm"
+              >
+                <Star className="h-4 w-4" />
+                리뷰 보기
+              </Button>
+            </div>
           </div>
         </ScrollArea>
       </DialogContent>
