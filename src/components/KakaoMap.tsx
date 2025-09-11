@@ -334,17 +334,21 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           const imageSize = new window.kakao.maps.Size(30, 30);
           const imageOption = { offset: new window.kakao.maps.Point(15, 30) };
 
-          const redMarkerSvg = `data:image/svg+xml;base64,${btoa(`
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#DC2626" width="30" height="30">
-              <circle cx="12" cy="12" r="11" fill="white" stroke="#DC2626" stroke-width="2"/>
-              <path d="M8 10c0-1.1.9-2 2-2s2 .9 2 2-2 3-2 3-2-1.9-2-3zm6 0c0-1.1.9-2 2-2s2 .9 2 2-2 3-2 3-2-1.9-2-3z" fill="#FFFFFF"/>
-              <circle cx="10" cy="10" r="1.5" fill="#000"/>
-              <circle cx="14" cy="10" r="1.5" fill="#000"/>
-              <path d="M12 13c-1 0-2 .5-2 1s1 1 2 1 2-.5 2-1-.5-1-2-1z" fill="#000"/>
+          const logoMarkerSvg = `data:image/svg+xml;base64,${btoa(`
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" width="30" height="30">
+              <defs>
+                <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#60A5FA;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#93C5FD;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#FDE047;stop-opacity:1" />
+                </linearGradient>
+              </defs>
+              <circle cx="15" cy="15" r="14" fill="url(#grad)" stroke="white" stroke-width="2"/>
+              <image href="/lovable-uploads/ac67abbc-77f6-49be-9553-8f14fcad6271.png" x="9" y="9" width="12" height="12"/>
             </svg>
           `)}`;
 
-          const markerImage = new window.kakao.maps.MarkerImage(redMarkerSvg, imageSize, imageOption);
+          const markerImage = new window.kakao.maps.MarkerImage(logoMarkerSvg, imageSize, imageOption);
           const marker = new window.kakao.maps.Marker({
             position: position,
             image: markerImage,

@@ -112,12 +112,19 @@ const TravelRecordsMap: React.FC<TravelRecordsMapProps> = ({ records, onRecordCl
     validRecords.forEach((record, index) => {
       const position = new window.kakao.maps.LatLng(record.latitude!, record.longitude!);
       
-      // 커스텀 마커 이미지 생성
+      // 로고 마커 이미지 생성
       const markerImageSrc = `data:image/svg+xml;base64,${btoa(`
         <svg width="40" height="50" viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg">
-          <path d="M20 0C8.954 0 0 8.954 0 20c0 15 20 30 20 30s20-15 20-30C40 8.954 31.046 0 20 0z" fill="#FF6B6B"/>
-          <circle cx="20" cy="20" r="8" fill="white"/>
-          <text x="20" y="25" text-anchor="middle" fill="#FF6B6B" font-size="10" font-weight="bold">${index + 1}</text>
+          <defs>
+            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#60A5FA;stop-opacity:1" />
+              <stop offset="50%" style="stop-color:#93C5FD;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#FDE047;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <path d="M20 0C8.954 0 0 8.954 0 20c0 15 20 30 20 30s20-15 20-30C40 8.954 31.046 0 20 0z" fill="url(#grad)"/>
+          <circle cx="20" cy="20" r="12" fill="white" opacity="0.9"/>
+          <image href="/lovable-uploads/ac67abbc-77f6-49be-9553-8f14fcad6271.png" x="14" y="14" width="12" height="12"/>
         </svg>
       `)}`;
       
