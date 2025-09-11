@@ -157,7 +157,7 @@ const News = () => {
       const userIds = recordsData?.map(record => record.user_id) || [];
       const { data: profilesData } = await supabase
         .from('profiles')
-        .select('user_id, full_name, avatar_url, pet_name, pet_image_url')
+        .select('user_id, avatar_url, pet_name, pet_image_url')
         .in('user_id', userIds);
 
       // Combine records with profiles
@@ -192,7 +192,7 @@ const News = () => {
       const userIds = postsData?.map(post => post.user_id) || [];
       const { data: profilesData } = await supabase
         .from('profiles')
-        .select('user_id, full_name, avatar_url, pet_name, pet_image_url')
+        .select('user_id, avatar_url, pet_name, pet_image_url')
         .in('user_id', userIds);
 
       // Combine posts with profiles

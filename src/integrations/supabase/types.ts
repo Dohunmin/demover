@@ -431,6 +431,19 @@ export type Database = {
         Args: { addr: string; lat: number; lng: number; privacy_level?: string }
         Returns: Json
       }
+      get_safe_public_profile_fields: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          avatar_url: string
+          mbti_result: string
+          pet_age: number
+          pet_breed: string
+          pet_gender: string
+          pet_image_url: string
+          pet_name: string
+          user_id: string
+        }[]
+      }
       grant_admin_role: {
         Args: { user_email: string }
         Returns: boolean

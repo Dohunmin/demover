@@ -91,7 +91,7 @@ const CommunityPostDetailModal = ({ post, isOpen, onClose, onEdit, onDelete }: C
       const userIds = commentsData?.map(comment => comment.user_id) || [];
       const { data: profilesData } = await supabase
         .from('profiles')
-        .select('user_id, full_name, avatar_url, pet_name, pet_image_url')
+        .select('user_id, avatar_url, pet_name, pet_image_url')
         .in('user_id', userIds);
 
       // Combine comments with profiles
