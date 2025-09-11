@@ -77,6 +77,7 @@ const CommentEditModal = ({ comment, isOpen, onClose, onCommentUpdated }: Commen
               rows={4}
               maxLength={500}
               className="w-full"
+              autoFocus={false}
             />
           </div>
 

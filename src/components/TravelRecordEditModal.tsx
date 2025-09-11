@@ -212,6 +212,7 @@ const TravelRecordEditModal: React.FC<TravelRecordEditModalProps> = ({
                 placeholder="직접 입력하기"
                 value={editData.location_name}
                 onChange={(e) => setEditData(prev => ({ ...prev, location_name: e.target.value }))}
+                autoFocus={false}
               />
             </div>
             <div>
@@ -221,6 +222,7 @@ const TravelRecordEditModal: React.FC<TravelRecordEditModalProps> = ({
                 placeholder="상세 주소 입력"
                 value={editData.location_address}
                 onChange={(e) => setEditData(prev => ({ ...prev, location_address: e.target.value }))}
+                autoFocus={false}
               />
             </div>
           </div>
@@ -232,6 +234,7 @@ const TravelRecordEditModal: React.FC<TravelRecordEditModalProps> = ({
               type="date"
               value={editData.visit_date}
               onChange={(e) => setEditData(prev => ({ ...prev, visit_date: e.target.value }))}
+              autoFocus={false}
             />
           </div>
 
@@ -243,6 +246,7 @@ const TravelRecordEditModal: React.FC<TravelRecordEditModalProps> = ({
               value={editData.memo}
               onChange={(e) => setEditData(prev => ({ ...prev, memo: e.target.value }))}
               rows={3}
+              autoFocus={false}
             />
           </div>
 

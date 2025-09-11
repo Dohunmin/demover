@@ -224,6 +224,7 @@ const CommunityPostEditModal = ({ isOpen, onClose, onPostUpdated, post }: Commun
               onChange={(e) => setTitle(e.target.value)}
               placeholder="제목을 입력해주세요"
               maxLength={100}
+              autoFocus={false}
             />
           </div>
 
@@ -236,6 +237,7 @@ const CommunityPostEditModal = ({ isOpen, onClose, onPostUpdated, post }: Commun
               placeholder="내용을 입력해주세요"
               rows={4}
               maxLength={1000}
+              autoFocus={false}
             />
           </div>
 
@@ -246,6 +248,7 @@ const CommunityPostEditModal = ({ isOpen, onClose, onPostUpdated, post }: Commun
               value={locationName}
               onChange={(e) => setLocationName(e.target.value)}
               placeholder="강아지 동반 가능한 장소명"
+              autoFocus={false}
             />
           </div>
 
@@ -256,6 +259,7 @@ const CommunityPostEditModal = ({ isOpen, onClose, onPostUpdated, post }: Commun
               value={locationAddress}
               onChange={(e) => setLocationAddress(e.target.value)}
               placeholder="장소 주소"
+              autoFocus={false}
             />
           </div>
 

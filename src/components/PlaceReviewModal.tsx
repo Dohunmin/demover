@@ -230,6 +230,7 @@ const PlaceReviewModal: React.FC<PlaceReviewModalProps> = ({ isOpen, onClose, on
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     className="min-h-[100px]"
+                    autoFocus={false}
                   />
                 </div>
 

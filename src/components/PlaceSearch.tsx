@@ -167,6 +167,7 @@ const PlaceSearch: React.FC<PlaceSearchProps> = ({ onPlaceSelect, initialValue =
           onChange={handleSearchChange}
           placeholder="장소를 검색해보세요 (예: 경복궁, 한강공원)"
           className="pl-10 pr-10"
+          autoFocus={false}
           onFocus={() => {
             if (searchResults.length > 0) {
               setShowResults(true);
