@@ -350,10 +350,10 @@ const News = () => {
                         </div>
                       )}
                       <div className="w-2 h-2 bg-primary rounded-full mr-3 flex-shrink-0 mt-2"></div>
-                      <div className="flex-1">
-                        <span className="text-sm text-foreground font-medium block">{event.title}</span>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm text-foreground font-medium block break-words line-clamp-1">{event.title}</span>
                         {event.content && (
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{event.content}</p>
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2 break-words">{event.content}</p>
                         )}
                         <span className="text-xs text-muted-foreground mt-1 block">
                           {new Date(event.created_at).toLocaleDateString('ko-KR')}
@@ -414,10 +414,10 @@ const News = () => {
                         </div>
                       )}
                       <div className="w-2 h-2 bg-red-500 rounded-full mr-3 flex-shrink-0 mt-2"></div>
-                      <div className="flex-1">
-                        <span className="text-sm text-foreground font-medium block">{sale.title}</span>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm text-foreground font-medium block break-words line-clamp-1">{sale.title}</span>
                         {sale.content && (
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{sale.content}</p>
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2 break-words">{sale.content}</p>
                         )}
                         <span className="text-xs text-muted-foreground mt-1 block">
                           {new Date(sale.created_at).toLocaleDateString('ko-KR')}
@@ -478,22 +478,22 @@ const News = () => {
                           {(record.profiles?.pet_name || record.profiles?.full_name)?.[0] || "?"}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-2 mb-1">
-                          <span className="text-sm font-medium">
+                          <span className="text-sm font-medium break-words line-clamp-1">
                             {record.profiles?.pet_name || record.profiles?.full_name || "익명"}
                           </span>
-                          <span className="text-xs text-muted-foreground">님이</span>
+                          <span className="text-xs text-muted-foreground flex-shrink-0">님이</span>
                         </div>
                         <div className="flex items-center space-x-1 mb-1">
-                          <MapPin className="w-3 h-3 text-green-600" />
-                          <span className="text-sm font-medium text-foreground">
+                          <MapPin className="w-3 h-3 text-green-600 flex-shrink-0" />
+                          <span className="text-sm font-medium text-foreground break-words line-clamp-1">
                             {record.location_name}
                           </span>
-                          <span className="text-xs text-muted-foreground">에 다녀왔어요</span>
+                          <span className="text-xs text-muted-foreground flex-shrink-0">에 다녀왔어요</span>
                         </div>
                         {record.memo && (
-                          <p className="text-xs text-muted-foreground line-clamp-2">
+                          <p className="text-xs text-muted-foreground line-clamp-2 break-words">
                             {record.memo}
                           </p>
                         )}
@@ -566,16 +566,16 @@ const News = () => {
                           }
                         </AvatarFallback>
                       </Avatar>
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-2 mb-1">
-                          <span className="inline-block bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs">
+                          <span className="inline-block bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs flex-shrink-0">
                             {getPostTypeLabel(post.post_type)}
                           </span>
                         </div>
-                        <h4 className="text-sm font-medium text-foreground mb-1 line-clamp-1">
+                        <h4 className="text-sm font-medium text-foreground mb-1 line-clamp-1 break-words">
                           {post.title}
                         </h4>
-                        <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                        <p className="text-xs text-muted-foreground line-clamp-2 mb-2 break-words">
                           {post.content}
                         </p>
                         <div className="flex items-center space-x-3 text-xs text-muted-foreground">
@@ -642,8 +642,8 @@ const News = () => {
                           {getPostTypeLabel(post.post_type)}
                         </span>
                       </div>
-                      <h3 className="font-semibold text-foreground mb-2">{post.title}</h3>
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{post.content}</p>
+                      <h3 className="font-semibold text-foreground mb-2 break-words">{post.title}</h3>
+                      <p className="text-sm text-muted-foreground line-clamp-2 mb-3 break-words">{post.content}</p>
                       {post.location_name && (
                         <div className="flex items-center space-x-1 mb-2">
                           <MapPin className="w-3 h-3 text-primary" />
@@ -705,13 +705,13 @@ const News = () => {
                       </div>
                       <div className="flex items-center space-x-1 mb-2">
                         <MapPin className="w-4 h-4 text-green-600" />
-                        <h3 className="font-semibold text-foreground">{record.location_name}</h3>
+                        <h3 className="font-semibold text-foreground break-words line-clamp-1">{record.location_name}</h3>
                       </div>
                       {record.location_address && (
-                        <p className="text-sm text-muted-foreground mb-2">{record.location_address}</p>
+                        <p className="text-sm text-muted-foreground mb-2 break-words line-clamp-1">{record.location_address}</p>
                       )}
                       {record.memo && (
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{record.memo}</p>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2 break-words">{record.memo}</p>
                       )}
                       <div className="flex items-center justify-between">
                         {record.rating && (
@@ -771,9 +771,9 @@ const News = () => {
                         <Calendar className="w-4 h-4 mr-2" style={{ color: 'var(--primary-color)' }} />
                         <span className="text-sm text-primary font-medium">축제/이벤트</span>
                       </div>
-                      <h3 className="font-semibold text-foreground mb-2">{event.title}</h3>
+                      <h3 className="font-semibold text-foreground mb-2 break-words">{event.title}</h3>
                       {event.content && (
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{event.content}</p>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2 break-words">{event.content}</p>
                       )}
                       <p className="text-xs text-muted-foreground">
                         {new Date(event.created_at).toLocaleDateString('ko-KR')}
@@ -818,9 +818,9 @@ const News = () => {
                         <Tag className="w-4 h-4 mr-2 text-red-600" />
                         <span className="text-sm text-red-600 font-medium">세일</span>
                       </div>
-                      <h3 className="font-semibold text-foreground mb-2">{sale.title}</h3>
+                      <h3 className="font-semibold text-foreground mb-2 break-words">{sale.title}</h3>
                       {sale.content && (
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{sale.content}</p>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2 break-words">{sale.content}</p>
                       )}
                       <p className="text-xs text-muted-foreground">
                         {new Date(sale.created_at).toLocaleDateString('ko-KR')}
