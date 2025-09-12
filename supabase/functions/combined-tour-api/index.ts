@@ -777,40 +777,8 @@ serve(async (req) => {
           : null,
       // 추가: sample-data 중 pet API에 없는 항목만 포함 (중복 방지)
       additionalPetPlaces: activeTab === "pet" ? (() => {
-        // locationGubun별 기본 좌표 (부산 지역)
-        const defaultCoordsByLocation = {
-          "쇼핑": { mapx: "129.1318", mapy: "35.1723" }, // 센텀시티
-          "식당": { mapx: "129.1644", mapy: "35.1583" }, // 해운대
-          "공원": { mapx: "129.0644", mapy: "35.1673" }, // 부산시민공원
-          "카페": { mapx: "129.1644", mapy: "35.1583" }, // 해운대
-          "브런치": { mapx: "129.1644", mapy: "35.1583" }, // 해운대
-          "사찰": { mapx: "129.0944", mapy: "35.2183" }, // 동래구
-          "테마거리": { mapx: "129.1185", mapy: "35.1538" }, // 광안리
-          "숙소": { mapx: "129.1644", mapy: "35.1583" }, // 해운대
-          "해수욕장": { mapx: "129.1644", mapy: "35.1583" }, // 해운대해수욕장
-          "트레킹": { mapx: "129.0756", mapy: "35.0456" }, // 태종대
-          "항구": { mapx: "129.0756", mapy: "35.0956" }, // 부산항
-          "레저": { mapx: "129.1756", mapy: "35.1796" }, // 부산 중심
-          "문화시설": { mapx: "129.1318", mapy: "35.1723" }, // 센텀시티
-          "재래시장": { mapx: "129.0344", mapy: "35.1044" }, // 남포동
-          "default": { mapx: "129.1756", mapy: "35.1796" } // 부산 중심
-        };
-
         if (!petTourismData?.response?.body?.items?.item) {
-          // API 데이터가 없으면 전체 sample data에 좌표 정보 추가하여 반환
-          return sampleData.map(item => {
-            const coords = defaultCoordsByLocation[item.locationGubun] || defaultCoordsByLocation.default;
-            return {
-              ...item,
-              mapx: item.mapx || coords.mapx,
-              mapy: item.mapy || coords.mapy,
-              addr1: item.addr1 || "부산광역시",
-              contentid: `sample_${item.title.replace(/\s+/g, '_')}`,
-              firstimage: "",
-              firstimage2: "",
-              tel: ""
-            };
-          });
+          return sampleData; // API 데이터가 없으면 전체 sample data 반환
         }
         
         // API 응답에서 title들을 추출
@@ -820,20 +788,8 @@ serve(async (req) => {
             : [petTourismData.response.body.items.item.title]
         );
         
-        // sample-data 중 API에 없는 항목만 필터링하고 좌표 정보 추가
-        const missingItems = sampleData.filter(item => !apiTitles.has(item.title)).map(item => {
-          const coords = defaultCoordsByLocation[item.locationGubun] || defaultCoordsByLocation.default;
-          return {
-            ...item,
-            mapx: item.mapx || coords.mapx,
-            mapy: item.mapy || coords.mapy,
-            addr1: item.addr1 || "부산광역시",
-            contentid: `sample_${item.title.replace(/\s+/g, '_')}`,
-            firstimage: "",
-            firstimage2: "",
-            tel: ""
-          };
-        });
+        // sample-data 중 API에 없는 항목만 필터링
+        const missingItems = sampleData.filter(item => !apiTitles.has(item.title));
         
         console.log(`🔄 Pet 탭 중복 제거: API ${apiTitles.size}개, sample-data ${sampleData.length}개 → 추가할 항목 ${missingItems.length}개`);
         if (missingItems.length > 0) {

@@ -9,19 +9,13 @@ export const sampleData = [
       "CONF",
       "CONB"
     ],
-    holiday: null,
-    mapx: "129.1818",
-    mapy: "35.2183",
-    addr1: "부산광역시 기장군 기장읍 동부산관광로 42"
+    holiday: null
   },
   {
     title: "몽작",
     locationGubun: "식당",
     mbti: "all",
-    holiday: null,
-    mapx: "129.1644",
-    mapy: "35.1583",
-    addr1: "부산광역시 해운대구 중동"
+    holiday: null
   },
   {
     title: "부산시민공원",
@@ -31,10 +25,7 @@ export const sampleData = [
       "CONB",
       "CSVF"
     ],
-    holiday: null,
-    mapx: "129.0644",
-    mapy: "35.1673",
-    addr1: "부산광역시 부산진구 시민공원로 73"
+    holiday: null
   },
   {
     title: "센텀 APEC나루공원",
@@ -44,10 +35,7 @@ export const sampleData = [
       "CONB",
       "CSVF"
     ],
-    holiday: null,
-    mapx: "129.1316",
-    mapy: "35.1723",
-    addr1: "부산광역시 해운대구 센텀중앙로"
+    holiday: null
   },
   {
     title: "신호공원",
@@ -56,19 +44,13 @@ export const sampleData = [
       "CSVB",
       "CONB"
     ],
-    holiday: null,
-    mapx: "129.0344",
-    mapy: "35.1883",
-    addr1: "부산광역시 북구 신호동"
+    holiday: null
   },
   {
     title: "오르디",
     locationGubun: "카페",
     mbti: "all",
-    holiday: null,
-    mapx: "129.1583",
-    mapy: "35.1644",
-    addr1: "부산광역시 해운대구"
+    holiday: null
   },
   {
     title: "온천천시민공원",
@@ -77,37 +59,25 @@ export const sampleData = [
       "EONF",
       "COVB"
     ],
-    holiday: null,
-    mapx: "129.0944",
-    mapy: "35.1944",
-    addr1: "부산광역시 동래구 온천동"
+    holiday: null
   },
   {
     title: "칠암만장",
     locationGubun: "식당",
     mbti: "all",
-    holiday: "월요일",
-    mapx: "129.1644",
-    mapy: "35.1583",
-    addr1: "부산광역시 해운대구"
+    holiday: "월요일"
   },
   {
     title: "카페 만디",
     locationGubun: "카페",
     mbti: "all",
-    holiday: null,
-    mapx: "129.1644",
-    mapy: "35.1583",
-    addr1: "부산광역시 해운대구"
+    holiday: null
   },
   {
     title: "포레스트3002",
     locationGubun: "브런치",
     mbti: "all",
-    holiday: "화요일",
-    mapx: "129.1644",
-    mapy: "35.1583",
-    addr1: "부산광역시 해운대구"
+    holiday: "화요일"
   },
   {
     title: "홍법사(부산)",
@@ -117,19 +87,13 @@ export const sampleData = [
       "CSNB",
       "COVB"
     ],
-    holiday: null,
-    mapx: "129.0944",
-    mapy: "35.2183",
-    addr1: "부산광역시 동래구"
+    holiday: null
   },
   {
     title: "감나무집",
     locationGubun: "식당",
     mbti: "all",
-    holiday: null,
-    mapx: "129.1644",
-    mapy: "35.1583",
-    addr1: "부산광역시 해운대구"
+    holiday: null
   },
   {
     title: "광안리해변 테마거리",

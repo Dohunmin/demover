@@ -104,7 +104,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
   // 필터링 실행 중 상태 추가
   const [isFiltering, setIsFiltering] = useState(false);
 
-  // 카테고리별 필터링 - sample-data.ts의 실제 locationGubun과 매칭
+  // 카테고리별 필터링
   const categories = [
     { id: "all", label: "전체", icon: MapPin },
     { id: "cafe", label: "카페", icon: Coffee },
@@ -118,6 +118,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     { id: "shopping", label: "쇼핑", icon: ShoppingBag },
     { id: "temple", label: "사찰", icon: Church },
     { id: "market", label: "재래시장", icon: Store },
+    { id: "leisure", label: "레저", icon: Dumbbell },
     { id: "culture", label: "문화시설", icon: Building2 },
     { id: "port", label: "항구", icon: Anchor },
   ];
@@ -237,25 +238,8 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
   const createMarkers = useCallback(
     (categoryId: string, mbtiFilter: string | null = null) => {
       console.log(`🎯 마커 생성 시작: ${categoryId}, MBTI: ${mbtiFilter || 'none'}`);
-      console.log(`🔍 데이터 상태 확인:`, {
-        showPetFilter,
-        allPetDataLength: allPetData.length,
-        mapInstanceExists: !!mapInstance.current,
-        sampleDataPreview: allPetData.slice(0, 3).map(item => ({
-          title: item.title,
-          locationGubun: item.locationGubun,
-          mbti: item.mbti,
-          mapx: item.mapx,
-          mapy: item.mapy
-        }))
-      });
 
       if (!showPetFilter || allPetData.length === 0 || !mapInstance.current) {
-        console.log(`❌ 마커 생성 조건 불충족:`, {
-          showPetFilter,
-          dataLength: allPetData.length,
-          mapExists: !!mapInstance.current
-        });
         return;
       }
 
@@ -293,21 +277,21 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         filteredPlaces = [...deduplicatedData];
         console.log(`✅ 전체 카테고리: ${filteredPlaces.length}개`);
       } else {
-        // sample-data.ts의 실제 locationGubun과 정확히 매칭
-        const locationGubunMap: { [key: string]: string } = {
+        const locationGubunMap = {
           restaurant: "식당",
           shopping: "쇼핑", 
           brunch: "브런치",
           cafe: "카페",
           park: "공원",
+          leisure: "레저",
           culture: "문화시설",
           temple: "사찰",
           accommodation: "숙소",
           market: "재래시장",
           "theme-street": "테마거리",
-          trekking: "트레킹", 
+          trekking: "트레킹",
           port: "항구",
-          beach: "해수욕장"
+          beach: "해수욕장",
         };
 
         const targetLocationGubun = locationGubunMap[categoryId as keyof typeof locationGubunMap];
@@ -316,19 +300,12 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           filteredPlaces = deduplicatedData.filter(place => place.locationGubun === targetLocationGubun);
           console.log(`✅ ${categoryId} (${targetLocationGubun}) 카테고리 필터링: ${filteredPlaces.length}개`);
           
-          // 디버깅: 해당 카테고리의 모든 데이터 확인
-          if (filteredPlaces.length === 0) {
-            console.log(`⚠️ ${targetLocationGubun} 카테고리에 데이터가 없습니다.`);
-            // 전체 데이터에서 해당 카테고리 검색
-            const allCategoryData = deduplicatedData.filter(place => place.locationGubun === targetLocationGubun);
-            console.log(`🔍 전체 데이터에서 ${targetLocationGubun} 검색 결과: ${allCategoryData.length}개`);
-            
-            // 실제 존재하는 카테고리들 확인
-            const existingCategories = [...new Set(deduplicatedData.map(place => place.locationGubun))];
-            console.log(`📋 데이터에 존재하는 카테고리들:`, existingCategories);
+          // 카페인 경우 상세 로그 추가
+          if (categoryId === "cafe") {
+            const allCafeData = deduplicatedData.filter(place => place.locationGubun === "카페");
+            console.log(`🔍 전체 데이터에서 카페 검색 결과: ${allCafeData.length}개`);
+            console.log(`☕ 카페 데이터 목록:`, allCafeData.map(p => ({ title: p.title, locationGubun: p.locationGubun })));
           }
-        } else {
-          console.log(`❌ 매핑되지 않은 카테고리: ${categoryId}`);
         }
       }
 
@@ -354,12 +331,14 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         console.log(`✅ MBTI 필터링: ${beforeCount}개 → ${finalPlaces.length}개`);
       }
 
-      // 4단계: 데이터 개수 확인 (정보 제공 목적)
-      if (categoryId === "all" && !mbtiFilter && finalPlaces.length > 0) {
-        console.log(`📊 전체 데이터 개수: ${finalPlaces.length}개`);
-        if (finalPlaces.length > 200) {
-          console.warn(`⚠️ 많은 데이터: ${finalPlaces.length}개`);
-          toast.info(`총 ${finalPlaces.length}개의 장소를 표시합니다.`);
+      // 4단계: 90-99개 제한 엄격 적용
+      if (categoryId === "all" && !mbtiFilter) {
+        const dataCount = finalPlaces.length;
+        if (dataCount < 90 || dataCount > 99) {
+          console.error(`❌ 데이터 개수 오류: ${dataCount}개 (정상 범위: 90-99개)`);
+          toast.error(`데이터 오류: ${dataCount}개 표시됨 (정상: 90-99개)`);
+          setIsFiltering(false);
+          return;
         }
       }
 
@@ -377,34 +356,22 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           const imageSize = new window.kakao.maps.Size(32, 32);
           const imageOption = { offset: new window.kakao.maps.Point(16, 32) };
 
-          // 업로드된 이미지를 원형으로 만든 마커 생성
-          const markerSvg = `
-            <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+          // 카테고리별 아이콘 가져오기
+          const categoryIcon = getCategoryIcon(place.locationGubun || "");
+          
+          const categoryMarkerSvg = `data:image/svg+xml;base64,${btoa(`
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
               <defs>
-                <clipPath id="circleClip">
-                  <circle cx="16" cy="16" r="14"/>
-                </clipPath>
-                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-                  <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.4"/>
+                <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.3)"/>
                 </filter>
               </defs>
-              
-              <!-- 배경 원 -->
-              <circle cx="16" cy="16" r="15" fill="#FFFFFF" filter="url(#shadow)" stroke="#E5E7EB" stroke-width="1"/>
-              
-              <!-- 업로드된 이미지를 원형으로 클리핑 -->
-              <image 
-                href="/lovable-uploads/4a1fead8-6dfe-4008-9924-f8b71ae2b259.png" 
-                x="2" y="2" 
-                width="28" height="28" 
-                clip-path="url(#circleClip)"
-                preserveAspectRatio="xMidYMid slice"
-              />
+              <circle cx="16" cy="16" r="14" fill="${categoryIcon.color}" stroke="white" stroke-width="2" filter="url(#shadow)"/>
+              <text x="16" y="20" text-anchor="middle" font-size="12" fill="white">${categoryIcon.emoji}</text>
             </svg>
-          `;
-          
-          const markerImageUrl = 'data:image/svg+xml;base64,' + btoa(markerSvg);
-          const markerImage = new window.kakao.maps.MarkerImage(markerImageUrl, imageSize, imageOption);
+          `)}`;
+
+          const markerImage = new window.kakao.maps.MarkerImage(categoryMarkerSvg, imageSize, imageOption);
           const marker = new window.kakao.maps.Marker({
             position: position,
             image: markerImage,
@@ -469,13 +436,14 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       console.log(`🎯 최종 마커 생성 완료: ${markerCount}개`);
       
       // 토스트 메시지
-      const categoryLabels: { [key: string]: string } = {
+      const categoryLabels = {
         all: "전체",
         restaurant: "식당",
         shopping: "쇼핑", 
         brunch: "브런치",
         cafe: "카페",
         park: "공원",
+        leisure: "레저",
         culture: "문화시설",
         temple: "사찰",
         accommodation: "숙소",
@@ -505,18 +473,11 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         return;
       }
       
-      console.log(`🎯 카테고리 선택: ${categoryId}`);
       setIsFiltering(true);
       setSelectedCategory(categoryId);
       
-      // createMarkers 실행 후 필터링 상태 해제
-      try {
-        createMarkers(categoryId, selectedMbti);
-      } catch (error) {
-        console.error('마커 생성 중 오류:', error);
-      } finally {
-        setIsFiltering(false);
-      }
+      createMarkers(categoryId, selectedMbti);
+      setIsFiltering(false);
     },
     [isFiltering, selectedMbti, createMarkers]
   );
@@ -748,13 +709,13 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         (item: any) => item.mapx && item.mapy && item.mapx !== "0" && item.mapy !== "0"
       );
 
-      // 4. 데이터 개수 확인 (유효성 체크만)
+      // 4. 데이터 개수 검증 (90개 이상 100개 미만만 허용)
       const dataCount = validData.length;
       console.log(`📊 최종 데이터 개수: ${dataCount}개`);
 
-      if (dataCount === 0) {
-        console.error(`❌ 유효한 데이터가 없습니다`);
-        toast.error(`데이터를 불러올 수 없습니다`);
+      if (dataCount < 90 || dataCount > 99) {
+        console.error(`❌ 비정상적인 데이터 개수 감지: ${dataCount}개 (정상 범위: 90-99개)`);
+        toast.error(`데이터 오류: 예상 개수(90-99개)와 다른 ${dataCount}개가 로드됨`);
         return;
       }
 

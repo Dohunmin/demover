@@ -123,13 +123,6 @@ const Travel = () => {
   }
 
   if (currentView === 'map') {
-    console.log('🗺️ 지도 렌더링:', {
-      activeTab,
-      showPetFilter: activeTab === 'pet',
-      selectedCategory,
-      petDataLength: petTourismData.length
-    });
-    
     return <KakaoMap 
       onBack={showPlaces} 
       showPetFilter={activeTab === 'pet'} 
