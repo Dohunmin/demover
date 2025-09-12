@@ -380,9 +380,31 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           const imageSize = new window.kakao.maps.Size(32, 32);
           const imageOption = { offset: new window.kakao.maps.Point(16, 32) };
 
-          // 업로드된 이미지를 직접 사용 (btoa 오류 방지)
-          const markerImageUrl = '/lovable-uploads/4a1fead8-6dfe-4008-9924-f8b71ae2b259.png';
-          const markerImage = new window.kakao.maps.MarkerImage(markerImageUrl, imageSize, imageOption);
+          // 전통적인 마커 모양으로 업로드된 이미지 감싸기
+          const markerSvg = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 50" width="40" height="50">
+              <defs>
+                <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="rgba(0,0,0,0.3)"/>
+                </filter>
+                <clipPath id="markerClip">
+                  <path d="M20 2 C12 2, 6 8, 6 16 C6 24, 20 42, 20 42 S34 24, 34 16 C34 8, 28 2, 20 2 Z"/>
+                </clipPath>
+              </defs>
+              
+              <path d="M20 2 C12 2, 6 8, 6 16 C6 24, 20 42, 20 42 S34 24, 34 16 C34 8, 28 2, 20 2 Z" 
+                    fill="white" stroke="#2563eb" stroke-width="2" filter="url(#shadow)"/>
+              
+              <image href="/lovable-uploads/4a1fead8-6dfe-4008-9924-f8b71ae2b259.png" 
+                     x="8" y="6" width="24" height="20" 
+                     clip-path="url(#markerClip)" preserveAspectRatio="xMidYMid slice"/>
+              
+              <path d="M20 2 C12 2, 6 8, 6 16 C6 24, 20 42, 20 42 S34 24, 34 16 C34 8, 28 2, 20 2 Z" 
+                    fill="none" stroke="#1d4ed8" stroke-width="1.5"/>
+            </svg>
+          `)}`;
+
+          const markerImage = new window.kakao.maps.MarkerImage(markerSvg, new window.kakao.maps.Size(40, 50), { offset: new window.kakao.maps.Point(20, 50) });
           const marker = new window.kakao.maps.Marker({
             position: position,
             image: markerImage,
