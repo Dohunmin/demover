@@ -123,28 +123,6 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     { id: "port", label: "항구", icon: Anchor },
   ];
 
-  // 카테고리별 마커 아이콘 매핑
-  const getCategoryIcon = (locationGubun: string) => {
-    const iconMap: { [key: string]: { color: string; emoji: string } } = {
-      "카페": { color: "#8B4513", emoji: "☕" },
-      "식당": { color: "#FF6B35", emoji: "🍽️" },
-      "브런치": { color: "#FFB347", emoji: "🥐" },
-      "숙소": { color: "#4A90E2", emoji: "🏨" },
-      "해수욕장": { color: "#00BFFF", emoji: "🏖️" },
-      "공원": { color: "#32CD32", emoji: "🌳" },
-      "트레킹": { color: "#228B22", emoji: "🥾" },
-      "테마거리": { color: "#9370DB", emoji: "🛣️" },
-      "쇼핑": { color: "#FF69B4", emoji: "🛍️" },
-      "사찰": { color: "#DAA520", emoji: "🏛️" },
-      "재래시장": { color: "#FF4500", emoji: "🏪" },
-      "레저": { color: "#1E90FF", emoji: "🎯" },
-      "문화시설": { color: "#8A2BE2", emoji: "🎭" },
-      "항구": { color: "#20B2AA", emoji: "⚓" }
-    };
-    
-    return iconMap[locationGubun] || { color: "#666666", emoji: "📍" };
-  };
-
   const [petTourismMarkers, setPetTourismMarkers] = useState<any[]>([]);
   const [allPetData, setAllPetData] = useState<any[]>([]);
   const [selectedPlaceForReview, setSelectedPlaceForReview] = useState<any>(null);
@@ -353,25 +331,24 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
         try {
           const position = new window.kakao.maps.LatLng(place.mapy, place.mapx);
-          const imageSize = new window.kakao.maps.Size(32, 32);
-          const imageOption = { offset: new window.kakao.maps.Point(16, 32) };
+          const imageSize = new window.kakao.maps.Size(30, 30);
+          const imageOption = { offset: new window.kakao.maps.Point(15, 30) };
 
-          // 카테고리별 아이콘 가져오기
-          const categoryIcon = getCategoryIcon(place.locationGubun || "");
-          
-          const categoryMarkerSvg = `data:image/svg+xml;base64,${btoa(`
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+          const logoMarkerSvg = `data:image/svg+xml;base64,${btoa(`
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" width="30" height="30">
               <defs>
-                <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.3)"/>
-                </filter>
+                <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#60A5FA;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#93C5FD;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#FDE047;stop-opacity:1" />
+                </linearGradient>
               </defs>
-              <circle cx="16" cy="16" r="14" fill="${categoryIcon.color}" stroke="white" stroke-width="2" filter="url(#shadow)"/>
-              <text x="16" y="20" text-anchor="middle" font-size="12" fill="white">${categoryIcon.emoji}</text>
+              <circle cx="15" cy="15" r="14" fill="url(#grad)" stroke="white" stroke-width="2"/>
+              <image href="/lovable-uploads/ac67abbc-77f6-49be-9553-8f14fcad6271.png" x="9" y="9" width="12" height="12"/>
             </svg>
           `)}`;
 
-          const markerImage = new window.kakao.maps.MarkerImage(categoryMarkerSvg, imageSize, imageOption);
+          const markerImage = new window.kakao.maps.MarkerImage(logoMarkerSvg, imageSize, imageOption);
           const marker = new window.kakao.maps.Marker({
             position: position,
             image: markerImage,
