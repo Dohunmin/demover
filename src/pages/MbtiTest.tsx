@@ -41,7 +41,7 @@ const dimensions = [
     options: [
       {
         type: "S",
-        title: "핵 인싸 (Social Star)",
+        title: "핵-인싸 (Social Star)",
         description: "다른 강아지·사람과 쉽게 친해지는 소셜러. 펫 카페, 체험 프로그램이 많은 여행지가 좋아요."
       },
       {
