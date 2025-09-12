@@ -123,86 +123,26 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     { id: "port", label: "항구", icon: Anchor },
   ];
 
-  // CategoryGrid와 동일한 카테고리별 마커 아이콘 매핑
-  const getCategoryMarkerData = (locationGubun: string) => {
-    const categoryMap: { [key: string]: { color: string; bgColor: string; iconPath: string } } = {
-      "카페": { 
-        color: "#0891b2", 
-        bgColor: "#f0fdfa",
-        iconPath: "M7 14c-1.66 0-3-1.34-3-3 0-1.66 1.34-3 3-3s3 1.34 3 3c0 1.66-1.34 3-3 3zM21 19V5c0-1.1-.9-2-2-2H5C3.9 3 3 3.9 3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2z" // Coffee
-      },
-      "식당": { 
-        color: "#059669", 
-        bgColor: "#f0fdf4",
-        iconPath: "M3 2l1.5 6L6 6.5 5.5 2M11.5 2L11 6.5 12.5 6 12 2M3 12h5M20 12h-5M8 12h4M12 18h8" // UtensilsCrossed
-      },
-      "브런치": { 
-        color: "#ea580c", 
-        bgColor: "#fff7ed",
-        iconPath: "M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M15 2v7l2 3h3l2-3V2M15 11v11" // Utensils
-      },
-      "숙소": { 
-        color: "#4f46e5", 
-        bgColor: "#f8fafc",
-        iconPath: "M2 4v16M20 4v16M6 8h.01M10 8h.01M14 8h.01M6 12h.01M10 12h.01M14 12h.01M6 16h.01M10 16h.01M14 16h.01" // Bed
-      },
-      "해수욕장": { 
-        color: "#0284c7", 
-        bgColor: "#f0f9ff",
-        iconPath: "M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2c1.3 0 1.9-.5 2.5-1M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2c1.3 0 1.9-.5 2.5-1" // Waves
-      },
-      "공원": { 
-        color: "#16a34a", 
-        bgColor: "#f0fdf4",
-        iconPath: "m17 14 3 3.3a1 1 0 0 1-.7 1.7H4.7a1 1 0 0 1-.7-1.7L7 14h10zm-5-12a3 3 0 0 1 3 3c0 1.5-1 2.7-2.4 2.9L15 10H9l2.4-2.1C10 7.7 9 6.5 9 5a3 3 0 0 1 3-3z" // TreePine
-      },
-      "트레킹": { 
-        color: "#57534e", 
-        bgColor: "#fafaf9",
-        iconPath: "m8 3 4 8 5-5v20H9V9l-1-6z" // Mountain
-      },
-      "테마거리": { 
-        color: "#0d9488", 
-        bgColor: "#f0fdfa",
-        iconPath: "M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z M12 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" // MapPin
-      },
-      "쇼핑": { 
-        color: "#ec4899", 
-        bgColor: "#fdf2f8",
-        iconPath: "M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0" // ShoppingBag
-      },
-      "사찰": { 
-        color: "#f59e0b", 
-        bgColor: "#fffbeb",
-        iconPath: "m18 7 4 2v11a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9l4-2M14 22v-4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v4M18 22V5a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v17" // Church
-      },
-      "재래시장": { 
-        color: "#eab308", 
-        bgColor: "#fffbeb",
-        iconPath: "m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7M4 7h16M6 7v13a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7" // Store
-      },
-      "레저": { 
-        color: "#3b82f6", 
-        bgColor: "#eff6ff",
-        iconPath: "m6.5 6.5 11 11m-11 0 11-11M21 12a9 9 0 0 1-9 9 9 9 0 0 1-9-9 9 9 0 0 1 9-9 9 9 0 0 1 9 9Z" // Dumbbell (simplified)
-      },
-      "문화시설": { 
-        color: "#a855f7", 
-        bgColor: "#faf5ff",
-        iconPath: "M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18ZM6 12h12M6 7h.01M6 17h.01M18 7h.01M18 17h.01" // Building2
-      },
-      "항구": { 
-        color: "#64748b", 
-        bgColor: "#f8fafc",
-        iconPath: "M17 11h1a3 3 0 0 1 0 6h-1m-6-6h6m-9 6V8a2 2 0 0 1 2-2h5l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2Z" // Anchor
-      }
+  // 카테고리별 마커 아이콘 매핑
+  const getCategoryIcon = (locationGubun: string) => {
+    const iconMap: { [key: string]: { color: string; emoji: string } } = {
+      "카페": { color: "#CD853F", emoji: "☕" },
+      "식당": { color: "#FF8C69", emoji: "🍽️" },
+      "브런치": { color: "#FFD700", emoji: "🥐" },
+      "숙소": { color: "#87CEEB", emoji: "🏨" },
+      "해수욕장": { color: "#87CEEB", emoji: "🏖️" },
+      "공원": { color: "#90EE90", emoji: "🌳" },
+      "트레킹": { color: "#8FBC8F", emoji: "🥾" },
+      "테마거리": { color: "#DDA0DD", emoji: "🛣️" },
+      "쇼핑": { color: "#FFB6C1", emoji: "🛍️" },
+      "사찰": { color: "#F0E68C", emoji: "🏛️" },
+      "재래시장": { color: "#FFA07A", emoji: "🏪" },
+      "레저": { color: "#87CEFA", emoji: "🎯" },
+      "문화시설": { color: "#DA70D6", emoji: "🎭" },
+      "항구": { color: "#48D1CC", emoji: "⚓" }
     };
-
-    return categoryMap[locationGubun] || { 
-      color: "#6b7280", 
-      bgColor: "#f9fafb",
-      iconPath: "M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z M12 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"
-    };
+    
+    return iconMap[locationGubun] || { color: "#999999", emoji: "📍" };
   };
 
   const [petTourismMarkers, setPetTourismMarkers] = useState<any[]>([]);
@@ -416,20 +356,18 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           const imageSize = new window.kakao.maps.Size(32, 32);
           const imageOption = { offset: new window.kakao.maps.Point(16, 32) };
 
-          // 카테고리별 마커 데이터 가져오기
-          const markerData = getCategoryMarkerData(place.locationGubun || "");
+          // 카테고리별 아이콘 가져오기
+          const categoryIcon = getCategoryIcon(place.locationGubun || "");
           
           const svgContent = `
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
               <defs>
-                <filter id="shadow-${index}" x="-50%" y="-50%" width="200%" height="200%">
+                <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
                   <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.3)"/>
                 </filter>
               </defs>
-              <circle cx="16" cy="16" r="14" fill="${markerData.color}" stroke="white" stroke-width="2" filter="url(#shadow-${index})"/>
-              <g transform="translate(16,16) scale(0.6) translate(-12,-12)">
-                <path d="${markerData.iconPath}" fill="white" stroke="white" stroke-width="1"/>
-              </g>
+              <circle cx="16" cy="16" r="14" fill="${categoryIcon.color}" stroke="white" stroke-width="2" filter="url(#shadow)"/>
+              <text x="16" y="20" text-anchor="middle" font-size="12" fill="white">${categoryIcon.emoji}</text>
             </svg>
           `;
           const categoryMarkerSvg = `data:image/svg+xml;utf8,${encodeURIComponent(svgContent)}`;
