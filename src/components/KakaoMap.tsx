@@ -380,52 +380,9 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           const imageSize = new window.kakao.maps.Size(32, 32);
           const imageOption = { offset: new window.kakao.maps.Point(16, 32) };
 
-          // 첫 번째 이미지 스타일 형태(마커 핀)에 두 번째 이미지 요소(발자국들) 조합
-          const markerSvg = `
-            <svg width="40" height="48" viewBox="0 0 40 48" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-                  <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.2"/>
-                </filter>
-              </defs>
-              
-              <!-- 마커 핀 모양 (첫 번째 이미지 스타일) -->
-              <path d="M20 2 C28.8 2 36 9.2 36 18 C36 26.8 20 44 20 44 S4 26.8 4 18 C4 9.2 11.2 2 20 2 Z" 
-                    fill="#5DADE2" stroke="#2980B9" stroke-width="1" filter="url(#shadow)"/>
-              
-              <!-- 흰색 원 배경 -->
-              <circle cx="20" cy="18" r="12" fill="#FEFEFE" stroke="#E8F4F8" stroke-width="1"/>
-              
-              <!-- 발자국들 (두 번째 이미지에서 영감) -->
-              <!-- 큰 발자국 1 -->
-              <ellipse cx="16" cy="15" rx="2.5" ry="3" fill="#2C3E50" transform="rotate(-20 16 15)"/>
-              <circle cx="14.5" cy="12.5" r="1" fill="#2C3E50"/>
-              <circle cx="15.5" cy="11" r="0.8" fill="#2C3E50"/>
-              <circle cx="17" cy="11.2" r="0.8" fill="#2C3E50"/>
-              <circle cx="18.5" cy="12" r="0.8" fill="#2C3E50"/>
-              
-              <!-- 큰 발자국 2 -->
-              <ellipse cx="24" cy="21" rx="2.5" ry="3" fill="#2C3E50" transform="rotate(15 24 21)"/>
-              <circle cx="22.5" cy="18.5" r="1" fill="#2C3E50"/>
-              <circle cx="23.5" cy="17" r="0.8" fill="#2C3E50"/>
-              <circle cx="25" cy="17.2" r="0.8" fill="#2C3E50"/>
-              <circle cx="26.5" cy="18" r="0.8" fill="#2C3E50"/>
-              
-              <!-- 작은 발자국들 -->
-              <ellipse cx="12" cy="20" rx="1.8" ry="2.2" fill="#2C3E50" transform="rotate(-30 12 20)"/>
-              <circle cx="11" cy="18.5" r="0.7" fill="#2C3E50"/>
-              <circle cx="12" cy="17.8" r="0.6" fill="#2C3E50"/>
-              <circle cx="13" cy="18" r="0.6" fill="#2C3E50"/>
-              
-              <ellipse cx="28" cy="14" rx="1.8" ry="2.2" fill="#2C3E50" transform="rotate(25 28 14)"/>
-              <circle cx="27" cy="12" r="0.7" fill="#2C3E50"/>
-              <circle cx="28" cy="11.5" r="0.6" fill="#2C3E50"/>
-              <circle cx="29" cy="12.2" r="0.6" fill="#2C3E50"/>
-            </svg>
-          `;
-          
-          const encodedSvg = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(markerSvg)}`;
-          const markerImage = new window.kakao.maps.MarkerImage(encodedSvg, imageSize, imageOption);
+          // 업로드된 이미지를 직접 사용 (btoa 오류 방지)
+          const markerImageUrl = '/lovable-uploads/4a1fead8-6dfe-4008-9924-f8b71ae2b259.png';
+          const markerImage = new window.kakao.maps.MarkerImage(markerImageUrl, imageSize, imageOption);
           const marker = new window.kakao.maps.Marker({
             position: position,
             image: markerImage,
