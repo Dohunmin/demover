@@ -362,23 +362,23 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           // 마커 클릭 이벤트
           window.kakao.maps.event.addListener(marker, "click", () => {
             const content = `
-              <div style="padding: 12px; min-width: 200px; max-width: 240px; font-family: 'Malgun Gothic', sans-serif; position: relative;">
+              <div style="padding: 12px; min-width: 200px; max-width: 240px; font-family: 'Malgun Gothic', sans-serif; position: relative; word-wrap: break-word; overflow: hidden;">
                 <button onclick="window.closeInfoWindow()" style="position: absolute; top: 6px; right: 6px; background: #f3f4f6; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 12px; color: #6b7280;">×</button>
                 
-                <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px; color: #DC2626; padding-right: 26px; line-height: 1.2;">${place.title}</div>
+                <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px; color: #DC2626; padding-right: 26px; line-height: 1.2; word-wrap: break-word; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${place.title}</div>
                 
                 <div style="font-size: 10px; color: #666; margin-bottom: 6px; background: #FEF2F2; padding: 3px 6px; border-radius: 8px; display: inline-block;">
                   🐾 반려동물 동반 가능
                 </div>
                 
-                ${place.locationGubun ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px; background: #F3F4F6; padding: 3px 6px; border-radius: 8px; display: inline-block;">📍 ${place.locationGubun}</div>` : ""}
-                ${place.mbti && place.mbti !== "all" ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px; background: #E0F2FE; padding: 3px 6px; border-radius: 8px; display: inline-block;">🧠 MBTI: ${Array.isArray(place.mbti) ? place.mbti.join(', ') : place.mbti}</div>` : ""}
+                ${place.locationGubun ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px; background: #F3F4F6; padding: 3px 6px; border-radius: 8px; display: inline-block; max-width: 100%; word-wrap: break-word;">📍 ${place.locationGubun}</div>` : ""}
+                ${place.mbti && place.mbti !== "all" ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px; background: #E0F2FE; padding: 3px 6px; border-radius: 8px; display: inline-block; max-width: 100%; word-wrap: break-word;">🧠 MBTI: ${Array.isArray(place.mbti) ? place.mbti.join(', ') : place.mbti}</div>` : ""}
                 
-                ${place.holiday ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px; background: #F3F4F6; padding: 3px 6px; border-radius: 8px; display: inline-block;">🚫 휴무일: ${place.holiday}</div>` : ""}
+                ${place.holiday ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px; background: #F3F4F6; padding: 3px 6px; border-radius: 8px; display: inline-block; max-width: 100%; word-wrap: break-word;">🚫 휴무일: ${place.holiday}</div>` : ""}
                 
-                <div style="font-size: 11px; color: #333; margin-bottom: 4px; line-height: 1.2;">${place.addr1 || '주소 정보 없음'}</div>
-                ${place.addr2 ? `<div style="font-size: 10px; color: #666; margin-bottom: 4px;">${place.addr2}</div>` : ""}
-                ${place.tel ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px;">📞 ${place.tel}</div>` : ""}
+                <div style="font-size: 11px; color: #333; margin-bottom: 4px; line-height: 1.2; word-wrap: break-word; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${place.addr1 || '주소 정보 없음'}</div>
+                ${place.addr2 ? `<div style="font-size: 10px; color: #666; margin-bottom: 4px; word-wrap: break-word; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;">${place.addr2}</div>` : ""}
+                ${place.tel ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px; word-wrap: break-word;">📞 ${place.tel}</div>` : ""}
                 
                 <div style="text-align: center;">
                   <button id="review-btn-${place.contentid}" 
