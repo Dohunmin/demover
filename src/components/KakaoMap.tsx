@@ -1,26 +1,51 @@
-import React, { useEffect, useRef, useCallback, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { 
-  ArrowLeft, 
-  MapPin, 
-  Coffee, 
-  UtensilsCrossed, 
-  Utensils,
-  Bed, 
-  Waves, 
-  TreePine, 
-  Mountain, 
-  ShoppingBag, 
-  Church,
-  Search
-} from "lucide-react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { toast } from "sonner";
-import PlaceReviewModal from "./PlaceReviewModal";
+import { Card } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  ArrowLeft,
+  MapPin,
+  Navigation,
+  Search,
+  Phone,
+  ExternalLink,
+  PawPrint,
+  TreePine,
+  UtensilsCrossed,
+  ShoppingBag,
+  Dumbbell,
+  Building2,
+  Utensils,
+  Church,
+  Bed,
+  Store,
+  Coffee,
+  Mountain,
+  Anchor,
+  Waves,
+  Stethoscope,
+  Star,
+  MessageSquare,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+import PlaceReviewModal from "@/components/PlaceReviewModal";
+import { mbtiData } from "@/data/mbti-data";
 
 declare global {
   interface Window {
@@ -28,69 +53,50 @@ declare global {
   }
 }
 
-interface Place {
-  title: string;
-  addr1: string;
-  addr2?: string;
-  mapx: string;
-  mapy: string;
-  contentid?: string;
-  tel?: string;
-  locationGubun?: string;
-  mbti?: string | string[];
-  holiday?: string;
-}
-
 interface KakaoMapProps {
-  petTourismData?: any;
-  propSelectedCategory?: string;
-  initialCategory?: string;
-  showPetFilter?: boolean;
-  hideSearchBar?: boolean;
+  onBack: () => void;
   hideCategoryGrid?: boolean;
-  onBack?: () => void;
+  hideSearchBar?: boolean;
+  showPetFilter?: boolean;
+  userProfileImage?: string;
+  initialCategory?: string | null;
+  selectedCategory?: string | null;
+  petTourismData?: any[];
+  bookmarkedPlaces?: Array<{
+    content_id: string;
+    title: string;
+    mapx: string;
+    mapy: string;
+    bookmark_type: "general" | "pet";
+  }>;
 }
-
-const mbtiData = [
-  { id: "ESVF", label: "활발한 탐험가" },
-  { id: "ESVB", label: "사교적 모험가" },
-  { id: "ESNF", label: "호기심 많은 친구" },
-  { id: "ESNB", label: "차분한 동반자" },
-  { id: "EOVF", label: "자유로운 영혼" },
-  { id: "EOVB", label: "느긋한 관찰자" },
-  { id: "EONF", label: "냄새로 탐험하는 친구" },
-  { id: "EONB", label: "주인만 바라보는 친구" },
-  { id: "CSVF", label: "시각적 학습자" },
-  { id: "CSVB", label: "침착한 학습자" },
-  { id: "CSNF", label: "패션 리더" },
-  { id: "CSNB", label: "차분한 패셔니스타" },
-  { id: "COVF", label: "자연을 사랑하는 개" },
-  { id: "COVB", label: "여유로운 자연인" },
-  { id: "CONF", label: "냄새 중시 탐험가" },
-  { id: "CONB", label: "기본에 충실한 개" }
-];
 
 const KakaoMap: React.FC<KakaoMapProps> = ({
-  petTourismData,
-  propSelectedCategory = "all",
-  showPetFilter = true,
-  hideSearchBar = false,
+  onBack,
   hideCategoryGrid = false,
-  onBack
+  hideSearchBar = false,
+  showPetFilter = false,
+  userProfileImage,
+  initialCategory = null,
+  selectedCategory: propSelectedCategory = null,
+  petTourismData = [],
+  bookmarkedPlaces = [],
 }) => {
-  const navigate = useNavigate();
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<any>(null);
+  const clusterer = useRef<any>(null);
   const markers = useRef<any[]>([]);
   const infoWindow = useRef<any>(null);
-  const clusterer = useRef<any>(null);
-  
   const [isMapLoaded, setIsMapLoaded] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(propSelectedCategory);
-  
-  // 상태 동기화
+  const [selectedCategory, setSelectedCategory] = useState<string>(
+    propSelectedCategory || initialCategory || "all"
+  );
+
+  // props로 전달된 selectedCategory 동기화
   useEffect(() => {
-    if (propSelectedCategory !== undefined) {
+    console.log("🔍 Props selectedCategory 변경:", propSelectedCategory);
+    if (propSelectedCategory && propSelectedCategory !== selectedCategory) {
+      console.log(`카테고리 동기화: ${selectedCategory} -> ${propSelectedCategory}`);
       setSelectedCategory(propSelectedCategory);
     }
   }, [propSelectedCategory]);
@@ -224,7 +230,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     setIsDragging(false);
   };
 
-  // 통합된 마커 생성 함수 - 중복 방지 및 동기 처리
+  // 통합된 마커 생성 함수 - 중복 방지 및 90-99개 제한 적용
   const createMarkers = useCallback(
     (categoryId: string, mbtiFilter: string | null = null) => {
       console.log(`🎯 마커 생성 시작: ${categoryId}, MBTI: ${mbtiFilter || 'none'}`);
@@ -334,13 +340,12 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           
           if (Array.isArray(place.mbti)) {
             return place.mbti.includes(mbtiFilter);
-          } else {
-            return place.mbti === mbtiFilter;
           }
+          
+          return place.mbti === mbtiFilter;
         });
         
-        const afterCount = finalPlaces.length;
-        console.log(`🧠 MBTI 필터링 완료: ${beforeCount}개 → ${afterCount}개`);
+        console.log(`✅ MBTI 필터링: ${beforeCount}개 → ${finalPlaces.length}개`);
       }
 
       // 4단계: 90-99개 제한 체크 (전체 카테고리, MBTI 필터 없을 때만)
@@ -353,7 +358,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         }
       }
 
-      // 5단계: 마커 생성 (동기적 처리로 겹침 방지)
+      // 5단계: 마커 생성
       const newMarkers: any[] = [];
       let markerCount = 0;
       
@@ -364,47 +369,72 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
         try {
           const position = new window.kakao.maps.LatLng(place.mapy, place.mapx);
+          const imageSize = new window.kakao.maps.Size(32, 32);
+          const imageOption = { offset: new window.kakao.maps.Point(16, 32) };
+
+          // Canvas로 마커 이미지 생성 (이미지가 확실히 보이도록)
+          const canvas = document.createElement('canvas');
+          canvas.width = 40;
+          canvas.height = 50;
+          const ctx = canvas.getContext('2d');
           
-          // SVG 마커 이미지 생성 (동기 처리)
-          const markerSvg = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 50" width="40" height="50">
-              <defs>
-                <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.2)"/>
-                </filter>
-                <clipPath id="circleClip">
-                  <circle cx="20" cy="16" r="10"/>
-                </clipPath>
-              </defs>
+          if (ctx) {
+            // 마커 배경 그리기
+            ctx.beginPath();
+            ctx.moveTo(20, 2);
+            ctx.bezierCurveTo(12, 2, 6, 8, 6, 16);
+            ctx.bezierCurveTo(6, 24, 20, 42, 20, 42);
+            ctx.bezierCurveTo(20, 42, 34, 24, 34, 16);
+            ctx.bezierCurveTo(34, 8, 28, 2, 20, 2);
+            ctx.closePath();
+            
+            // 그림자 효과
+            ctx.shadowColor = 'rgba(0,0,0,0.2)';
+            ctx.shadowBlur = 3;
+            ctx.shadowOffsetY = 2;
+            
+            ctx.fillStyle = '#f0f9ff';
+            ctx.fill();
+            ctx.strokeStyle = '#87ceeb';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 중앙 원형 영역
+            ctx.shadowColor = 'transparent';
+            ctx.beginPath();
+            ctx.arc(20, 16, 11, 0, 2 * Math.PI);
+            ctx.fillStyle = 'white';
+            ctx.fill();
+            ctx.strokeStyle = '#5fb3d4';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            
+            // 이미지 로드 및 그리기
+            const img = new Image();
+            img.onload = () => {
+              ctx.save();
+              ctx.beginPath();
+              ctx.arc(20, 16, 10, 0, 2 * Math.PI);
+              ctx.clip();
+              ctx.drawImage(img, 10, 6, 20, 20);
+              ctx.restore();
               
-              <path d="M20 2 C12 2, 6 8, 6 16 C6 24, 20 42, 20 42 S34 24, 34 16 C34 8, 28 2, 20 2 Z" 
-                    fill="#f0f9ff" stroke="#87ceeb" stroke-width="2" filter="url(#shadow)"/>
+              // 마커 이미지 생성
+              const markerImageUrl = canvas.toDataURL();
+              const markerImage = new window.kakao.maps.MarkerImage(markerImageUrl, new window.kakao.maps.Size(40, 50), { offset: new window.kakao.maps.Point(20, 50) });
               
-              <circle cx="20" cy="16" r="11" fill="white" stroke="#5fb3d4" stroke-width="1"/>
-              
-              <image href="/lovable-uploads/98b33a3a-8acc-4374-b015-d9b87702fb52.png" 
-                     x="10" y="6" width="20" height="20" 
-                     clip-path="url(#circleClip)" preserveAspectRatio="xMidYMid slice"/>
-              
-              <path d="M20 2 C12 2, 6 8, 6 16 C6 24, 20 42, 20 42 S34 24, 34 16 C34 8, 28 2, 20 2 Z" 
-                    fill="none" stroke="#5fb3d4" stroke-width="1"/>
-            </svg>
-          `)}`;
+              const newMarker = new window.kakao.maps.Marker({
+                position: position,
+                image: markerImage,
+                clickable: true,
+              });
 
-          const markerImage = new window.kakao.maps.MarkerImage(markerSvg, new window.kakao.maps.Size(40, 50), { offset: new window.kakao.maps.Point(20, 50) });
-          
-          const newMarker = new window.kakao.maps.Marker({
-            position: position,
-            image: markerImage,
-            clickable: true,
-          });
+              newMarker.setMap(mapInstance.current);
+              newMarkers.push(newMarker);
+              markerCount++;
 
-          newMarker.setMap(mapInstance.current);
-          newMarkers.push(newMarker);
-          markerCount++;
-
-          // 마커 클릭 이벤트
-          window.kakao.maps.event.addListener(newMarker, "click", () => {
+              // 마커 클릭 이벤트
+              window.kakao.maps.event.addListener(newMarker, "click", () => {
             const content = `
               <div style="padding: 12px; min-width: 200px; max-width: 240px; font-family: 'Malgun Gothic', sans-serif; position: relative; word-wrap: break-word; overflow: hidden;">
                 <button onclick="window.closeInfoWindow()" style="position: absolute; top: 6px; right: 6px; background: #f3f4f6; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 12px; color: #6b7280;">×</button>
@@ -447,51 +477,53 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
               setIsReviewModalOpen(true);
             };
           });
+            };
+            
+            img.onerror = () => {
+              // 이미지 로드 실패 시 기본 마커 사용
+              const markerImageUrl = canvas.toDataURL();
+              const markerImage = new window.kakao.maps.MarkerImage(markerImageUrl, new window.kakao.maps.Size(40, 50), { offset: new window.kakao.maps.Point(20, 50) });
+              
+              const newMarker = new window.kakao.maps.Marker({
+                position: position,
+                image: markerImage,
+                clickable: true,
+              });
+
+              newMarker.setMap(mapInstance.current);
+              newMarkers.push(newMarker);
+              markerCount++;
+            };
+            
+            img.crossOrigin = 'anonymous';
+            img.src = '/lovable-uploads/98b33a3a-8acc-4374-b015-d9b87702fb52.png';
+          }
           
         } catch (error) {
           console.error(`❌ 마커 생성 실패: ${place.title}`, error);
         }
       });
 
-      // 6단계: 지도 뷰 조정
-      if (newMarkers.length > 0) {
-        const bounds = new window.kakao.maps.LatLngBounds();
-        newMarkers.forEach(marker => bounds.extend(marker.getPosition()));
-        
-        if (newMarkers.length === 1) {
-          mapInstance.current.setCenter(newMarkers[0].getPosition());
-          mapInstance.current.setLevel(5);
-        } else if (newMarkers.length <= 10) {
-          mapInstance.current.setBounds(bounds);
-        } else {
-          mapInstance.current.setBounds(bounds);
-          setTimeout(() => {
-            if (mapInstance.current.getLevel() > 7) {
-              mapInstance.current.setLevel(7);
-            }
-          }, 100);
-        }
-      }
-
-      // 7단계: 마커 상태 업데이트
-      markers.current = newMarkers;
       setPetTourismMarkers(newMarkers);
-
-      console.log(`✅ 마커 생성 완료: ${markerCount}개 (총 데이터: ${finalPlaces.length}개)`);
+      console.log(`🎯 최종 마커 생성 완료: ${markerCount}개`);
       
-      // 성공 메시지
+      // 토스트 메시지
       const categoryLabels = {
         all: "전체",
-        cafe: "카페", 
         restaurant: "식당",
+        shopping: "쇼핑", 
         brunch: "브런치",
-        accommodation: "숙소",
-        beach: "해수욕장",
+        cafe: "카페",
         park: "공원",
-        trekking: "트레킹",
+        leisure: "레저",
+        culture: "문화시설",
+        temple: "사찰",
+        accommodation: "숙소",
+        market: "재래시장",
         "theme-street": "테마거리",
-        shopping: "쇼핑",
-        temple: "사찰"
+        trekking: "트레킹",
+        port: "항구",
+        beach: "해수욕장",
       };
       
       if (markerCount > 0) {
@@ -499,8 +531,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         const mbtiText = mbtiFilter ? ` (${mbtiFilter} 필터)` : "";
         toast.success(`${categoryName} ${markerCount}개를 지도에 표시했습니다${mbtiText}`);
       } else {
-        const categoryName = categoryLabels[categoryId as keyof typeof categoryLabels] || categoryId;
-        toast.info(`${categoryName} 카테고리에서 조건에 맞는 장소를 찾지 못했습니다. 다른 조건을 시도해보세요.`);
+        toast.warning("해당 조건에 맞는 장소가 없습니다.");
       }
     },
     [showPetFilter, allPetData, isReviewModalOpen]
@@ -543,131 +574,153 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       } else {
         setSelectedMbti(mbtiId);
         setIsMbtiModalOpen(false);
-        toast.success(`${mbtiId} 멍BTI 필터가 적용되었습니다.`);
+        toast.success(`${mbtiId} MBTI 필터가 적용되었습니다.`);
       }
       
-      // 현재 카테고리와 함께 마커 재생성
-      if (selectedCategory) {
-        createMarkers(selectedCategory, mbtiId === "none" ? null : mbtiId);
-      }
+      // MBTI 상태가 변경되면 자동으로 useEffect에서 필터링이 재실행됨
     },
-    [selectedCategory, createMarkers]
+    []
   );
 
-  // 검색 기능
-  const searchPlaces = useCallback(() => {
-    if (!searchQuery.trim() || !mapInstance.current) return;
-    
-    setLoading(true);
-    const places = new window.kakao.maps.services.Places();
-    
-    places.keywordSearch(searchQuery, (data: any, status: any) => {
-      setLoading(false);
-      
-      if (status === window.kakao.maps.services.Status.OK) {
-        // 기존 마커 제거
-        markers.current.forEach(marker => marker.setMap(null));
-        markers.current = [];
-        
-        const bounds = new window.kakao.maps.LatLngBounds();
-        
-        data.forEach((place: any) => {
-          const position = new window.kakao.maps.LatLng(place.y, place.x);
-          
-          // 기본 마커 생성
-          const marker = new window.kakao.maps.Marker({
-            position: position,
-            clickable: true
-          });
-          
-          marker.setMap(mapInstance.current);
-          markers.current.push(marker);
-          bounds.extend(position);
-          
-          // 인포윈도우
-          const iwContent = `
-            <div style="padding:8px;font-size:12px;">
-              <strong>${place.place_name}</strong><br>
-              ${place.road_address_name || place.address_name}<br>
-              ${place.phone ? `📞 ${place.phone}` : ''}
-            </div>
-          `;
-          
-          const infowindow = new window.kakao.maps.InfoWindow({
-            content: iwContent
-          });
-          
-          window.kakao.maps.event.addListener(marker, 'click', () => {
-            infowindow.open(mapInstance.current, marker);
-          });
-        });
-        
-        mapInstance.current.setBounds(bounds);
-        toast.success(`'${searchQuery}' 검색 결과 ${data.length}개를 찾았습니다.`);
-      } else {
-        toast.error("검색 결과가 없습니다.");
-      }
-    });
-  }, [searchQuery]);
-
-  const handleSearchKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      searchPlaces();
-    }
-  };
-
-  // Kakao Map API 로드 및 초기화
+  // MBTI가 변경될 때 현재 카테고리로 다시 필터링
   useEffect(() => {
+    if (isMapLoaded && showPetFilter && allPetData.length > 0 && selectedCategory && !isFiltering) {
+      console.log(`🔄 MBTI 변경으로 인한 재필터링: ${selectedCategory}, MBTI: ${selectedMbti || 'none'}`);
+      createMarkers(selectedCategory, selectedMbti);
+    }
+  }, [selectedMbti, isMapLoaded, showPetFilter, allPetData.length, selectedCategory, createMarkers, isFiltering]);
+  
+  // 카카오 지도 SDK 로드
+  useEffect(() => {
+    let isMounted = true;
+
     const loadKakaoMap = async () => {
       try {
         if (window.kakao && window.kakao.maps) {
-          initializeMap();
+          console.log("카카오 지도가 이미 로드되어 있습니다.");
+          window.kakao.maps.load(() => {
+            if (isMounted) {
+              initializeMap();
+            }
+          });
           return;
         }
 
-        const { data: apiKey } = await supabase.functions.invoke('kakao-proxy', {
-          body: { action: 'getApiKey' }
-        });
+        console.log("카카오 API 키 가져오는 중...");
+        const { data, error } = await supabase.functions.invoke("test-api-key");
 
-        if (!apiKey?.success || !apiKey?.data?.apiKey) {
-          throw new Error('API Key를 가져올 수 없습니다.');
+        if (error || !data?.kakaoJsKey) {
+          console.error("카카오 API 키 조회 실패:", error);
+          toast.error("카카오 지도 API 키를 가져올 수 없습니다.");
+          return;
+        }
+
+        const KAKAO_JS_KEY = data.kakaoJsKey;
+        console.log("카카오 지도 스크립트 로딩 시작...");
+
+        const existingScript = document.querySelector(
+          'script[src*="dapi.kakao.com"]'
+        );
+        if (existingScript) {
+          existingScript.remove();
+        }
+
+        if (window.kakao) {
+          delete window.kakao;
         }
 
         const script = document.createElement("script");
-        script.async = true;
-        script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey.data.apiKey}&libraries=services,clusterer&autoload=false`;
-
-        script.onload = () => {
-          window.kakao.maps.load(() => {
-            initializeMap();
-          });
-        };
-
-        script.onerror = () => {
-          console.error("Kakao Map script load failed");
-          toast.error("지도를 불러올 수 없습니다.");
-        };
+        script.type = "text/javascript";
+        script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JS_KEY}&autoload=false&libraries=services,clusterer`;
 
         document.head.appendChild(script);
 
+        script.onload = () => {
+          console.log("✅ 카카오 지도 스크립트 로드 성공");
+
+          if (window.kakao && window.kakao.maps) {
+            window.kakao.maps.load(() => {
+              if (isMounted) {
+                console.log("✅ 카카오 지도 초기화 완료");
+                initializeMap();
+              }
+            });
+          } else {
+            console.error("❌ 카카오 지도 객체를 찾을 수 없습니다");
+            toast.error("카카오 지도 초기화에 실패했습니다.");
+          }
+        };
+
+        script.onerror = () => {
+          console.error("❌ 카카오 지도 스크립트 로딩 실패");
+          toast.error("카카오 지도를 불러올 수 없습니다.");
+        };
+
+        script.onload = () => {
+          console.log("✅ 카카오 지도 스크립트 로드 성공");
+
+          if (window.kakao && window.kakao.maps) {
+            window.kakao.maps.load(() => {
+              if (isMounted) {
+                console.log("✅ 카카오 지도 초기화 완료");
+                initializeMap();
+              }
+            });
+          } else {
+            console.error("❌ 카카오 지도 객체를 찾을 수 없습니다");
+            toast.error("카카오 지도 초기화에 실패했습니다.");
+          }
+        };
+
+        script.onerror = () => {
+          console.error("❌ 카카오 지도 스크립트 로딩 실패");
+          toast.error("카카오 지도를 불러올 수 없습니다.");
+        };
+
+        console.log("✅ 카카오 지도 로딩 완료");
       } catch (error) {
-        console.error('지도 로드 오류:', error);
-        toast.error("지도를 불러올 수 없습니다.");
+        console.error("카카오 지도 로딩 중 예외 발생:", error);
+        toast.error(
+          "카카오 지도를 불러오는데 실패했습니다. 페이지를 새로고침해 주세요."
+        );
       }
     };
 
     loadKakaoMap();
+
+    return () => {
+      isMounted = false;
+    };
   }, [initializeMap]);
 
-  // 데이터 로드 및 마커 생성
+  // petTourismData가 있을 때 데이터 설정 또는 자체 로드
   useEffect(() => {
-    if (petTourismData && petTourismData.length > 0) {
-      console.log('🔄 Props로 받은 데이터로 마커 생성');
-      setAllPetData(petTourismData);
-      return;
-    }
-
-    if (allPetData.length === 0 && showPetFilter) {
+    if (petTourismData && petTourismData.length > 0 && allPetData.length === 0) {
+      const validData = petTourismData.filter(
+        (item: any) => item.mapx && item.mapy && item.mapx !== "0" && item.mapy !== "0"
+      );
+      setAllPetData(validData);
+      console.log(`✅ Props에서 받은 데이터 ${validData.length}개 설정 완료`);
+      
+      // 데이터 샘플 로그
+      if (validData.length > 0) {
+        console.log("📋 데이터 샘플:", {
+          title: validData[0]?.title,
+          locationGubun: validData[0]?.locationGubun,
+          mbti: validData[0]?.mbti
+        });
+        
+        // 사용 가능한 locationGubun 값들 확인
+        const locationGubuns = [...new Set(validData.map((item: any) => item.locationGubun))];
+        console.log("📍 사용 가능한 locationGubun:", locationGubuns);
+        
+        // 사용 가능한 mbti 값들 확인  
+        const mbtis = [...new Set(validData.flatMap((item: any) => 
+          Array.isArray(item.mbti) ? item.mbti : [item.mbti]
+        ))];
+        console.log("🧠 사용 가능한 MBTI:", mbtis);
+      }
+    } else if (showPetFilter && allPetData.length === 0 && (!petTourismData || petTourismData.length === 0)) {
       // props로 데이터를 받지 못했고, 자체 데이터도 없다면 직접 로드
       console.log('🔄 지도에서 자체적으로 반려동물 데이터 로드 시작');
       loadPetTourismData();
@@ -737,35 +790,162 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
       // 4. 데이터 개수 검증 (90개 이상 100개 미만만 허용)
       const dataCount = validData.length;
-      console.log(`📊 유효한 데이터 개수: ${dataCount}개`);
-      
-      setAllPetData(validData);
-      console.log(`✅ 반려동물 데이터 로드 완료: ${validData.length}개`);
+      console.log(`📊 최종 데이터 개수: ${dataCount}개`);
 
+      if (dataCount < 90 || dataCount > 99) {
+        console.error(`❌ 비정상적인 데이터 개수 감지: ${dataCount}개 (정상 범위: 90-99개)`);
+        toast.error(`데이터 오류: 예상 개수(90-99개)와 다른 ${dataCount}개가 로드됨`);
+        return;
+      }
+
+      setAllPetData(validData);
+      console.log(`✅ 지도에서 자체 로드한 데이터 ${validData.length}개 설정 완료`);
+      
+      // 전체 데이터에서 "all" MBTI 확인
+      const finalAllMbtiPlaces = validData.filter((item: any) => item.mbti === 'all');
+      console.log(`🔥 최종 "all" MBTI 장소들: ${finalAllMbtiPlaces.length}개`, finalAllMbtiPlaces.map((p: any) => p.title));
+      
+      toast.success(`반려동물 여행지 ${validData.length}개를 불러왔습니다!`);
+      
     } catch (error) {
-      console.error('반려동물 데이터 로드 오류:', error);
-      toast.error('반려동물 여행지 데이터를 불러올 수 없습니다.');
+      console.error('반려동물 데이터 로드 중 오류:', error);
     }
   };
 
-  // 지도와 데이터가 모두 로드되면 마커 생성
+  // 초기 카테고리 자동 로드 (중복 실행 방지)
   useEffect(() => {
-    if (isMapLoaded && allPetData.length > 0 && showPetFilter) {
-      console.log(`🎯 지도 로드 완료 후 마커 생성: ${selectedCategory}`);
+    if (showPetFilter && allPetData.length > 0 && selectedCategory && isMapLoaded && !isFiltering) {
+      console.log(`✅ 초기 카테고리 자동 로드: ${selectedCategory}`);
       createMarkers(selectedCategory, selectedMbti);
     }
-  }, [isMapLoaded, allPetData.length, showPetFilter, selectedCategory, selectedMbti, createMarkers]);
+  }, [allPetData.length, isMapLoaded, showPetFilter, createMarkers, selectedMbti, selectedCategory, isFiltering]);
+
+  // 카카오맵 장소 검색
+  const searchPlaces = useCallback(async () => {
+    if (!searchQuery.trim()) {
+      toast.warning("검색어를 입력해주세요.");
+      return;
+    }
+
+    if (!mapInstance.current) {
+      toast.error("지도가 로드되지 않았습니다.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // 카카오맵 장소 검색 서비스 사용
+      if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
+        const ps = new window.kakao.maps.services.Places();
+
+        // 현재 지도 중심 좌표
+        const center = mapInstance.current.getCenter();
+        const searchOptions = {
+          location: center,
+          radius: 10000, // 10km 반경
+          size: 15,
+        };
+
+        ps.keywordSearch(
+          searchQuery,
+          (data: any[], status: any) => {
+            if (status === window.kakao.maps.services.Status.OK) {
+              // 기존 검색 마커 제거
+              markers.current.forEach((marker) => marker.setMap(null));
+              markers.current = [];
+
+              // 새 마커 추가
+              data.forEach((place: any) => {
+                const position = new window.kakao.maps.LatLng(place.y, place.x);
+                
+                const marker = new window.kakao.maps.Marker({
+                  position: position,
+                  clickable: true,
+                });
+
+                marker.setMap(mapInstance.current);
+                markers.current.push(marker);
+
+                // 마커 클릭 이벤트
+                window.kakao.maps.event.addListener(marker, "click", () => {
+                  const content = `
+                    <div style="padding: 12px; min-width: 200px; max-width: 240px; font-family: 'Malgun Gothic', sans-serif; position: relative;">
+                      <button onclick="window.closeInfoWindow()" style="position: absolute; top: 6px; right: 6px; background: #f3f4f6; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 12px; color: #6b7280;">×</button>
+                      
+                      <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px; color: #2563eb; padding-right: 26px; line-height: 1.2;">${place.place_name}</div>
+                      
+                      <div style="font-size: 10px; color: #666; margin-bottom: 6px; background: #eff6ff; padding: 3px 6px; border-radius: 8px; display: inline-block;">
+                        📍 ${place.category_name}
+                      </div>
+                      
+                      <div style="font-size: 11px; color: #333; margin-bottom: 4px; line-height: 1.2;">${place.address_name}</div>
+                      ${place.road_address_name ? `<div style="font-size: 10px; color: #666; margin-bottom: 4px;">${place.road_address_name}</div>` : ""}
+                      ${place.phone ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px;">📞 ${place.phone}</div>` : ""}
+                      
+                      ${place.place_url ? `
+                        <div style="text-align: center; margin-top: 6px;">
+                          <a href="${place.place_url}" target="_blank" style="color: #2563eb; font-size: 10px; text-decoration: none; background: #eff6ff; padding: 4px 8px; border-radius: 6px; display: inline-block; border: 1px solid #93c5fd;">
+                            🔗 카카오맵에서 보기
+                          </a>
+                        </div>
+                      ` : ""}
+                    </div>
+                  `;
+                  infoWindow.current.setContent(content);
+                  infoWindow.current.open(mapInstance.current, marker);
+
+                  // 정보창 닫기 함수를 전역에 등록
+                  (window as any).closeInfoWindow = () => {
+                    infoWindow.current.close();
+                  };
+                });
+              });
+
+              // 첫 번째 검색 결과로 지도 이동
+              if (data.length > 0) {
+                const firstPlace = data[0];
+                const moveLatLng = new window.kakao.maps.LatLng(firstPlace.y, firstPlace.x);
+                mapInstance.current.panTo(moveLatLng);
+                mapInstance.current.setLevel(3);
+              }
+
+              toast.success(`${data.length}개의 장소를 찾았습니다.`);
+            } else if (status === window.kakao.maps.services.Status.ZERO_RESULT) {
+              toast.warning("검색 결과가 없습니다.");
+            } else {
+              toast.error("검색 중 오류가 발생했습니다.");
+            }
+          },
+          searchOptions
+        );
+      }
+    } catch (error) {
+      console.error("장소 검색 오류:", error);
+      toast.error("검색 중 오류가 발생했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  }, [searchQuery]);
+
+  // 검색 키 이벤트
+  const handleSearchKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      searchPlaces();
+    }
+  };
+
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background max-w-md mx-auto pb-20">
       {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-40">
-        <div className="flex items-center gap-3 p-4">
+      <header className="header p-6">
+        <div className="flex items-center space-x-3">
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onBack ? onBack() : navigate(-1)}
-            className="p-2"
+            onClick={onBack}
+            className="text-foreground hover:bg-muted p-2"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
