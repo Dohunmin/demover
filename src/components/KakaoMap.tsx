@@ -46,6 +46,7 @@ import { toast } from "sonner";
 
 import PlaceReviewModal from "@/components/PlaceReviewModal";
 import { mbtiData } from "@/data/mbti-data";
+import { getCategoryIconDataByLabel, createMarkerDataURL } from "@/utils/categoryIcons";
 
 declare global {
   interface Window {
@@ -122,28 +123,6 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     { id: "culture", label: "문화시설", icon: Building2 },
     { id: "port", label: "항구", icon: Anchor },
   ];
-
-  // 카테고리별 마커 아이콘 매핑
-  const getCategoryIcon = (locationGubun: string) => {
-    const iconMap: { [key: string]: { color: string; emoji: string } } = {
-      "카페": { color: "#CD853F", emoji: "☕" },
-      "식당": { color: "#FF8C69", emoji: "🍽️" },
-      "브런치": { color: "#FFD700", emoji: "🥐" },
-      "숙소": { color: "#87CEEB", emoji: "🏨" },
-      "해수욕장": { color: "#87CEEB", emoji: "🏖️" },
-      "공원": { color: "#90EE90", emoji: "🌳" },
-      "트레킹": { color: "#8FBC8F", emoji: "🥾" },
-      "테마거리": { color: "#DDA0DD", emoji: "🛣️" },
-      "쇼핑": { color: "#FFB6C1", emoji: "🛍️" },
-      "사찰": { color: "#F0E68C", emoji: "🏛️" },
-      "재래시장": { color: "#FFA07A", emoji: "🏪" },
-      "레저": { color: "#87CEFA", emoji: "🎯" },
-      "문화시설": { color: "#DA70D6", emoji: "🎭" },
-      "항구": { color: "#48D1CC", emoji: "⚓" }
-    };
-    
-    return iconMap[locationGubun] || { color: "#999999", emoji: "📍" };
-  };
 
   const [petTourismMarkers, setPetTourismMarkers] = useState<any[]>([]);
   const [allPetData, setAllPetData] = useState<any[]>([]);
@@ -356,21 +335,9 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           const imageSize = new window.kakao.maps.Size(32, 32);
           const imageOption = { offset: new window.kakao.maps.Point(16, 32) };
 
-          // 카테고리별 아이콘 가져오기
-          const categoryIcon = getCategoryIcon(place.locationGubun || "");
-          
-          const svgContent = `
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-              <defs>
-                <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.3)"/>
-                </filter>
-              </defs>
-              <circle cx="16" cy="16" r="14" fill="${categoryIcon.color}" stroke="white" stroke-width="2" filter="url(#shadow)"/>
-              <text x="16" y="20" text-anchor="middle" font-size="12" fill="white">${categoryIcon.emoji}</text>
-            </svg>
-          `;
-          const categoryMarkerSvg = `data:image/svg+xml;utf8,${encodeURIComponent(svgContent)}`;
+          // 카테고리별 아이콘 가져오기 (CategoryGrid와 동일한 아이콘 사용)
+          const iconData = getCategoryIconDataByLabel(place.locationGubun || "");
+          const categoryMarkerSvg = createMarkerDataURL(iconData.id);
 
           const markerImage = new window.kakao.maps.MarkerImage(categoryMarkerSvg, imageSize, imageOption);
           const marker = new window.kakao.maps.Marker({

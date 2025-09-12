@@ -1,8 +1,9 @@
-import { Coffee, UtensilsCrossed, Bed, TreePine, MapPin, Stethoscope, Dumbbell, Building2, Utensils, Church, ShoppingBag, Store, Mountain, Anchor, Waves, ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
+import { categoryIconsData } from "@/utils/categoryIcons";
 
 const CategoryGrid = () => {
   const navigate = useNavigate();
@@ -11,128 +12,7 @@ const CategoryGrid = () => {
   
   const isOnTravelPage = location.pathname === '/travel';
   
-  const categories = [
-    { 
-      id: "cafe", 
-      label: "카페", 
-      icon: Coffee, 
-      bgColor: "bg-cyan-50", 
-      iconColor: "text-cyan-600",
-      hoverColor: "hover:bg-cyan-100"
-    },
-    { 
-      id: "restaurant", 
-      label: "식당", 
-      icon: UtensilsCrossed, 
-      bgColor: "bg-emerald-50", 
-      iconColor: "text-emerald-600",
-      hoverColor: "hover:bg-emerald-100"
-    },
-    { 
-      id: "brunch", 
-      label: "브런치", 
-      icon: Utensils, 
-      bgColor: "bg-orange-50", 
-      iconColor: "text-orange-600",
-      hoverColor: "hover:bg-orange-100"
-    },
-    { 
-      id: "accommodation", 
-      label: "숙소", 
-      icon: Bed, 
-      bgColor: "bg-indigo-50", 
-      iconColor: "text-indigo-600",
-      hoverColor: "hover:bg-indigo-100"
-    },
-    { 
-      id: "beach", 
-      label: "해수욕장", 
-      icon: Waves, 
-      bgColor: "bg-sky-50", 
-      iconColor: "text-sky-600",
-      hoverColor: "hover:bg-sky-100"
-    },
-    { 
-      id: "park", 
-      label: "공원", 
-      icon: TreePine, 
-      bgColor: "bg-green-50", 
-      iconColor: "text-green-600",
-      hoverColor: "hover:bg-green-100"
-    },
-    { 
-      id: "trekking", 
-      label: "트레킹", 
-      icon: Mountain, 
-      bgColor: "bg-stone-50", 
-      iconColor: "text-stone-600",
-      hoverColor: "hover:bg-stone-100"
-    },
-    { 
-      id: "theme-street", 
-      label: "테마거리", 
-      icon: MapPin, 
-      bgColor: "bg-teal-50", 
-      iconColor: "text-teal-600",
-      hoverColor: "hover:bg-teal-100"
-    },
-    { 
-      id: "shopping", 
-      label: "쇼핑", 
-      icon: ShoppingBag, 
-      bgColor: "bg-pink-50", 
-      iconColor: "text-pink-600",
-      hoverColor: "hover:bg-pink-100"
-    },
-    { 
-      id: "temple", 
-      label: "사찰", 
-      icon: Church, 
-      bgColor: "bg-amber-50", 
-      iconColor: "text-amber-600",
-      hoverColor: "hover:bg-amber-100"
-    },
-    { 
-      id: "market", 
-      label: "재래시장", 
-      icon: Store, 
-      bgColor: "bg-yellow-50", 
-      iconColor: "text-yellow-600",
-      hoverColor: "hover:bg-yellow-100"
-    },
-    { 
-      id: "leisure", 
-      label: "레저", 
-      icon: Dumbbell, 
-      bgColor: "bg-blue-50", 
-      iconColor: "text-blue-600",
-      hoverColor: "hover:bg-blue-100"
-    },
-    { 
-      id: "culture", 
-      label: "문화시설", 
-      icon: Building2, 
-      bgColor: "bg-purple-50", 
-      iconColor: "text-purple-600",
-      hoverColor: "hover:bg-purple-100"
-    },
-    { 
-      id: "port", 
-      label: "항구", 
-      icon: Anchor, 
-      bgColor: "bg-slate-50", 
-      iconColor: "text-slate-600",
-      hoverColor: "hover:bg-slate-100"
-    },
-    { 
-      id: "hospital", 
-      label: "동물병원", 
-      icon: Stethoscope, 
-      bgColor: "bg-red-50", 
-      iconColor: "text-red-600",
-      hoverColor: "hover:bg-red-100"
-    },
-  ];
+  const categories = categoryIconsData;
 
   const handleCategoryClick = (categoryId: string) => {
     if (categoryId === 'hospital') {
