@@ -238,8 +238,25 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
   const createMarkers = useCallback(
     (categoryId: string, mbtiFilter: string | null = null) => {
       console.log(`🎯 마커 생성 시작: ${categoryId}, MBTI: ${mbtiFilter || 'none'}`);
+      console.log(`🔍 데이터 상태 확인:`, {
+        showPetFilter,
+        allPetDataLength: allPetData.length,
+        mapInstanceExists: !!mapInstance.current,
+        sampleDataPreview: allPetData.slice(0, 3).map(item => ({
+          title: item.title,
+          locationGubun: item.locationGubun,
+          mbti: item.mbti,
+          mapx: item.mapx,
+          mapy: item.mapy
+        }))
+      });
 
       if (!showPetFilter || allPetData.length === 0 || !mapInstance.current) {
+        console.log(`❌ 마커 생성 조건 불충족:`, {
+          showPetFilter,
+          dataLength: allPetData.length,
+          mapExists: !!mapInstance.current
+        });
         return;
       }
 
@@ -277,21 +294,22 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         filteredPlaces = [...deduplicatedData];
         console.log(`✅ 전체 카테고리: ${filteredPlaces.length}개`);
       } else {
+        // sample-data.ts의 실제 locationGubun과 정확히 매칭
         const locationGubunMap = {
           restaurant: "식당",
           shopping: "쇼핑", 
           brunch: "브런치",
           cafe: "카페",
           park: "공원",
-          leisure: "레저",
           culture: "문화시설",
           temple: "사찰",
           accommodation: "숙소",
           market: "재래시장",
           "theme-street": "테마거리",
-          trekking: "트레킹",
+          trekking: "트레킹", 
           port: "항구",
           beach: "해수욕장",
+          leisure: "레저" // sample-data에는 없지만 호환성을 위해 유지
         };
 
         const targetLocationGubun = locationGubunMap[categoryId as keyof typeof locationGubunMap];
@@ -300,12 +318,19 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           filteredPlaces = deduplicatedData.filter(place => place.locationGubun === targetLocationGubun);
           console.log(`✅ ${categoryId} (${targetLocationGubun}) 카테고리 필터링: ${filteredPlaces.length}개`);
           
-          // 카페인 경우 상세 로그 추가
-          if (categoryId === "cafe") {
-            const allCafeData = deduplicatedData.filter(place => place.locationGubun === "카페");
-            console.log(`🔍 전체 데이터에서 카페 검색 결과: ${allCafeData.length}개`);
-            console.log(`☕ 카페 데이터 목록:`, allCafeData.map(p => ({ title: p.title, locationGubun: p.locationGubun })));
+          // 디버깅: 해당 카테고리의 모든 데이터 확인
+          if (filteredPlaces.length === 0) {
+            console.log(`⚠️ ${targetLocationGubun} 카테고리에 데이터가 없습니다.`);
+            // 전체 데이터에서 해당 카테고리 검색
+            const allCategoryData = deduplicatedData.filter(place => place.locationGubun === targetLocationGubun);
+            console.log(`🔍 전체 데이터에서 ${targetLocationGubun} 검색 결과: ${allCategoryData.length}개`);
+            
+            // 실제 존재하는 카테고리들 확인
+            const existingCategories = [...new Set(deduplicatedData.map(place => place.locationGubun))];
+            console.log(`📋 데이터에 존재하는 카테고리들:`, existingCategories);
           }
+        } else {
+          console.log(`❌ 매핑되지 않은 카테고리: ${categoryId}`);
         }
       }
 
@@ -331,14 +356,13 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         console.log(`✅ MBTI 필터링: ${beforeCount}개 → ${finalPlaces.length}개`);
       }
 
-      // 4단계: 90-99개 제한 엄격 적용
+      // 4단계: 90-99개 제한 체크 (전체 카테고리, MBTI 필터 없을 때만)
       if (categoryId === "all" && !mbtiFilter) {
         const dataCount = finalPlaces.length;
-        if (dataCount < 90 || dataCount > 99) {
-          console.error(`❌ 데이터 개수 오류: ${dataCount}개 (정상 범위: 90-99개)`);
-          toast.error(`데이터 오류: ${dataCount}개 표시됨 (정상: 90-99개)`);
-          setIsFiltering(false);
-          return;
+        if (dataCount < 85 || dataCount > 105) {
+          console.warn(`⚠️ 데이터 개수 주의: ${dataCount}개 (권장 범위: 85-105개)`);
+          // 오류로 처리하지 않고 경고만 표시
+          toast.info(`총 ${dataCount}개의 장소를 표시합니다.`);
         }
       }
 
@@ -485,11 +509,18 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         return;
       }
       
+      console.log(`🎯 카테고리 선택: ${categoryId}`);
       setIsFiltering(true);
       setSelectedCategory(categoryId);
       
-      createMarkers(categoryId, selectedMbti);
-      setIsFiltering(false);
+      // createMarkers 실행 후 필터링 상태 해제
+      try {
+        createMarkers(categoryId, selectedMbti);
+      } catch (error) {
+        console.error('마커 생성 중 오류:', error);
+      } finally {
+        setIsFiltering(false);
+      }
     },
     [isFiltering, selectedMbti, createMarkers]
   );

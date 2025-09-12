@@ -290,9 +290,11 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
         allPetData.push(...processedItems);
       }
 
-      // 추가 샘플 데이터 (52개)
+      // 추가 샘플 데이터 처리 - locationGubun이 있는 데이터만 사용
       if (data?.additionalPetPlaces && Array.isArray(data.additionalPetPlaces)) {
-        allPetData.push(...data.additionalPetPlaces);
+        const validAdditionalData = data.additionalPetPlaces.filter(item => item.locationGubun);
+        console.log(`추가 샘플 데이터: ${data.additionalPetPlaces.length}개 → 유효한 데이터: ${validAdditionalData.length}개`);
+        allPetData.push(...validAdditionalData);
       }
 
       console.log(`총 ${allPetData.length}개의 반려동물 여행지 로딩 완료`);
