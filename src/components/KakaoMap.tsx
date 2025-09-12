@@ -336,7 +336,16 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
           const logoMarkerSvg = `data:image/svg+xml;base64,${btoa(`
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" width="30" height="30">
-              <image href="/lovable-uploads/5bf0bbd4-f8da-4dcf-849d-88f93779dd35.png" x="0" y="0" width="30" height="30"/>
+              <rect x="1" y="1" width="28" height="28" rx="6" fill="#4FACFE" stroke="white" stroke-width="2"/>
+              <g transform="translate(7, 8)">
+                <!-- 발가락 부분 -->
+                <circle cx="3" cy="2" r="1.5" fill="#333"/>
+                <circle cx="6" cy="1" r="1.2" fill="#333"/>
+                <circle cx="9" cy="1" r="1.2" fill="#333"/>
+                <circle cx="12" cy="2" r="1.2" fill="#333"/>
+                <!-- 발바닥 부분 -->
+                <ellipse cx="8" cy="8" rx="3.5" ry="4.5" fill="#333"/>
+              </g>
             </svg>
           `)}`;
 
