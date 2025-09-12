@@ -359,7 +359,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           // 카테고리별 아이콘 가져오기
           const categoryIcon = getCategoryIcon(place.locationGubun || "");
           
-          const categoryMarkerSvg = `data:image/svg+xml;base64,${btoa(`
+          const svgContent = `
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
               <defs>
                 <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
@@ -369,7 +369,8 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
               <circle cx="16" cy="16" r="14" fill="${categoryIcon.color}" stroke="white" stroke-width="2" filter="url(#shadow)"/>
               <text x="16" y="20" text-anchor="middle" font-size="12" fill="white">${categoryIcon.emoji}</text>
             </svg>
-          `)}`;
+          `;
+          const categoryMarkerSvg = `data:image/svg+xml;utf8,${encodeURIComponent(svgContent)}`;
 
           const markerImage = new window.kakao.maps.MarkerImage(categoryMarkerSvg, imageSize, imageOption);
           const marker = new window.kakao.maps.Marker({
