@@ -380,8 +380,58 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           const imageSize = new window.kakao.maps.Size(32, 32);
           const imageOption = { offset: new window.kakao.maps.Point(16, 32) };
 
-          // 업로드된 이미지를 직접 사용 (btoa 오류 방지)
-          const markerImageUrl = '/lovable-uploads/4a1fead8-6dfe-4008-9924-f8b71ae2b259.png';
+          // 업로드된 이미지 디자인을 활용한 마커 핀 형태 SVG 생성
+          const { color, emoji } = getCategoryIcon(place.locationGubun);
+          
+          const markerSvg = `
+            <svg width="32" height="42" viewBox="0 0 32 42" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.3"/>
+                </filter>
+              </defs>
+              
+              <!-- 마커 핀 외형 (물방울 모양) -->
+              <path d="M16 0C7.163 0 0 7.163 0 16c0 16 16 26 16 26s16-10 16-26C32 7.163 24.837 0 16 0z" 
+                    fill="url(#markerGradient)" filter="url(#shadow)"/>
+              
+              <!-- 그라데이션 정의 -->
+              <defs>
+                <linearGradient id="markerGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color:#68C8F0;stop-opacity:1" />
+                  <stop offset="30%" style="stop-color:#FFFFFF;stop-opacity:1" />
+                  <stop offset="70%" style="stop-color:#FFFFFF;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#FFD085;stop-opacity:1" />
+                </linearGradient>
+              </defs>
+              
+              <!-- 중앙 흰색 원 -->
+              <circle cx="16" cy="16" r="12" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1"/>
+              
+              <!-- 발바닥 모양들 (업로드 이미지 스타일) -->
+              <!-- 큰 발바닥 1 -->
+              <ellipse cx="12" cy="18" rx="2.5" ry="3" fill="#2D3748" opacity="0.8"/>
+              <ellipse cx="11" cy="15" rx="1" ry="1.2" fill="#2D3748" opacity="0.8"/>
+              <ellipse cx="9.5" cy="16.5" rx="1" ry="1.2" fill="#2D3748" opacity="0.8"/>
+              <ellipse cx="10" cy="19" rx="1" ry="1.2" fill="#2D3748" opacity="0.8"/>
+              <ellipse cx="13.5" cy="15.5" rx="1" ry="1.2" fill="#2D3748" opacity="0.8"/>
+              
+              <!-- 큰 발바닥 2 -->
+              <ellipse cx="20" cy="14" rx="2.5" ry="3" fill="#2D3748" opacity="0.8"/>
+              <ellipse cx="19" cy="11" rx="1" ry="1.2" fill="#2D3748" opacity="0.8"/>
+              <ellipse cx="17.5" cy="12.5" rx="1" ry="1.2" fill="#2D3748" opacity="0.8"/>
+              <ellipse cx="21.5" cy="11.5" rx="1" ry="1.2" fill="#2D3748" opacity="0.8"/>
+              <ellipse cx="22" cy="13" rx="1" ry="1.2" fill="#2D3748" opacity="0.8"/>
+              
+              <!-- 작은 발가락들 -->
+              <circle cx="14" cy="12" r="0.8" fill="#2D3748" opacity="0.6"/>
+              <circle cx="18" cy="19" r="0.8" fill="#2D3748" opacity="0.6"/>
+              <circle cx="15" cy="20" r="0.7" fill="#2D3748" opacity="0.6"/>
+              <circle cx="20" cy="17" r="0.7" fill="#2D3748" opacity="0.6"/>
+            </svg>
+          `;
+          
+          const markerImageUrl = 'data:image/svg+xml;base64,' + btoa(markerSvg);
           const markerImage = new window.kakao.maps.MarkerImage(markerImageUrl, imageSize, imageOption);
           const marker = new window.kakao.maps.Marker({
             position: position,
