@@ -123,6 +123,28 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     { id: "port", label: "항구", icon: Anchor },
   ];
 
+  // 카테고리별 마커 아이콘 매핑
+  const getCategoryIcon = (locationGubun: string) => {
+    const iconMap: { [key: string]: { color: string; emoji: string } } = {
+      "카페": { color: "#8B4513", emoji: "☕" },
+      "식당": { color: "#FF6B35", emoji: "🍽️" },
+      "브런치": { color: "#FFB347", emoji: "🥐" },
+      "숙소": { color: "#4A90E2", emoji: "🏨" },
+      "해수욕장": { color: "#00BFFF", emoji: "🏖️" },
+      "공원": { color: "#32CD32", emoji: "🌳" },
+      "트레킹": { color: "#228B22", emoji: "🥾" },
+      "테마거리": { color: "#9370DB", emoji: "🛣️" },
+      "쇼핑": { color: "#FF69B4", emoji: "🛍️" },
+      "사찰": { color: "#DAA520", emoji: "🏛️" },
+      "재래시장": { color: "#FF4500", emoji: "🏪" },
+      "레저": { color: "#1E90FF", emoji: "🎯" },
+      "문화시설": { color: "#8A2BE2", emoji: "🎭" },
+      "항구": { color: "#20B2AA", emoji: "⚓" }
+    };
+    
+    return iconMap[locationGubun] || { color: "#666666", emoji: "📍" };
+  };
+
   const [petTourismMarkers, setPetTourismMarkers] = useState<any[]>([]);
   const [allPetData, setAllPetData] = useState<any[]>([]);
   const [selectedPlaceForReview, setSelectedPlaceForReview] = useState<any>(null);
@@ -331,25 +353,25 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
         try {
           const position = new window.kakao.maps.LatLng(place.mapy, place.mapx);
-          const imageSize = new window.kakao.maps.Size(30, 30);
-          const imageOption = { offset: new window.kakao.maps.Point(15, 30) };
+          const imageSize = new window.kakao.maps.Size(32, 32);
+          const imageOption = { offset: new window.kakao.maps.Point(16, 32) };
 
-          const logoMarkerSvg = `data:image/svg+xml;base64,${btoa(`
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" width="30" height="30">
-              <rect x="1" y="1" width="28" height="28" rx="6" fill="#4FACFE" stroke="white" stroke-width="2"/>
-              <g transform="translate(7, 8)">
-                <!-- 발가락 부분 -->
-                <circle cx="3" cy="2" r="1.5" fill="#333"/>
-                <circle cx="6" cy="1" r="1.2" fill="#333"/>
-                <circle cx="9" cy="1" r="1.2" fill="#333"/>
-                <circle cx="12" cy="2" r="1.2" fill="#333"/>
-                <!-- 발바닥 부분 -->
-                <ellipse cx="8" cy="8" rx="3.5" ry="4.5" fill="#333"/>
-              </g>
+          // 카테고리별 아이콘 가져오기
+          const categoryIcon = getCategoryIcon(place.locationGubun || "");
+          
+          const categoryMarkerSvg = `data:image/svg+xml;base64,${btoa(`
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+              <defs>
+                <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.3)"/>
+                </filter>
+              </defs>
+              <circle cx="16" cy="16" r="14" fill="${categoryIcon.color}" stroke="white" stroke-width="2" filter="url(#shadow)"/>
+              <text x="16" y="20" text-anchor="middle" font-size="12" fill="white">${categoryIcon.emoji}</text>
             </svg>
           `)}`;
 
-          const markerImage = new window.kakao.maps.MarkerImage(logoMarkerSvg, imageSize, imageOption);
+          const markerImage = new window.kakao.maps.MarkerImage(categoryMarkerSvg, imageSize, imageOption);
           const marker = new window.kakao.maps.Marker({
             position: position,
             image: markerImage,
