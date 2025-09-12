@@ -126,23 +126,23 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
   // 카테고리별 마커 아이콘 매핑
   const getCategoryIcon = (locationGubun: string) => {
     const iconMap: { [key: string]: { color: string; emoji: string } } = {
-      "카페": { color: "#8B4513", emoji: "☕" },
-      "식당": { color: "#FF6B35", emoji: "🍽️" },
-      "브런치": { color: "#FFB347", emoji: "🥐" },
-      "숙소": { color: "#4A90E2", emoji: "🏨" },
-      "해수욕장": { color: "#00BFFF", emoji: "🏖️" },
-      "공원": { color: "#32CD32", emoji: "🌳" },
-      "트레킹": { color: "#228B22", emoji: "🥾" },
-      "테마거리": { color: "#9370DB", emoji: "🛣️" },
-      "쇼핑": { color: "#FF69B4", emoji: "🛍️" },
-      "사찰": { color: "#DAA520", emoji: "🏛️" },
-      "재래시장": { color: "#FF4500", emoji: "🏪" },
-      "레저": { color: "#1E90FF", emoji: "🎯" },
-      "문화시설": { color: "#8A2BE2", emoji: "🎭" },
-      "항구": { color: "#20B2AA", emoji: "⚓" }
+      "카페": { color: "#CD853F", emoji: "☕" },
+      "식당": { color: "#FF8C69", emoji: "🍽️" },
+      "브런치": { color: "#FFD700", emoji: "🥐" },
+      "숙소": { color: "#87CEEB", emoji: "🏨" },
+      "해수욕장": { color: "#87CEEB", emoji: "🏖️" },
+      "공원": { color: "#90EE90", emoji: "🌳" },
+      "트레킹": { color: "#8FBC8F", emoji: "🥾" },
+      "테마거리": { color: "#DDA0DD", emoji: "🛣️" },
+      "쇼핑": { color: "#FFB6C1", emoji: "🛍️" },
+      "사찰": { color: "#F0E68C", emoji: "🏛️" },
+      "재래시장": { color: "#FFA07A", emoji: "🏪" },
+      "레저": { color: "#87CEFA", emoji: "🎯" },
+      "문화시설": { color: "#DA70D6", emoji: "🎭" },
+      "항구": { color: "#48D1CC", emoji: "⚓" }
     };
     
-    return iconMap[locationGubun] || { color: "#666666", emoji: "📍" };
+    return iconMap[locationGubun] || { color: "#999999", emoji: "📍" };
   };
 
   const [petTourismMarkers, setPetTourismMarkers] = useState<any[]>([]);
