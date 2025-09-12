@@ -123,86 +123,26 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     { id: "port", label: "항구", icon: Anchor },
   ];
 
-  // CategoryGrid와 동일한 카테고리 매핑 및 색상
+  // 카테고리별 마커 아이콘 매핑
   const getCategoryIcon = (locationGubun: string) => {
-    const iconMap: { [key: string]: { bgColor: string; iconColor: string; icon: string } } = {
-      "카페": { 
-        bgColor: "#ecfeff", 
-        iconColor: "#0891b2",
-        icon: "Coffee"
-      },
-      "식당": { 
-        bgColor: "#ecfdf5", 
-        iconColor: "#059669",
-        icon: "UtensilsCrossed"
-      },
-      "브런치": { 
-        bgColor: "#fff7ed", 
-        iconColor: "#ea580c",
-        icon: "Utensils"
-      },
-      "숙소": { 
-        bgColor: "#eef2ff", 
-        iconColor: "#4f46e5",
-        icon: "Bed"
-      },
-      "해수욕장": { 
-        bgColor: "#f0f9ff", 
-        iconColor: "#0284c7",
-        icon: "Waves"
-      },
-      "공원": { 
-        bgColor: "#f0fdf4", 
-        iconColor: "#16a34a",
-        icon: "TreePine"
-      },
-      "트레킹": { 
-        bgColor: "#fafaf9", 
-        iconColor: "#57534e",
-        icon: "Mountain"
-      },
-      "테마거리": { 
-        bgColor: "#f0fdfa", 
-        iconColor: "#0d9488",
-        icon: "MapPin"
-      },
-      "쇼핑": { 
-        bgColor: "#fdf2f8", 
-        iconColor: "#db2777",
-        icon: "ShoppingBag"
-      },
-      "사찰": { 
-        bgColor: "#fffbeb", 
-        iconColor: "#d97706",
-        icon: "Church"
-      },
-      "재래시장": { 
-        bgColor: "#fefce8", 
-        iconColor: "#ca8a04",
-        icon: "Store"
-      },
-      "레저": { 
-        bgColor: "#eff6ff", 
-        iconColor: "#2563eb",
-        icon: "Dumbbell"
-      },
-      "문화시설": { 
-        bgColor: "#faf5ff", 
-        iconColor: "#9333ea",
-        icon: "Building2"
-      },
-      "항구": { 
-        bgColor: "#f8fafc", 
-        iconColor: "#64748b",
-        icon: "Anchor"
-      }
+    const iconMap: { [key: string]: { color: string; emoji: string } } = {
+      "카페": { color: "#CD853F", emoji: "☕" },
+      "식당": { color: "#FF8C69", emoji: "🍽️" },
+      "브런치": { color: "#FFD700", emoji: "🥐" },
+      "숙소": { color: "#87CEEB", emoji: "🏨" },
+      "해수욕장": { color: "#87CEEB", emoji: "🏖️" },
+      "공원": { color: "#90EE90", emoji: "🌳" },
+      "트레킹": { color: "#8FBC8F", emoji: "🥾" },
+      "테마거리": { color: "#DDA0DD", emoji: "🛣️" },
+      "쇼핑": { color: "#FFB6C1", emoji: "🛍️" },
+      "사찰": { color: "#F0E68C", emoji: "🏛️" },
+      "재래시장": { color: "#FFA07A", emoji: "🏪" },
+      "레저": { color: "#87CEFA", emoji: "🎯" },
+      "문화시설": { color: "#DA70D6", emoji: "🎭" },
+      "항구": { color: "#48D1CC", emoji: "⚓" }
     };
     
-    return iconMap[locationGubun] || { 
-      bgColor: "#f8fafc", 
-      iconColor: "#64748b", 
-      icon: "MapPin"
-    };
+    return iconMap[locationGubun] || { color: "#999999", emoji: "📍" };
   };
 
   const [petTourismMarkers, setPetTourismMarkers] = useState<any[]>([]);
@@ -419,26 +359,6 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           // 카테고리별 아이콘 가져오기
           const categoryIcon = getCategoryIcon(place.locationGubun || "");
           
-          // Lucide 아이콘 SVG paths
-          const iconPaths: { [key: string]: string } = {
-            Coffee: "M17 8h1a4 4 0 1 1 0 8h-1m-3-8h.01M12 8h0l0 0v8l0 0M8 8h0l0 0v8l0 0m-3 0V8a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z",
-            UtensilsCrossed: "m16 2-2.3 2.3a3 3 0 0 0 0 4.2L16 11l5-5-1.4-1.4a3 3 0 0 0-4.2 0L16 2zm-10 15.5 7.5 7.5c.83.83 2.17.83 3 0l7.5-7.5-10.5-10.5L6 14.5z",
-            Utensils: "M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2m7 0v20l-2-2v-6m0-6.5L18 9",
-            Bed: "M2 4v16m2-8h16M7 4v16m10-16v16M5 9h1M5 14h1m12-5h1m-1 5h1",
-            Waves: "M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1",
-            TreePine: "m17 14 3 3.3a1 1 0 0 1-.7 1.7H4.7a1 1 0 0 1-.7-1.7L7 14h-.3a1 1 0 0 1-.7-1.7L9 9h-.2A1 1 0 0 1 8 7.3L12 2l4 5.3a1 1 0 0 1-.8 1.7H15l3 3.3a1 1 0 0 1-.7 1.7H17Z",
-            Mountain: "m8 3 4 8 5-5v7H5V8l3-5Z",
-            MapPin: "M20 10c-2 0-3-1-3-3s1-3 3-3 3 1 3 3-1 3-3 3ZM4 10c2 0 3-1 3-3S6 4 4 4s-3 1-3 3 1 3 3 3Zm16 6-1.5-1.5L15 18l-3-3-1.5 1.5L12 18l-3-3L7.5 16.5 9 18l-3 3 1.5 1.5L9 21l3 3 1.5-1.5L12 21l3 3Z",
-            ShoppingBag: "M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zm0 2h12l2 2v2H4V6l2-2zm2 4a1 1 0 1 0 0 2c1.66 0 3 1.34 3 3a1 1 0 1 0 2 0c0-2.76-2.24-5-5-5z",
-            Church: "M18 2h3v20H3V2h3m1 2v16h8V4H7zm2 2h4v2H9V6zm0 4h4v2H9v-2zm0 4h4v2H9v-2z",
-            Store: "m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4",
-            Dumbbell: "M14.4 14.4 9.6 9.6m8.9-2.1a5.1 5.1 0 1 1-7.2 0 5.1 5.1 0 0 1 7.2 0ZM15 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm1.5 6.5 3 3 3-3-1.5-1.5-1.5 1.5-1.5-1.5-1.5 1.5Z",
-            Building2: "M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Zm1-6h2m0 0h2m-2 0v2m0-2v-2m5-4h2m-2 0v2m0-2v-2m0-2V4",
-            Anchor: "M12 8V2H8l4 6 4-6h-4zm-1 1v3l-6 4 2.5 1.5L12 15l4.5 2.5L19 16l-6-4V9h-2z"
-          };
-          
-          const iconPath = iconPaths[categoryIcon.icon] || iconPaths.MapPin;
-          
           const svgContent = `
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
               <defs>
@@ -446,10 +366,8 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
                   <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.3)"/>
                 </filter>
               </defs>
-              <circle cx="16" cy="16" r="14" fill="${categoryIcon.bgColor}" stroke="white" stroke-width="2" filter="url(#shadow)"/>
-              <g transform="translate(8, 8)">
-                <path d="${iconPath}" fill="none" stroke="${categoryIcon.iconColor}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </g>
+              <circle cx="16" cy="16" r="14" fill="${categoryIcon.color}" stroke="white" stroke-width="2" filter="url(#shadow)"/>
+              <text x="16" y="20" text-anchor="middle" font-size="12" fill="white">${categoryIcon.emoji}</text>
             </svg>
           `;
           const categoryMarkerSvg = `data:image/svg+xml;utf8,${encodeURIComponent(svgContent)}`;
