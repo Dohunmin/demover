@@ -550,7 +550,7 @@ const MbtiTest = () => {
   };
 
   const handleRetakeTest = () => {
-    setIsTestStarted(false);
+    setIsTestStarted(true);
     setCurrentQuestion(0);
     setAnswers({});
     setCurrentAnswer("");
