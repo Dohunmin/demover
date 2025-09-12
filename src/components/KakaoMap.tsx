@@ -380,49 +380,69 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           const imageSize = new window.kakao.maps.Size(32, 32);
           const imageOption = { offset: new window.kakao.maps.Point(16, 32) };
 
-          // 마커 중앙에 원형 공간을 만들어 이미지 배치
-          const markerSvg = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 50" width="40" height="50">
-              <defs>
-                <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.2)"/>
-                </filter>
-                <clipPath id="circleClip">
-                  <circle cx="20" cy="16" r="10"/>
-                </clipPath>
-              </defs>
+          // Canvas로 마커 이미지 생성 (이미지가 확실히 보이도록)
+          const canvas = document.createElement('canvas');
+          canvas.width = 40;
+          canvas.height = 50;
+          const ctx = canvas.getContext('2d');
+          
+          if (ctx) {
+            // 마커 배경 그리기
+            ctx.beginPath();
+            ctx.moveTo(20, 2);
+            ctx.bezierCurveTo(12, 2, 6, 8, 6, 16);
+            ctx.bezierCurveTo(6, 24, 20, 42, 20, 42);
+            ctx.bezierCurveTo(20, 42, 34, 24, 34, 16);
+            ctx.bezierCurveTo(34, 8, 28, 2, 20, 2);
+            ctx.closePath();
+            
+            // 그림자 효과
+            ctx.shadowColor = 'rgba(0,0,0,0.2)';
+            ctx.shadowBlur = 3;
+            ctx.shadowOffsetY = 2;
+            
+            ctx.fillStyle = '#f0f9ff';
+            ctx.fill();
+            ctx.strokeStyle = '#87ceeb';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 중앙 원형 영역
+            ctx.shadowColor = 'transparent';
+            ctx.beginPath();
+            ctx.arc(20, 16, 11, 0, 2 * Math.PI);
+            ctx.fillStyle = 'white';
+            ctx.fill();
+            ctx.strokeStyle = '#5fb3d4';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            
+            // 이미지 로드 및 그리기
+            const img = new Image();
+            img.onload = () => {
+              ctx.save();
+              ctx.beginPath();
+              ctx.arc(20, 16, 10, 0, 2 * Math.PI);
+              ctx.clip();
+              ctx.drawImage(img, 10, 6, 20, 20);
+              ctx.restore();
               
-              <!-- 마커 배경 (물방울 모양) -->
-              <path d="M20 2 C12 2, 6 8, 6 16 C6 24, 20 42, 20 42 S34 24, 34 16 C34 8, 28 2, 20 2 Z" 
-                    fill="#f0f9ff" stroke="#87ceeb" stroke-width="2" filter="url(#shadow)"/>
+              // 마커 이미지 생성
+              const markerImageUrl = canvas.toDataURL();
+              const markerImage = new window.kakao.maps.MarkerImage(markerImageUrl, new window.kakao.maps.Size(40, 50), { offset: new window.kakao.maps.Point(20, 50) });
               
-              <!-- 중앙 원형 배경 (이미지 영역) -->
-              <circle cx="20" cy="16" r="11" fill="white" stroke="#5fb3d4" stroke-width="1"/>
-              
-              <!-- 업로드된 이미지 (원형으로 클립) -->
-              <image href="/lovable-uploads/6cacf9bf-7485-43d7-9748-7a93eb1e6822.png" 
-                     x="10" y="6" width="20" height="20" 
-                     clip-path="url(#circleClip)" preserveAspectRatio="xMidYMid slice"/>
-              
-              <!-- 마커 테두리 강조 -->
-              <path d="M20 2 C12 2, 6 8, 6 16 C6 24, 20 42, 20 42 S34 24, 34 16 C34 8, 28 2, 20 2 Z" 
-                    fill="none" stroke="#5fb3d4" stroke-width="1"/>
-            </svg>
-          `)}`;
+              const newMarker = new window.kakao.maps.Marker({
+                position: position,
+                image: markerImage,
+                clickable: true,
+              });
 
-          const markerImage = new window.kakao.maps.MarkerImage(markerSvg, new window.kakao.maps.Size(40, 50), { offset: new window.kakao.maps.Point(20, 50) });
-          const marker = new window.kakao.maps.Marker({
-            position: position,
-            image: markerImage,
-            clickable: true,
-          });
+              newMarker.setMap(mapInstance.current);
+              newMarkers.push(newMarker);
+              markerCount++;
 
-          marker.setMap(mapInstance.current);
-          newMarkers.push(marker);
-          markerCount++;
-
-          // 마커 클릭 이벤트
-          window.kakao.maps.event.addListener(marker, "click", () => {
+              // 마커 클릭 이벤트
+              window.kakao.maps.event.addListener(newMarker, "click", () => {
             const content = `
               <div style="padding: 12px; min-width: 200px; max-width: 240px; font-family: 'Malgun Gothic', sans-serif; position: relative; word-wrap: break-word; overflow: hidden;">
                 <button onclick="window.closeInfoWindow()" style="position: absolute; top: 6px; right: 6px; background: #f3f4f6; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 12px; color: #6b7280;">×</button>
@@ -453,7 +473,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
             `;
             
             infoWindow.current.setContent(content);
-            infoWindow.current.open(mapInstance.current, marker);
+            infoWindow.current.open(mapInstance.current, newMarker);
 
             (window as any).closeInfoWindow = () => {
               infoWindow.current.close();
@@ -465,6 +485,27 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
               setIsReviewModalOpen(true);
             };
           });
+            };
+            
+            img.onerror = () => {
+              // 이미지 로드 실패 시 기본 마커 사용
+              const markerImageUrl = canvas.toDataURL();
+              const markerImage = new window.kakao.maps.MarkerImage(markerImageUrl, new window.kakao.maps.Size(40, 50), { offset: new window.kakao.maps.Point(20, 50) });
+              
+              const newMarker = new window.kakao.maps.Marker({
+                position: position,
+                image: markerImage,
+                clickable: true,
+              });
+
+              newMarker.setMap(mapInstance.current);
+              newMarkers.push(newMarker);
+              markerCount++;
+            };
+            
+            img.crossOrigin = 'anonymous';
+            img.src = '/lovable-uploads/98b33a3a-8acc-4374-b015-d9b87702fb52.png';
+          }
           
         } catch (error) {
           console.error(`❌ 마커 생성 실패: ${place.title}`, error);
