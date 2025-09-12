@@ -104,7 +104,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
   // 필터링 실행 중 상태 추가
   const [isFiltering, setIsFiltering] = useState(false);
 
-  // 카테고리별 필터링 (sample-data에 실제 존재하는 카테고리만)
+  // 카테고리별 필터링
   const categories = [
     { id: "all", label: "전체", icon: MapPin },
     { id: "cafe", label: "카페", icon: Coffee },
@@ -116,7 +116,11 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     { id: "trekking", label: "트레킹", icon: Mountain },
     { id: "theme-street", label: "테마거리", icon: MapPin },
     { id: "shopping", label: "쇼핑", icon: ShoppingBag },
-    { id: "temple", label: "사찰", icon: Church }
+    { id: "temple", label: "사찰", icon: Church },
+    { id: "market", label: "재래시장", icon: Store },
+    { id: "leisure", label: "레저", icon: Dumbbell },
+    { id: "culture", label: "문화시설", icon: Building2 },
+    { id: "port", label: "항구", icon: Anchor },
   ];
 
   // 카테고리별 마커 아이콘 매핑
@@ -290,18 +294,22 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         filteredPlaces = [...deduplicatedData];
         console.log(`✅ 전체 카테고리: ${filteredPlaces.length}개`);
       } else {
-        // sample-data.ts에 실제로 존재하는 locationGubun과 정확히 매칭
+        // sample-data.ts의 실제 locationGubun과 정확히 매칭
         const locationGubunMap = {
           restaurant: "식당",
           shopping: "쇼핑", 
           brunch: "브런치",
           cafe: "카페",
           park: "공원",
+          culture: "문화시설",
           temple: "사찰",
           accommodation: "숙소",
+          market: "재래시장",
           "theme-street": "테마거리",
           trekking: "트레킹", 
-          beach: "해수욕장"
+          port: "항구",
+          beach: "해수욕장",
+          leisure: "레저" // sample-data에는 없지만 호환성을 위해 유지
         };
 
         const targetLocationGubun = locationGubunMap[categoryId as keyof typeof locationGubunMap];
@@ -372,69 +380,21 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           const imageSize = new window.kakao.maps.Size(32, 32);
           const imageOption = { offset: new window.kakao.maps.Point(16, 32) };
 
-          // Canvas로 마커 이미지 생성 (이미지가 확실히 보이도록)
-          const canvas = document.createElement('canvas');
-          canvas.width = 40;
-          canvas.height = 50;
-          const ctx = canvas.getContext('2d');
-          
-          if (ctx) {
-            // 마커 배경 그리기
-            ctx.beginPath();
-            ctx.moveTo(20, 2);
-            ctx.bezierCurveTo(12, 2, 6, 8, 6, 16);
-            ctx.bezierCurveTo(6, 24, 20, 42, 20, 42);
-            ctx.bezierCurveTo(20, 42, 34, 24, 34, 16);
-            ctx.bezierCurveTo(34, 8, 28, 2, 20, 2);
-            ctx.closePath();
-            
-            // 그림자 효과
-            ctx.shadowColor = 'rgba(0,0,0,0.2)';
-            ctx.shadowBlur = 3;
-            ctx.shadowOffsetY = 2;
-            
-            ctx.fillStyle = '#f0f9ff';
-            ctx.fill();
-            ctx.strokeStyle = '#87ceeb';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            
-            // 중앙 원형 영역
-            ctx.shadowColor = 'transparent';
-            ctx.beginPath();
-            ctx.arc(20, 16, 11, 0, 2 * Math.PI);
-            ctx.fillStyle = 'white';
-            ctx.fill();
-            ctx.strokeStyle = '#5fb3d4';
-            ctx.lineWidth = 1;
-            ctx.stroke();
-            
-            // 이미지 로드 및 그리기
-            const img = new Image();
-            img.onload = () => {
-              ctx.save();
-              ctx.beginPath();
-              ctx.arc(20, 16, 10, 0, 2 * Math.PI);
-              ctx.clip();
-              ctx.drawImage(img, 10, 6, 20, 20);
-              ctx.restore();
-              
-              // 마커 이미지 생성
-              const markerImageUrl = canvas.toDataURL();
-              const markerImage = new window.kakao.maps.MarkerImage(markerImageUrl, new window.kakao.maps.Size(40, 50), { offset: new window.kakao.maps.Point(20, 50) });
-              
-              const newMarker = new window.kakao.maps.Marker({
-                position: position,
-                image: markerImage,
-                clickable: true,
-              });
+          // 업로드된 이미지를 직접 사용 (btoa 오류 방지)
+          const markerImageUrl = '/lovable-uploads/4a1fead8-6dfe-4008-9924-f8b71ae2b259.png';
+          const markerImage = new window.kakao.maps.MarkerImage(markerImageUrl, imageSize, imageOption);
+          const marker = new window.kakao.maps.Marker({
+            position: position,
+            image: markerImage,
+            clickable: true,
+          });
 
-              newMarker.setMap(mapInstance.current);
-              newMarkers.push(newMarker);
-              markerCount++;
+          marker.setMap(mapInstance.current);
+          newMarkers.push(marker);
+          markerCount++;
 
-              // 마커 클릭 이벤트
-              window.kakao.maps.event.addListener(newMarker, "click", () => {
+          // 마커 클릭 이벤트
+          window.kakao.maps.event.addListener(marker, "click", () => {
             const content = `
               <div style="padding: 12px; min-width: 200px; max-width: 240px; font-family: 'Malgun Gothic', sans-serif; position: relative; word-wrap: break-word; overflow: hidden;">
                 <button onclick="window.closeInfoWindow()" style="position: absolute; top: 6px; right: 6px; background: #f3f4f6; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 12px; color: #6b7280;">×</button>
@@ -465,7 +425,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
             `;
             
             infoWindow.current.setContent(content);
-            infoWindow.current.open(mapInstance.current, newMarker);
+            infoWindow.current.open(mapInstance.current, marker);
 
             (window as any).closeInfoWindow = () => {
               infoWindow.current.close();
@@ -477,27 +437,6 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
               setIsReviewModalOpen(true);
             };
           });
-            };
-            
-            img.onerror = () => {
-              // 이미지 로드 실패 시 기본 마커 사용
-              const markerImageUrl = canvas.toDataURL();
-              const markerImage = new window.kakao.maps.MarkerImage(markerImageUrl, new window.kakao.maps.Size(40, 50), { offset: new window.kakao.maps.Point(20, 50) });
-              
-              const newMarker = new window.kakao.maps.Marker({
-                position: position,
-                image: markerImage,
-                clickable: true,
-              });
-
-              newMarker.setMap(mapInstance.current);
-              newMarkers.push(newMarker);
-              markerCount++;
-            };
-            
-            img.crossOrigin = 'anonymous';
-            img.src = '/lovable-uploads/98b33a3a-8acc-4374-b015-d9b87702fb52.png';
-          }
           
         } catch (error) {
           console.error(`❌ 마커 생성 실패: ${place.title}`, error);
