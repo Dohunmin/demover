@@ -395,7 +395,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
               <path d="M20 2 C12 2, 6 8, 6 16 C6 24, 20 42, 20 42 S34 24, 34 16 C34 8, 28 2, 20 2 Z" 
                     fill="white" stroke="#2563eb" stroke-width="2" filter="url(#shadow)"/>
               
-              <image href="/lovable-uploads/4a1fead8-6dfe-4008-9924-f8b71ae2b259.png" 
+              <image href="/lovable-uploads/df2416f6-23e6-42db-abb3-93eb896fa3f9.png" 
                      x="8" y="6" width="24" height="20" 
                      clip-path="url(#markerClip)" preserveAspectRatio="xMidYMid slice"/>
               
