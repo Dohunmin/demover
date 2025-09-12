@@ -423,7 +423,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
                 </filter>
               </defs>
               <circle cx="16" cy="16" r="14" fill="${categoryIcon.bgColor}" stroke="white" stroke-width="2" filter="url(#shadow)"/>
-              <g transform="translate(16,16) scale(0.5)" fill="${categoryIcon.iconColor}" stroke="${categoryIcon.iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <g transform="translate(16,16) scale(0.6)" fill="none" stroke="${categoryIcon.iconColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <g transform="translate(-12,-12)">
                   <path d="${categoryIcon.iconPath}"/>
                 </g>
