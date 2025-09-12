@@ -123,26 +123,86 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     { id: "port", label: "항구", icon: Anchor },
   ];
 
-  // 카테고리별 마커 아이콘 매핑
+  // 카테고리별 마커 아이콘 매핑 - CategoryGrid와 동일한 아이콘과 색상 사용
   const getCategoryIcon = (locationGubun: string) => {
-    const iconMap: { [key: string]: { color: string; emoji: string } } = {
-      "카페": { color: "#CD853F", emoji: "☕" },
-      "식당": { color: "#FF8C69", emoji: "🍽️" },
-      "브런치": { color: "#FFD700", emoji: "🥐" },
-      "숙소": { color: "#87CEEB", emoji: "🏨" },
-      "해수욕장": { color: "#87CEEB", emoji: "🏖️" },
-      "공원": { color: "#90EE90", emoji: "🌳" },
-      "트레킹": { color: "#8FBC8F", emoji: "🥾" },
-      "테마거리": { color: "#DDA0DD", emoji: "🛣️" },
-      "쇼핑": { color: "#FFB6C1", emoji: "🛍️" },
-      "사찰": { color: "#F0E68C", emoji: "🏛️" },
-      "재래시장": { color: "#FFA07A", emoji: "🏪" },
-      "레저": { color: "#87CEFA", emoji: "🎯" },
-      "문화시설": { color: "#DA70D6", emoji: "🎭" },
-      "항구": { color: "#48D1CC", emoji: "⚓" }
+    const iconMap: { [key: string]: { bgColor: string; iconColor: string; iconPath: string } } = {
+      "카페": { 
+        bgColor: "#0891b2", // cyan-600
+        iconColor: "#ffffff",
+        iconPath: "M7 14c-1.66 0-3-1.34-3-3V5a3 3 0 0 1 6 0v6c0 1.66-1.34 3-3 3zM7 2C5.89 2 5 2.89 5 4v7c0 1.11.89 2 2 2s2-.89 2-2V4c0-1.11-.89-2-2-2z M15 14c-1.66 0-3-1.34-3-3V5a3 3 0 0 1 6 0v6c0 1.66-1.34 3-3 3zM15 2c-1.11 0-2 .89-2 2v7c0 1.11.89 2 2 2s2-.89 2-2V4c0-1.11-.89-2-2-2z M7 18c0-.55.45-1 1-1h8c.55 0 1 .45 1 1s-.45 1-1 1H8c-.55 0-1-.45-1-1z"
+      },
+      "식당": { 
+        bgColor: "#059669", // emerald-600
+        iconColor: "#ffffff",
+        iconPath: "M3 2v7c0 1.1.9 2 2 2s2-.9 2-2V2 M7 2v20 M21 15H9 M21 19H9 M21 11H9"
+      },
+      "브런치": { 
+        bgColor: "#ea580c", // orange-600
+        iconColor: "#ffffff", 
+        iconPath: "M3 2v7c0 1.1.9 2 2 2s2-.9 2-2V2 M7 2v20 M21 15H9 M21 19H9"
+      },
+      "숙소": { 
+        bgColor: "#4f46e5", // indigo-600
+        iconColor: "#ffffff",
+        iconPath: "M2 4v16 M2 8h18a2 2 0 0 1 2 2v10 M2 17h20 M6 8v9"
+      },
+      "해수욕장": { 
+        bgColor: "#0284c7", // sky-600
+        iconColor: "#ffffff",
+        iconPath: "M2 12c.6.5 1.2 1 2.5 1C6.2 13 7 12 8.5 12c1.5 0 2.3 1 3.5 1s2-.9 3.5-1c1.5 0 2.3 1 3.5 1 1.3 0 1.9-.5 2.5-1 M2 17c.6.5 1.2 1 2.5 1 1.7 0 2.5-1 4-1s2.3 1 4 1c1.3 0 1.9-.5 2.5-1 M22 22H2"
+      },
+      "공원": { 
+        bgColor: "#16a34a", // green-600
+        iconColor: "#ffffff",
+        iconPath: "m17 14 3 3.3a1 1 0 0 1-.7 1.7H4.7a1 1 0 0 1-.7-1.7L7 14h-.3a1 1 0 0 1-.7-1.7L9 9h-.2A1 1 0 0 1 8 7.3L12 2l4 5.3a1 1 0 0 1-.8 1.7H15l3 3.3a1 1 0 0 1-.7 1.7H17Z M12 22V12"
+      },
+      "트레킹": { 
+        bgColor: "#57534e", // stone-600
+        iconColor: "#ffffff",
+        iconPath: "m8 3 4 8 5-5v20H9V9l-1-6Z M2 21l9-5"
+      },
+      "테마거리": { 
+        bgColor: "#0d9488", // teal-600
+        iconColor: "#ffffff",
+        iconPath: "M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z M12 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"
+      },
+      "쇼핑": { 
+        bgColor: "#db2777", // pink-600
+        iconColor: "#ffffff",
+        iconPath: "M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z M3 6h18 M16 10a4 4 0 0 1-8 0"
+      },
+      "사찰": { 
+        bgColor: "#d97706", // amber-600
+        iconColor: "#ffffff",
+        iconPath: "M18 21H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2Z M7 3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v4H7V3Z"
+      },
+      "재래시장": { 
+        bgColor: "#ca8a04", // yellow-600
+        iconColor: "#ffffff",
+        iconPath: "m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7 M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8 M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"
+      },
+      "레저": { 
+        bgColor: "#2563eb", // blue-600
+        iconColor: "#ffffff",
+        iconPath: "m6.5 6.5 11 11 M21 21l-1-1 M3 3l1 1 M6 3h4l4 7-4 4-7-4V6 M3 21h4l4-7-4-4-7 4v4"
+      },
+      "문화시설": { 
+        bgColor: "#9333ea", // purple-600
+        iconColor: "#ffffff",
+        iconPath: "M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z M6 12h4 M6 8h4 M6 16h4"
+      },
+      "항구": { 
+        bgColor: "#475569", // slate-600
+        iconColor: "#ffffff",
+        iconPath: "M12 8a2 2 0 0 0 2-2c0-1.1-.9-2-2-2s-2 .9-2 2a2 2 0 0 0 2 2Z M12 14.5L9 12l-2 3h10l-2-3-3 2.5Z"
+      }
     };
     
-    return iconMap[locationGubun] || { color: "#999999", emoji: "📍" };
+    return iconMap[locationGubun] || { 
+      bgColor: "#6b7280", // gray-500
+      iconColor: "#ffffff",
+      iconPath: "M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z M12 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"
+    };
   };
 
   const [petTourismMarkers, setPetTourismMarkers] = useState<any[]>([]);
@@ -363,11 +423,13 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
               <defs>
                 <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.3)"/>
+                  <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="rgba(0,0,0,0.2)"/>
                 </filter>
               </defs>
-              <circle cx="16" cy="16" r="14" fill="${categoryIcon.color}" stroke="white" stroke-width="2" filter="url(#shadow)"/>
-              <text x="16" y="20" text-anchor="middle" font-size="12" fill="white">${categoryIcon.emoji}</text>
+              <circle cx="16" cy="16" r="14" fill="${categoryIcon.bgColor}" stroke="white" stroke-width="2" filter="url(#shadow)"/>
+              <g fill="${categoryIcon.iconColor}" stroke="${categoryIcon.iconColor}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="${categoryIcon.iconPath}" transform="translate(8, 8) scale(0.67)"/>
+              </g>
             </svg>
           `;
           const categoryMarkerSvg = `data:image/svg+xml;utf8,${encodeURIComponent(svgContent)}`;
