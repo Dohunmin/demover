@@ -134,7 +134,7 @@ const Travel = () => {
       onBack={showPlaces} 
       showPetFilter={activeTab === 'pet'} 
       initialCategory={selectedCategory}
-      selectedCategory={selectedCategory}
+      propSelectedCategory={selectedCategory}
       petTourismData={petTourismData}
     />;
   }
