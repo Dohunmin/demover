@@ -123,13 +123,13 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     { id: "port", label: "항구", icon: Anchor },
   ];
 
-  // 카테고리별 마커 아이콘 매핑 (정확한 Lucide React SVG path 사용)
+  // CategoryGrid와 정확히 동일한 Lucide 아이콘 사용
   const getCategoryIcon = (locationGubun: string) => {
     const iconMap: { [key: string]: { bgColor: string; iconColor: string; iconPath: string } } = {
       "카페": { 
         bgColor: "#ecfeff", 
         iconColor: "#0891b2", 
-        iconPath: "M10 2v2m8-1.5c0 1.38-2 2.5-2 2.5s-2-1.12-2-2.5c0-1.38.9-2.5 2-2.5s2 1.12 2 2.5ZM10 8v10l-.5 1m8.5-6h-8.5M2 8h8V6H2a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h8" 
+        iconPath: "M10 2v2m4 4v4a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V8m4-4H8a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zm-2 0V2m0 0a2 2 0 0 1 2 2m0 0h3a3 3 0 0 1 0 6h-1" 
       },
       "식당": { 
         bgColor: "#ecfdf5", 
@@ -144,7 +144,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       "숙소": { 
         bgColor: "#eef2ff", 
         iconColor: "#4338ca", 
-        iconPath: "M2 4v16M2 8h18a2 2 0 0 1 2 2v10M2 17h20M6 8v9" 
+        iconPath: "M2 4v16m20-16v16M4 4h16M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M6 16h.01M10 16h.01M14 16h.01M18 16h.01" 
       },
       "해수욕장": { 
         bgColor: "#f0f9ff", 
@@ -159,7 +159,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       "트레킹": { 
         bgColor: "#fafaf9", 
         iconColor: "#57534e", 
-        iconPath: "m8 3 4 8 5-5v7H5l4-8zm1 16-1-7h4l5 7-8 0" 
+        iconPath: "m8 3 4 8 5-5v7H5L4 10z" 
       },
       "테마거리": { 
         bgColor: "#f0fdfa", 
