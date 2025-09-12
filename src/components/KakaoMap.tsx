@@ -46,6 +46,7 @@ import { toast } from "sonner";
 
 import PlaceReviewModal from "@/components/PlaceReviewModal";
 import { mbtiData } from "@/data/mbti-data";
+import { createSimpleMarkerImage } from "@/utils/iconToImage";
 
 declare global {
   interface Window {
@@ -123,26 +124,37 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     { id: "port", label: "항구", icon: Anchor },
   ];
 
-  // 카테고리별 마커 아이콘 매핑
-  const getCategoryIcon = (locationGubun: string) => {
-    const iconMap: { [key: string]: { color: string; emoji: string } } = {
-      "카페": { color: "#CD853F", emoji: "☕" },
-      "식당": { color: "#FF8C69", emoji: "🍽️" },
-      "브런치": { color: "#FFD700", emoji: "🥐" },
-      "숙소": { color: "#87CEEB", emoji: "🏨" },
-      "해수욕장": { color: "#87CEEB", emoji: "🏖️" },
-      "공원": { color: "#90EE90", emoji: "🌳" },
-      "트레킹": { color: "#8FBC8F", emoji: "🥾" },
-      "테마거리": { color: "#DDA0DD", emoji: "🛣️" },
-      "쇼핑": { color: "#FFB6C1", emoji: "🛍️" },
-      "사찰": { color: "#F0E68C", emoji: "🏛️" },
-      "재래시장": { color: "#FFA07A", emoji: "🏪" },
-      "레저": { color: "#87CEFA", emoji: "🎯" },
-      "문화시설": { color: "#DA70D6", emoji: "🎭" },
-      "항구": { color: "#48D1CC", emoji: "⚓" }
+  // 카테고리별 마커 아이콘 매핑 - html2canvas 테스트 버전
+  const getCategoryIcon = async (locationGubun: string) => {
+    const iconMap: { [key: string]: { color: string; text: string } } = {
+      "카페": { color: "#CD853F", text: "☕" },
+      "식당": { color: "#FF8C69", text: "🍽️" },
+      "브런치": { color: "#FFD700", text: "🥐" },
+      "숙소": { color: "#87CEEB", text: "🏨" },
+      "해수욕장": { color: "#87CEEB", text: "🏖️" },
+      "공원": { color: "#90EE90", text: "🌳" },
+      "트레킹": { color: "#8FBC8F", text: "🥾" },
+      "테마거리": { color: "#DDA0DD", text: "🛣️" },
+      "쇼핑": { color: "#FFB6C1", text: "🛍️" },
+      "사찰": { color: "#F0E68C", text: "🏛️" },
+      "재래시장": { color: "#FFA07A", text: "🏪" },
+      "레저": { color: "#87CEFA", text: "🎯" },
+      "문화시설": { color: "#DA70D6", text: "🎭" },
+      "항구": { color: "#48D1CC", text: "⚓" }
     };
     
-    return iconMap[locationGubun] || { color: "#999999", emoji: "📍" };
+    const iconData = iconMap[locationGubun] || { color: "#999999", text: "📍" };
+    
+    try {
+      // html2canvas로 마커 이미지 생성 테스트
+      const imageUrl = await createSimpleMarkerImage(iconData.color, iconData.text, 32);
+      console.log(`✅ 마커 이미지 생성 성공: ${locationGubun}`, imageUrl.substring(0, 50) + '...');
+      return { imageUrl, fallback: iconData };
+    } catch (error) {
+      console.error(`❌ 마커 이미지 생성 실패: ${locationGubun}`, error);
+      // 실패시 기존 방식으로 폴백
+      return { imageUrl: null, fallback: iconData };
+    }
   };
 
   const [petTourismMarkers, setPetTourismMarkers] = useState<any[]>([]);
@@ -236,7 +248,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
   // 통합된 마커 생성 함수 - 중복 방지 및 90-99개 제한 적용
   const createMarkers = useCallback(
-    (categoryId: string, mbtiFilter: string | null = null) => {
+    async (categoryId: string, mbtiFilter: string | null = null) => {
       console.log(`🎯 마커 생성 시작: ${categoryId}, MBTI: ${mbtiFilter || 'none'}`);
 
       if (!showPetFilter || allPetData.length === 0 || !mapInstance.current) {
@@ -342,13 +354,14 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         }
       }
 
-      // 5단계: 마커 생성
+      // 5단계: 마커 생성 - html2canvas 테스트
       const newMarkers: any[] = [];
       let markerCount = 0;
       
-      finalPlaces.forEach((place, index) => {
+      // forEach 대신 for...of를 사용해서 async/await 처리
+      for (const [index, place] of finalPlaces.entries()) {
         if (!place.mapx || !place.mapy || place.mapx === "0" || place.mapy === "0") {
-          return;
+          continue;
         }
 
         try {
@@ -356,23 +369,31 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           const imageSize = new window.kakao.maps.Size(32, 32);
           const imageOption = { offset: new window.kakao.maps.Point(16, 32) };
 
-          // 카테고리별 아이콘 가져오기
-          const categoryIcon = getCategoryIcon(place.locationGubun || "");
+          // html2canvas로 카테고리별 아이콘 생성 시도
+          const categoryIconResult = await getCategoryIcon(place.locationGubun || "");
           
-          const svgContent = `
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-              <defs>
-                <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.3)"/>
-                </filter>
-              </defs>
-              <circle cx="16" cy="16" r="14" fill="${categoryIcon.color}" stroke="white" stroke-width="2" filter="url(#shadow)"/>
-              <text x="16" y="20" text-anchor="middle" font-size="12" fill="white">${categoryIcon.emoji}</text>
-            </svg>
-          `;
-          const categoryMarkerSvg = `data:image/svg+xml;utf8,${encodeURIComponent(svgContent)}`;
+          let markerImage;
+          if (categoryIconResult.imageUrl) {
+            // html2canvas 성공시 생성된 이미지 사용
+            markerImage = new window.kakao.maps.MarkerImage(categoryIconResult.imageUrl, imageSize, imageOption);
+          } else {
+            // 실패시 기존 SVG 방식으로 폴백
+            const fallback = categoryIconResult.fallback;
+            const svgContent = `
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+                <defs>
+                  <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.3)"/>
+                  </filter>
+                </defs>
+                <circle cx="16" cy="16" r="14" fill="${fallback.color}" stroke="white" stroke-width="2" filter="url(#shadow)"/>
+                <text x="16" y="20" text-anchor="middle" font-size="12" fill="white">${fallback.text}</text>
+              </svg>
+            `;
+            const categoryMarkerSvg = `data:image/svg+xml;utf8,${encodeURIComponent(svgContent)}`;
+            markerImage = new window.kakao.maps.MarkerImage(categoryMarkerSvg, imageSize, imageOption);
+          }
 
-          const markerImage = new window.kakao.maps.MarkerImage(categoryMarkerSvg, imageSize, imageOption);
           const marker = new window.kakao.maps.Marker({
             position: position,
             image: markerImage,
@@ -431,7 +452,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         } catch (error) {
           console.error(`❌ 마커 생성 실패: ${place.title}`, error);
         }
-      });
+      }
 
       setPetTourismMarkers(newMarkers);
       console.log(`🎯 최종 마커 생성 완료: ${markerCount}개`);
@@ -468,7 +489,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
   // 카테고리 선택 핸들러 - 통합된 마커 생성 함수 사용
   const handleCategorySelect = useCallback(
-    (categoryId: string) => {
+    async (categoryId: string) => {
       if (isFiltering) {
         console.log("⚠️ 이미 필터링 중이므로 중복 실행 방지");
         return;
@@ -477,7 +498,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       setIsFiltering(true);
       setSelectedCategory(categoryId);
       
-      createMarkers(categoryId, selectedMbti);
+      await createMarkers(categoryId, selectedMbti);
       setIsFiltering(false);
     },
     [isFiltering, selectedMbti, createMarkers]
@@ -506,10 +527,14 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
   // MBTI가 변경될 때 현재 카테고리로 다시 필터링
   useEffect(() => {
-    if (isMapLoaded && showPetFilter && allPetData.length > 0 && selectedCategory && !isFiltering) {
-      console.log(`🔄 MBTI 변경으로 인한 재필터링: ${selectedCategory}, MBTI: ${selectedMbti || 'none'}`);
-      createMarkers(selectedCategory, selectedMbti);
-    }
+    const applyMbtiFilter = async () => {
+      if (isMapLoaded && showPetFilter && allPetData.length > 0 && selectedCategory && !isFiltering) {
+        console.log(`🔄 MBTI 변경으로 인한 재필터링: ${selectedCategory}, MBTI: ${selectedMbti || 'none'}`);
+        await createMarkers(selectedCategory, selectedMbti);
+      }
+    };
+    
+    applyMbtiFilter();
   }, [selectedMbti, isMapLoaded, showPetFilter, allPetData.length, selectedCategory, createMarkers, isFiltering]);
   
   // 카카오 지도 SDK 로드
@@ -736,10 +761,14 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
   // 초기 카테고리 자동 로드 (중복 실행 방지)
   useEffect(() => {
-    if (showPetFilter && allPetData.length > 0 && selectedCategory && isMapLoaded && !isFiltering) {
-      console.log(`✅ 초기 카테고리 자동 로드: ${selectedCategory}`);
-      createMarkers(selectedCategory, selectedMbti);
-    }
+    const loadInitialCategory = async () => {
+      if (showPetFilter && allPetData.length > 0 && selectedCategory && isMapLoaded && !isFiltering) {
+        console.log(`✅ 초기 카테고리 자동 로드: ${selectedCategory}`);
+        await createMarkers(selectedCategory, selectedMbti);
+      }
+    };
+    
+    loadInitialCategory();
   }, [allPetData.length, isMapLoaded, showPetFilter, createMarkers, selectedMbti, selectedCategory, isFiltering]);
 
   // 카카오맵 장소 검색
