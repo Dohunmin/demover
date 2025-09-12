@@ -380,12 +380,12 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           const imageSize = new window.kakao.maps.Size(32, 32);
           const imageOption = { offset: new window.kakao.maps.Point(16, 32) };
 
-          // 전통적인 마커 모양으로 업로드된 이미지 감싸기
+          // 업로드된 이미지와 어울리는 마커 디자인
           const markerSvg = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 50" width="40" height="50">
               <defs>
                 <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-                  <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="rgba(0,0,0,0.3)"/>
+                  <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.2)"/>
                 </filter>
                 <clipPath id="markerClip">
                   <path d="M20 2 C12 2, 6 8, 6 16 C6 24, 20 42, 20 42 S34 24, 34 16 C34 8, 28 2, 20 2 Z"/>
@@ -393,14 +393,14 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
               </defs>
               
               <path d="M20 2 C12 2, 6 8, 6 16 C6 24, 20 42, 20 42 S34 24, 34 16 C34 8, 28 2, 20 2 Z" 
-                    fill="white" stroke="#2563eb" stroke-width="2" filter="url(#shadow)"/>
+                    fill="#f0f9ff" stroke="#87ceeb" stroke-width="2" filter="url(#shadow)"/>
               
-              <image href="/lovable-uploads/df2416f6-23e6-42db-abb3-93eb896fa3f9.png" 
-                     x="8" y="6" width="24" height="20" 
+              <image href="/lovable-uploads/7bc9b154-f84a-42e1-9b91-deea6e81ca4e.png" 
+                     x="6" y="4" width="28" height="24" 
                      clip-path="url(#markerClip)" preserveAspectRatio="xMidYMid slice"/>
               
               <path d="M20 2 C12 2, 6 8, 6 16 C6 24, 20 42, 20 42 S34 24, 34 16 C34 8, 28 2, 20 2 Z" 
-                    fill="none" stroke="#1d4ed8" stroke-width="1.5"/>
+                    fill="none" stroke="#5fb3d4" stroke-width="1"/>
             </svg>
           `)}`;
 
