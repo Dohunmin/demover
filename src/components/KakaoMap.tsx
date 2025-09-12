@@ -380,7 +380,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           const imageSize = new window.kakao.maps.Size(32, 32);
           const imageOption = { offset: new window.kakao.maps.Point(16, 32) };
 
-          // 업로드된 이미지와 어울리는 마커 디자인
+          // 두 개의 발가락 이미지를 함께 사용하는 마커 디자인
           const markerSvg = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 50" width="40" height="50">
               <defs>
@@ -396,7 +396,11 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
                     fill="#f0f9ff" stroke="#87ceeb" stroke-width="2" filter="url(#shadow)"/>
               
               <image href="/lovable-uploads/7bc9b154-f84a-42e1-9b91-deea6e81ca4e.png" 
-                     x="6" y="4" width="28" height="24" 
+                     x="6" y="4" width="14" height="12" 
+                     clip-path="url(#markerClip)" preserveAspectRatio="xMidYMid slice"/>
+              
+              <image href="/lovable-uploads/7ef2b6f6-56e1-4877-bf0d-7f414a42a01a.png" 
+                     x="20" y="4" width="14" height="12" 
                      clip-path="url(#markerClip)" preserveAspectRatio="xMidYMid slice"/>
               
               <path d="M20 2 C12 2, 6 8, 6 16 C6 24, 20 42, 20 42 S34 24, 34 16 C34 8, 28 2, 20 2 Z" 
