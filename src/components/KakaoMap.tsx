@@ -104,7 +104,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
   // 필터링 실행 중 상태 추가
   const [isFiltering, setIsFiltering] = useState(false);
 
-  // 카테고리별 필터링
+  // 카테고리별 필터링 (sample-data에 실제 존재하는 카테고리만)
   const categories = [
     { id: "all", label: "전체", icon: MapPin },
     { id: "cafe", label: "카페", icon: Coffee },
@@ -116,11 +116,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     { id: "trekking", label: "트레킹", icon: Mountain },
     { id: "theme-street", label: "테마거리", icon: MapPin },
     { id: "shopping", label: "쇼핑", icon: ShoppingBag },
-    { id: "temple", label: "사찰", icon: Church },
-    { id: "market", label: "재래시장", icon: Store },
-    { id: "leisure", label: "레저", icon: Dumbbell },
-    { id: "culture", label: "문화시설", icon: Building2 },
-    { id: "port", label: "항구", icon: Anchor },
+    { id: "temple", label: "사찰", icon: Church }
   ];
 
   // 카테고리별 마커 아이콘 매핑
@@ -294,22 +290,18 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         filteredPlaces = [...deduplicatedData];
         console.log(`✅ 전체 카테고리: ${filteredPlaces.length}개`);
       } else {
-        // sample-data.ts의 실제 locationGubun과 정확히 매칭
+        // sample-data.ts에 실제로 존재하는 locationGubun과 정확히 매칭
         const locationGubunMap = {
           restaurant: "식당",
           shopping: "쇼핑", 
           brunch: "브런치",
           cafe: "카페",
           park: "공원",
-          culture: "문화시설",
           temple: "사찰",
           accommodation: "숙소",
-          market: "재래시장",
           "theme-street": "테마거리",
           trekking: "트레킹", 
-          port: "항구",
-          beach: "해수욕장",
-          leisure: "레저" // sample-data에는 없지만 호환성을 위해 유지
+          beach: "해수욕장"
         };
 
         const targetLocationGubun = locationGubunMap[categoryId as keyof typeof locationGubunMap];
