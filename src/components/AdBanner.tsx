@@ -11,31 +11,31 @@ interface BannerData {
 const banners: BannerData[] = [
   {
     id: 1,
-    image: "/lovable-uploads/hospital-banner.png",
+    image: "/lovable-uploads/ef62330e-d2c8-436c-a93b-94b280eb17ea.png",
     title: null,
     subtitle: null,
     link: "#"
   },
   {
     id: 2,
-    image: "/lovable-uploads/hotel-banner.png",
+    image: "/lovable-uploads/ec9c4fd4-6c05-4760-8af9-ff63c429f4bb.png",
     title: null,
     subtitle: null,
     link: "#"
   },
   {
     id: 3,
-    image: "/lovable-uploads/petstore-banner.png",
+    image: "/lovable-uploads/23447610-d606-420e-aa28-dab6485249b2.png",
     title: null,
     subtitle: null,
     link: "#"
   },
   {
     id: 4,
-    image: "/lovable-uploads/ad-inquiry-banner.png",
+    image: "/lovable-uploads/3f350ae4-af49-4927-ba2e-d652d903e2b1.png",
     title: null,
     subtitle: null,
-    link: "mailto:letsgomong1@gmail.com"
+    link: "mailto:rislekfk@gmail.com"
   }
 ];
 
