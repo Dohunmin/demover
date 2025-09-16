@@ -301,7 +301,7 @@ const NewsDetail = () => {
 
           {/* 내용 */}
           <div className="prose prose-sm max-w-none">
-            <div className="text-gray-700 leading-relaxed">
+            <div className="text-muted-foreground text-sm leading-relaxed">
               {linkifyMultilineText(post.content)}
             </div>
           </div>
