@@ -400,8 +400,8 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
                 
                 ${place.holiday ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px; background: #F3F4F6; padding: 3px 6px; border-radius: 8px; display: inline-block; max-width: 100%; word-wrap: break-word;">🚫 휴무일: ${place.holiday}</div>` : ""}
                 
-                <div style="font-size: 11px; color: #333; margin-bottom: 4px; line-height: 1.2; word-wrap: break-word; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${place.addr1 || '주소 정보 없음'}</div>
-                ${place.addr2 ? `<div style="font-size: 10px; color: #666; margin-bottom: 4px; word-wrap: break-word; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;">${place.addr2}</div>` : ""}
+                <div style="font-size: 10px; color: #333; margin-bottom: 4px; line-height: 1.2; word-wrap: break-word; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${place.addr1 || '주소 정보 없음'}</div>
+                ${place.addr2 ? `<div style="font-size: 9px; color: #666; margin-bottom: 4px; word-wrap: break-word; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;">${place.addr2}</div>` : ""}
                 ${place.tel ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px; word-wrap: break-word;">📞 ${place.tel}</div>` : ""}
                 
                 <div style="text-align: center;">
@@ -801,8 +801,8 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
                         📍 ${place.category_name}
                       </div>
                       
-                      <div style="font-size: 11px; color: #333; margin-bottom: 4px; line-height: 1.2;">${place.address_name}</div>
-                      ${place.road_address_name ? `<div style="font-size: 10px; color: #666; margin-bottom: 4px;">${place.road_address_name}</div>` : ""}
+                      <div style="font-size: 10px; color: #333; margin-bottom: 4px; line-height: 1.2; word-wrap: break-word; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${place.address_name}</div>
+                      ${place.road_address_name ? `<div style="font-size: 9px; color: #666; margin-bottom: 4px; word-wrap: break-word; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;">${place.road_address_name}</div>` : ""}
                       ${place.phone ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px;">📞 ${place.phone}</div>` : ""}
                       
                       ${place.place_url ? `
