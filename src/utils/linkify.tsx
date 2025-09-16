@@ -1,41 +1,33 @@
 import React from 'react';
 
-// URL을 감지하는 정규표현식
-const URL_REGEX = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g;
+// URL을 감지하는 정규표현식 (더 포괄적이고 정확한 패턴)
+const URL_REGEX = /(https?:\/\/(?:[-\w.])+(?:\:[0-9]+)?(?:\/[^\s]*)?)/g;
 
 // 텍스트 내의 URL을 링크로 변환하는 함수
 export const linkifyText = (text: string): React.ReactNode[] => {
   const parts = text.split(URL_REGEX);
-  const matches = text.match(URL_REGEX) || [];
   
-  const result: React.ReactNode[] = [];
-  let matchIndex = 0;
-  
-  for (let i = 0; i < parts.length; i++) {
-    // 텍스트 부분 추가
-    if (parts[i]) {
-      result.push(parts[i]);
-    }
+  return parts.map((part, index) => {
+    // 새로운 정규표현식 인스턴스로 테스트 (global flag 문제 해결)
+    const urlTest = /^https?:\/\/(?:[-\w.])+(?:\:[0-9]+)?(?:\/[^\s]*)?$/.test(part);
     
-    // URL 부분을 링크로 변환
-    if (matchIndex < matches.length && i < parts.length - 1) {
-      const url = matches[matchIndex];
-      result.push(
+    if (urlTest) {
+      // URL인 경우 링크로 변환
+      return (
         <a
-          key={`link-${matchIndex}`}
-          href={url}
+          key={index}
+          href={part}
           target="_blank"
           rel="noopener noreferrer"
           className="text-blue-600 hover:text-blue-800 underline break-all"
         >
-          {url}
+          {part}
         </a>
       );
-      matchIndex++;
     }
-  }
-  
-  return result;
+    // 일반 텍스트인 경우 그대로 반환
+    return part;
+  }).filter(part => part !== ''); // 빈 문자열 제거
 };
 
 // 여러 줄 텍스트에 대해 linkify 적용
