@@ -13,10 +13,11 @@ interface AnimalHospital {
   animal_hospital: string;
   road_address: string;
   tel: string;
-  approval: string;
+  approval_date: string;
   gugun: string;
-  lat: string;
-  lon: string;
+  lat: number | null;
+  lon: number | null;
+  business_status?: string;
 }
 
 const AnimalHospitals = () => {
@@ -118,8 +119,8 @@ const AnimalHospitals = () => {
     .filter(hospital => hospital.lat && hospital.lon)
     .map(hospital => ({
       id: hospital.animal_hospital,
-      lat: parseFloat(hospital.lat),
-      lng: parseFloat(hospital.lon),
+      lat: hospital.lat as number,
+      lng: hospital.lon as number,
       title: hospital.animal_hospital,
       content: `
         <div style="padding: 10px; min-width: 200px;">
@@ -300,11 +301,11 @@ const AnimalHospitals = () => {
                           </div>
                         )}
                         
-                        {hospital.approval && (
+                        {hospital.approval_date && (
                           <div className="flex items-center gap-1">
                             <Calendar className="h-3 w-3 text-muted-foreground" />
                             <span className="text-xs text-muted-foreground">
-                              {hospital.approval.slice(0, 10)}
+                              {hospital.approval_date.slice(0, 10)}
                             </span>
                           </div>
                         )}
