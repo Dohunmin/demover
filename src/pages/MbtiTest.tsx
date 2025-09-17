@@ -259,6 +259,16 @@ const questions = [
       { value: "F", text: "알록달록한 강아지용 구명조끼나 귀여운 수영모를 쓰고 안전과 멋을 동시에 챙긴다." },
       { value: "B", text: "온몸으로 파도를 느끼고, 흙과 물에 뒹굴며 자연과 하나가 된다." }
     ]
+  },
+  {
+    id: 13,
+    category: "bonus",
+    question: "여행을 마치고, 강아지가 기념품을 딱 하나 고를 수 있다면?",
+    options: [
+      { value: "A", text: "그 지역 특산물로 만든 수제 간식" },
+      { value: "B", text: "나와 함께 찍은 사진 키링" },
+      { value: "C", text: '"멍멍" 소리가 나는 새로운 장난감' }
+    ]
   }
 ];
 
@@ -529,8 +539,10 @@ const MbtiTest = () => {
   const calculateResult = (finalAnswers: Record<number, string>) => {
     const counts = { E: 0, C: 0, S: 0, O: 0, V: 0, N: 0, F: 0, B: 0 };
     
-    Object.values(finalAnswers).forEach(answer => {
-      if (counts.hasOwnProperty(answer)) {
+    // 보너스 질문을 제외한 답변만 계산에 포함
+    Object.entries(finalAnswers).forEach(([questionId, answer]) => {
+      const question = questions.find(q => q.id === parseInt(questionId));
+      if (question && question.category !== "bonus" && counts.hasOwnProperty(answer)) {
         counts[answer as keyof typeof counts]++;
       }
     });
