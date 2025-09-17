@@ -30,19 +30,46 @@ serve(async (req) => {
     const { pageNo = 1, numOfRows = 300, gugun = '', hospitalName = '' } = await req.json();
 
     console.log('Fetching animal hospital data with params:', { pageNo, numOfRows, gugun, hospitalName });
+    console.log('Using API Key:', apiKey ? '***' + apiKey.slice(-4) : 'MISSING');
 
-    // 부산 동물병원 OpenAPI 호출 (HTTP 직접 사용 - Deno TLS 호환성 문제로 인해)
-    const apiUrl = `http://apis.data.go.kr/6260000/BusanAnimalHospService/getTblAnimalHospital?serviceKey=${apiKey}&pageNo=${pageNo}&numOfRows=${numOfRows}&resultType=json`;
+    // 부산 동물병원 OpenAPI 호출 - HTTPS 사용
+    const apiUrl = `https://apis.data.go.kr/6260000/BusanAnimalHospService/getTblAnimalHospital?serviceKey=${encodeURIComponent(apiKey)}&pageNo=${pageNo}&numOfRows=${numOfRows}&resultType=json`;
     
-    console.log('HTTP API URL:', apiUrl);
+    console.log('API URL (without key):', apiUrl.replace(encodeURIComponent(apiKey), '***'));
 
-    const response = await fetch(apiUrl);
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'PetTravelApp/1.0'
+      }
+    });
+    
+    console.log('API Response Status:', response.status, response.statusText);
     
     if (!response.ok) {
+      const errorText = await response.text();
       console.error('API Response Error:', response.status, response.statusText);
+      console.error('Error Response Body:', errorText);
+      
+      // 에러 응답도 파싱해보기
+      if (errorText.includes('SERVICE_KEY_IS_NOT_REGISTERED_ERROR')) {
+        console.error('API Key is not registered or invalid');
+        return new Response(
+          JSON.stringify({ 
+            error: 'API key is not registered or invalid',
+            hospitals: []
+          }),
+          { 
+            status: 500, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+      
       return new Response(
         JSON.stringify({ 
-          error: `API call failed: ${response.status}`,
+          error: `API call failed: ${response.status} - ${errorText}`,
           hospitals: []
         }),
         { 
@@ -52,8 +79,28 @@ serve(async (req) => {
       );
     }
 
-    const data = await response.json();
-    console.log('API Response Structure:', JSON.stringify(data, null, 2));
+    const responseText = await response.text();
+    console.log('Raw API Response:', responseText.substring(0, 500) + '...');
+    
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('JSON Parse Error:', parseError);
+      console.error('Response was not valid JSON:', responseText.substring(0, 200));
+      return new Response(
+        JSON.stringify({ 
+          error: 'API returned invalid JSON',
+          hospitals: []
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+    
+    console.log('Parsed API Response Structure:', JSON.stringify(data, null, 2));
 
     let hospitals = [];
     
