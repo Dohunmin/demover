@@ -16,13 +16,13 @@ serve(async (req) => {
     if (!apiKey) {
       console.error('BUSAN_ANIMAL_HOSPITAL_API_KEY not found');
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: 'API key not configured',
           hospitals: []
         }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       );
     }
@@ -31,8 +31,11 @@ serve(async (req) => {
 
     console.log('Fetching animal hospital data with params:', { pageNo, numOfRows, gugun, hospitalName });
 
-    // 부산 동물병원 OpenAPI 호출 (HTTP 직접 사용 - Deno TLS 호환성 문제로 인해)
-    const apiUrl = `http://apis.data.go.kr/6260000/BusanAnimalHospService/getTblAnimalHospital?serviceKey=${apiKey}&pageNo=${pageNo}&numOfRows=${numOfRows}&resultType=json`;
+    // ✨ FIX: API 키에 포함된 특수문자가 URL에서 유효하도록 인코딩합니다.
+    const encodedApiKey = encodeURIComponent(apiKey);
+    
+    // 부산 동물병원 OpenAPI 호출 URL을 생성합니다.
+    const apiUrl = `http://apis.data.go.kr/6260000/BusanAnimalHospService/getTblAnimalHospital?serviceKey=${encodedApiKey}&pageNo=${pageNo}&numOfRows=${numOfRows}&resultType=json`;
     
     console.log('HTTP API URL:', apiUrl);
 
@@ -41,13 +44,13 @@ serve(async (req) => {
     if (!response.ok) {
       console.error('API Response Error:', response.status, response.statusText);
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: `API call failed: ${response.status}`,
           hospitals: []
         }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       );
     }
@@ -58,20 +61,20 @@ serve(async (req) => {
     let hospitals = [];
     
     // 부산 동물병원 API 응답 구조에 맞게 데이터 추출
-    if (data && data.response && data.response.body && data.response.body.items) {
+    if (data?.response?.body?.items) {
       const items = data.response.body.items.item;
       hospitals = Array.isArray(items) ? items : [items];
       console.log(`Extracted ${hospitals.length} hospitals from response.body.items.item`);
     }
     // Fallback: 다른 구조들 확인
-    else if (data.getTblAnimalHospital && data.getTblAnimalHospital.item) {
-      hospitals = Array.isArray(data.getTblAnimalHospital.item) 
-        ? data.getTblAnimalHospital.item 
-        : [data.getTblAnimalHospital.item];
+    else if (data?.getTblAnimalHospital?.item) {
+      const items = data.getTblAnimalHospital.item;
+      hospitals = Array.isArray(items) ? items : [items];
       console.log(`Extracted ${hospitals.length} hospitals from getTblAnimalHospital.item`);
     }
-    else if (data.items) {
-      hospitals = Array.isArray(data.items) ? data.items : [data.items];
+    else if (data?.items) {
+      const items = data.items;
+      hospitals = Array.isArray(items) ? items : [items];
       console.log(`Extracted ${hospitals.length} hospitals from items`);
     }
     else if (Array.isArray(data)) {
@@ -110,7 +113,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Edge function error:', error);
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: error.message,
         hospitals: []
       }),
