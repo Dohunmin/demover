@@ -31,8 +31,8 @@ serve(async (req) => {
 
     console.log('Fetching animal hospital data with params:', { pageNo, numOfRows, gugun, hospitalName });
 
-    // 부산 동물병원 OpenAPI 호출 (XML 형식으로 요청)
-    const apiUrl = `http://apis.data.go.kr/6260000/BusanAnimalHospService/getTblAnimalHospital?serviceKey=${apiKey}&pageNo=${pageNo}&numOfRows=${numOfRows}&resultType=xml`;
+    // 부산 동물병원 OpenAPI 호출 (HTTP 직접 사용 - Deno TLS 호환성 문제로 인해)
+    const apiUrl = `http://apis.data.go.kr/6260000/BusanAnimalHospService/getTblAnimalHospital?serviceKey=${apiKey}&pageNo=${pageNo}&numOfRows=${numOfRows}&resultType=json`;
     
     console.log('HTTP API URL:', apiUrl);
 
@@ -52,63 +52,32 @@ serve(async (req) => {
       );
     }
 
-    const xmlText = await response.text();
-    console.log('API Response XML:', xmlText.substring(0, 500));
-
-    // XML 파싱
-    const parseXML = (xmlStr: string) => {
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(xmlStr, 'text/xml');
-      
-      // XML 파싱 에러 체크
-      const parserError = xmlDoc.querySelector('parsererror');
-      if (parserError) {
-        console.error('XML parsing error:', parserError.textContent);
-        return null;
-      }
-      
-      return xmlDoc;
-    };
-
-    const xmlDoc = parseXML(xmlText);
-    if (!xmlDoc) {
-      return new Response(
-        JSON.stringify({ 
-          error: 'Failed to parse XML response',
-          hospitals: []
-        }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    console.log('XML parsed successfully');
+    const data = await response.json();
+    console.log('API Response Structure:', JSON.stringify(data, null, 2));
 
     let hospitals = [];
     
-    // XML에서 동물병원 데이터 추출
-    const items = xmlDoc.querySelectorAll('item');
-    console.log(`Found ${items.length} hospital items in XML`);
-    
-    hospitals = Array.from(items).map(item => {
-      const getTextContent = (tagName: string) => {
-        const element = item.querySelector(tagName);
-        return element ? element.textContent?.trim() || '' : '';
-      };
-      
-      return {
-        animal_hospital: getTextContent('animal_hospital'),
-        road_address: getTextContent('road_address'),
-        tel: getTextContent('tel'),
-        gugun: getTextContent('gugun'),
-        lat: parseFloat(getTextContent('lat')) || null,
-        lon: parseFloat(getTextContent('lon')) || null,
-        approval_date: getTextContent('approval_date'),
-        business_status: getTextContent('business_status')
-      };
-    });
+    // 부산 동물병원 API 응답 구조에 맞게 데이터 추출
+    if (data && data.response && data.response.body && data.response.body.items) {
+      const items = data.response.body.items.item;
+      hospitals = Array.isArray(items) ? items : [items];
+      console.log(`Extracted ${hospitals.length} hospitals from response.body.items.item`);
+    }
+    // Fallback: 다른 구조들 확인
+    else if (data.getTblAnimalHospital && data.getTblAnimalHospital.item) {
+      hospitals = Array.isArray(data.getTblAnimalHospital.item) 
+        ? data.getTblAnimalHospital.item 
+        : [data.getTblAnimalHospital.item];
+      console.log(`Extracted ${hospitals.length} hospitals from getTblAnimalHospital.item`);
+    }
+    else if (data.items) {
+      hospitals = Array.isArray(data.items) ? data.items : [data.items];
+      console.log(`Extracted ${hospitals.length} hospitals from items`);
+    }
+    else if (Array.isArray(data)) {
+      hospitals = data;
+      console.log(`Extracted ${hospitals.length} hospitals from root array`);
+    }
 
     console.log(`Raw hospitals count: ${hospitals.length}`);
     if (hospitals.length > 0) {
