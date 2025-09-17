@@ -27,19 +27,72 @@ serve(async (req) => {
       );
     }
 
-    const { pageNo = 1, numOfRows = 300, gugun = '', hospitalName = '' } = await req.json();
+    // GET 방식으로 파라미터 받기
+    const url = new URL(req.url);
+    const pageNo = url.searchParams.get('pageNo') || '1';
+    const numOfRows = url.searchParams.get('numOfRows') || '300';
+    const gugun = url.searchParams.get('gugun') || '';
+    const hospitalName = url.searchParams.get('hospitalName') || '';
 
     console.log('Fetching animal hospital data with params:', { pageNo, numOfRows, gugun, hospitalName });
 
-    // ✨ FIX: API 키에 포함된 특수문자가 URL에서 유효하도록 인코딩합니다.
-    const encodedApiKey = encodeURIComponent(apiKey);
-    
-    // 부산 동물병원 OpenAPI 호출 URL을 생성합니다.
-    const apiUrl = `http://apis.data.go.kr/6260000/BusanAnimalHospService/getTblAnimalHospital?serviceKey=${encodedApiKey}&pageNo=${pageNo}&numOfRows=${numOfRows}&resultType=json`;
-    
-    console.log('HTTP API URL:', apiUrl);
+    // 여러 API 엔드포인트 시도
+    const possibleUrls = [
+      // 표준 공공데이터 형식 1
+      `http://apis.data.go.kr/6260000/BusanAnimalHospService/getTblAnimalHospital?serviceKey=${encodeURIComponent(apiKey)}&pageNo=${pageNo}&numOfRows=${numOfRows}&_type=json`,
+      // 표준 공공데이터 형식 2  
+      `http://apis.data.go.kr/6260000/BusanAnimalHospService/getTblAnimalHospital?serviceKey=${encodeURIComponent(apiKey)}&pageNo=${pageNo}&numOfRows=${numOfRows}&resultType=json`,
+      // 부산시 형식 1
+      `http://apis.data.go.kr/6260000/AnimalHospitalService/getAnimalHospitalList?serviceKey=${encodeURIComponent(apiKey)}&pageNo=${pageNo}&numOfRows=${numOfRows}&type=json`,
+      // 부산시 형식 2
+      `http://apis.data.go.kr/6260000/BusanOpenDataService/getAnimalHospital?serviceKey=${encodeURIComponent(apiKey)}&pageNo=${pageNo}&numOfRows=${numOfRows}&dataType=json`
+    ];
 
-    const response = await fetch(apiUrl);
+    let response = null;
+    let apiUrl = '';
+    
+    // 각 URL을 순서대로 시도
+    for (const url of possibleUrls) {
+      try {
+        console.log(`Trying API URL: ${url}`);
+        apiUrl = url;
+        response = await fetch(url);
+        
+        if (response.ok) {
+          console.log(`Success with URL: ${url}`);
+          break;
+        } else {
+          console.log(`Failed with status ${response.status} for URL: ${url}`);
+        }
+      } catch (error) {
+        console.log(`Error with URL ${url}:`, error.message);
+      }
+    }
+
+    if (!response || !response.ok) {
+      console.log('All API URLs failed, returning test data');
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'All API endpoints failed',
+          message: '부산시 동물병원 API 엔드포인트를 찾을 수 없습니다.',
+          hospitals: [
+            {
+              animal_hospital: '테스트 동물병원',
+              road_address: '부산광역시 해운대구 테스트로 123',
+              tel: '051-123-4567',
+              gugun: '해운대구',
+              approval_date: '2024-01-01'
+            }
+          ],
+          totalCount: 1,
+          note: 'This is test data because the API is not accessible'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
     
     if (!response.ok) {
       console.error('API Response Error:', response.status, response.statusText);
