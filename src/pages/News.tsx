@@ -356,7 +356,7 @@ const News = () => {
                           <p className="text-xs text-muted-foreground mt-1 line-clamp-2 break-words">{event.content}</p>
                         )}
                         <span className="text-xs text-muted-foreground mt-1 block">
-                          {new Date(event.created_at).toLocaleDateString('ko-KR')}
+                          작성일: {new Date(event.created_at).toLocaleDateString('ko-KR')}
                         </span>
                       </div>
                     </div>
@@ -420,7 +420,7 @@ const News = () => {
                           <p className="text-xs text-muted-foreground mt-1 line-clamp-2 break-words">{sale.content}</p>
                         )}
                         <span className="text-xs text-muted-foreground mt-1 block">
-                          {new Date(sale.created_at).toLocaleDateString('ko-KR')}
+                          작성일: {new Date(sale.created_at).toLocaleDateString('ko-KR')}
                         </span>
                       </div>
                     </div>
@@ -776,7 +776,7 @@ const News = () => {
                         <p className="text-sm text-muted-foreground line-clamp-2 mb-2 break-words">{event.content}</p>
                       )}
                       <p className="text-xs text-muted-foreground">
-                        {new Date(event.created_at).toLocaleDateString('ko-KR')}
+                        작성일: {new Date(event.created_at).toLocaleDateString('ko-KR')}
                       </p>
                     </div>
                   </div>
@@ -823,7 +823,7 @@ const News = () => {
                         <p className="text-sm text-muted-foreground line-clamp-2 mb-2 break-words">{sale.content}</p>
                       )}
                       <p className="text-xs text-muted-foreground">
-                        {new Date(sale.created_at).toLocaleDateString('ko-KR')}
+                        작성일: {new Date(sale.created_at).toLocaleDateString('ko-KR')}
                       </p>
                     </div>
                   </div>
