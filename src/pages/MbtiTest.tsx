@@ -653,7 +653,7 @@ const MbtiTest = () => {
               />
             </div>
             <h2 className="text-xl font-bold mb-4" style={{ color: "var(--text-primary)" }}>
-              멍BTI, 우리 강아지의 여행 취향을<br />알아보세요!
+              멍BTI<br />우리 강아지의 여행 취향을<br />알아보세요!
             </h2>
             <p className="text-base leading-relaxed mb-6" style={{ color: "var(--text-secondary)" }}>
               반려견도 사람처럼 여행 스타일이 다 다르다는 사실, 알고 계셨나요?<br />
