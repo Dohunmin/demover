@@ -32,10 +32,10 @@ serve(async (req) => {
     console.log('Fetching animal hospital data with params:', { pageNo, numOfRows, gugun, hospitalName });
     console.log('Using API Key:', apiKey ? '***' + apiKey.slice(-4) : 'MISSING');
 
-    // 부산 동물병원 OpenAPI 호출 - HTTPS 사용
-    const apiUrl = `https://apis.data.go.kr/6260000/BusanAnimalHospService/getTblAnimalHospital?serviceKey=${encodeURIComponent(apiKey)}&pageNo=${pageNo}&numOfRows=${numOfRows}&resultType=json`;
+    // 부산 동물병원 OpenAPI 호출 - HTTP 사용 (HTTPS SSL 이슈로 인해)
+    const apiUrl = `http://apis.data.go.kr/6260000/BusanAnimalHospService/getTblAnimalHospital?serviceKey=${apiKey}&pageNo=${pageNo}&numOfRows=${numOfRows}&resultType=json`;
     
-    console.log('API URL (without key):', apiUrl.replace(encodeURIComponent(apiKey), '***'));
+    console.log('API URL (without key):', apiUrl.replace(apiKey, '***'));
 
     const response = await fetch(apiUrl, {
       method: 'GET',
