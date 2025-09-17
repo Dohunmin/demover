@@ -652,7 +652,7 @@ const MbtiTest = () => {
                 className="w-20 h-20 object-contain"
               />
             </div>
-            <h2 className="text-2xl font-bold mb-4" style={{ color: "var(--text-primary)" }}>
+            <h2 className="text-xl font-bold mb-4" style={{ color: "var(--text-primary)" }}>
               멍BTI, 우리 강아지의 여행<br />취향을 알아보세요!
             </h2>
             <p className="text-base leading-relaxed mb-6" style={{ color: "var(--text-secondary)" }}>
