@@ -43,9 +43,15 @@ const AnimalHospitals = () => {
   const fetchHospitals = async () => {
     try {
       setLoading(true);
-      console.log('Fetching hospitals...');
       
-      const { data, error } = await supabase.functions.invoke('busan-animal-hospital-api');
+      const { data, error } = await supabase.functions.invoke('busan-animal-hospital-api', {
+        body: {
+          pageNo: 1,
+          numOfRows: 300,
+          gugun: '',
+          hospitalName: ''
+        }
+      });
 
       if (error) {
         console.error('Error fetching hospitals:', error);
