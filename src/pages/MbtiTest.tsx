@@ -653,12 +653,12 @@ const MbtiTest = () => {
               />
             </div>
             <h2 className="text-2xl font-bold mb-4" style={{ color: "var(--text-primary)" }}>
-              멍BTI, 우리 강아지의 여행 취향을 알아보세요!
+              멍BTI, 우리 강아지의 여행<br />취향을 알아보세요!
             </h2>
             <p className="text-base leading-relaxed mb-6" style={{ color: "var(--text-secondary)" }}>
               반려견도 사람처럼 여행 스타일이 다 다르다는 사실, 알고 계셨나요?<br />
               멍BTI는 강아지의 성격과 행동 패턴을 네 가지 차원으로 분석해 16가지 여행 성향으로 나눈 테스트예요.<br />
-              우리 아이의 성향에 맞는 완벽한 여행지를 추천해드릴게요.
+              우리 아이의 성향에 맞는 완벽한<br />여행지를 추천해드릴게요.
             </p>
             
             {/* 테스트 시작 버튼 */}
