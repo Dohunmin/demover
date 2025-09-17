@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, PawPrint, Heart, MapPin, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import dogPawIcon from "@/assets/dog-paw-icon.png";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -644,13 +645,17 @@ const MbtiTest = () => {
         <main className="p-5 space-y-6">
           {/* 멍BTI 메인 소개 */}
           <div className="card text-center p-6">
-            <div className="w-20 h-20 bg-primary rounded-2xl mx-auto mb-4 flex items-center justify-center">
-              <PawPrint className="w-10 h-10 text-primary-foreground" />
+            <div className="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+              <img 
+                src={dogPawIcon} 
+                alt="강아지 발자국"
+                className="w-20 h-20 object-contain"
+              />
             </div>
             <h2 className="text-2xl font-bold mb-4" style={{ color: "var(--text-primary)" }}>
-              🐾 멍BTI, 우리 강아지의 여행 취향을 알아보세요!
+              멍BTI, 우리 강아지의 여행 취향을 알아보세요!
             </h2>
-            <p className="text-sm leading-relaxed mb-6" style={{ color: "var(--text-secondary)" }}>
+            <p className="text-base leading-relaxed mb-6" style={{ color: "var(--text-secondary)" }}>
               반려견도 사람처럼 여행 스타일이 다 다르다는 사실, 알고 계셨나요?<br />
               멍BTI는 강아지의 성격과 행동 패턴을 네 가지 차원으로 분석해 16가지 여행 성향으로 나눈 테스트예요.<br />
               우리 아이의 성향에 맞는 완벽한 여행지를 추천해드릴게요.
