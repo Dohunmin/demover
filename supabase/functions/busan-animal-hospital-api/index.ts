@@ -32,9 +32,11 @@ serve(async (req) => {
     console.log('Fetching animal hospital data with params:', { pageNo, numOfRows, gugun, hospitalName });
 
     // 부산 동물병원 OpenAPI 호출 (XML 형태로 요청)
-    const apiUrl = `http://apis.data.go.kr/6260000/BusanAnimalHospService/getTblAnimalHospital?serviceKey=${apiKey}&pageNo=${pageNo}&numOfRows=${numOfRows}&resultType=xml`;
+    // API 키 인코딩 처리 - 공공데이터포털의 일반적인 인코딩 문제 해결
+    const encodedApiKey = encodeURIComponent(apiKey);
+    const apiUrl = `http://apis.data.go.kr/6260000/BusanAnimalHospService/getTblAnimalHospital?serviceKey=${encodedApiKey}&pageNo=${pageNo}&numOfRows=${numOfRows}&resultType=xml`;
     
-    console.log('HTTP API URL:', apiUrl);
+    console.log('HTTP API URL:', apiUrl.replace(encodedApiKey, '[API_KEY_HIDDEN]'));
 
     const response = await fetch(apiUrl);
     
