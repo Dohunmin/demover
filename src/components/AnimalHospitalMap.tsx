@@ -6,11 +6,10 @@ interface AnimalHospital {
   animal_hospital: string;
   road_address: string;
   tel: string;
-  approval_date: string;
+  approval: string;
   gugun: string;
-  lat: number | null;
-  lon: number | null;
-  business_status?: string;
+  lat: string;
+  lon: string;
 }
 
 interface AnimalHospitalMapProps {
@@ -160,8 +159,8 @@ const AnimalHospitalMap: React.FC<AnimalHospitalMapProps> = ({ hospitals }) => {
     // 유효한 좌표를 가진 병원들만 필터링
     const validHospitals = hospitals.filter(hospital => 
       hospital.lat && hospital.lon && 
-      !isNaN(hospital.lat) && 
-      !isNaN(hospital.lon)
+      !isNaN(parseFloat(hospital.lat)) && 
+      !isNaN(parseFloat(hospital.lon))
     );
 
     console.log('✅ 유효한 좌표를 가진 병원 수:', validHospitals.length);
@@ -180,8 +179,8 @@ const AnimalHospitalMap: React.FC<AnimalHospitalMapProps> = ({ hospitals }) => {
     validHospitals.forEach((hospital, index) => {
       try {
         // 좌표 검증 및 수정 (일부 데이터에서 lat/lon이 뒤바뀌어 있는 경우)
-        let lat = hospital.lat as number;
-        let lon = hospital.lon as number;
+        let lat = parseFloat(hospital.lat);
+        let lon = parseFloat(hospital.lon);
         
         // 부산 지역 좌표 범위 체크 (대략적인 범위)
         // 위도: 35.0 ~ 35.4, 경도: 128.8 ~ 129.3
@@ -236,9 +235,9 @@ const AnimalHospitalMap: React.FC<AnimalHospitalMapProps> = ({ hospitals }) => {
                   <strong>전화:</strong> ${hospital.tel}
                 </div>
               ` : ''}
-              ${hospital.approval_date ? `
+              ${hospital.approval ? `
                 <div style="font-size: 10px; color: #666; margin-top: 6px;">
-                  승인일: ${hospital.approval_date.slice(0, 10)}
+                  승인일: ${hospital.approval.slice(0, 10)}
                 </div>
               ` : ''}
             </div>
@@ -272,8 +271,8 @@ const AnimalHospitalMap: React.FC<AnimalHospitalMapProps> = ({ hospitals }) => {
       const bounds = new window.kakao.maps.LatLngBounds();
       validHospitals.forEach(hospital => {
         // 좌표 검증 및 수정 (범위 조정에서도 동일한 로직 적용)
-        let lat = hospital.lat as number;
-        let lon = hospital.lon as number;
+        let lat = parseFloat(hospital.lat);
+        let lon = parseFloat(hospital.lon);
         
         // 부산 지역 좌표 범위 체크
         if (lat > 128 && lat < 130 && lon > 35 && lon < 36) {
