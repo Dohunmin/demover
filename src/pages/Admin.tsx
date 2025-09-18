@@ -127,6 +127,8 @@ const Admin = () => {
   const checkAdminRole = async () => {
     if (!currentUser) return;
     
+    console.log('Checking admin role for user:', currentUser.id);
+    
     try {
       const { data, error } = await (supabase as any)
         .from('user_roles')
@@ -135,13 +137,17 @@ const Admin = () => {
         .eq('role', 'admin')
         .maybeSingle();
       
+      console.log('Admin role check result:', { data, error });
+      
       if (error) {
-        console.log('Not an admin user');
+        console.log('Not an admin user - error:', error);
         setIsAdmin(false);
         return;
       }
       
-      setIsAdmin(!!data);
+      const adminStatus = !!data;
+      console.log('Setting isAdmin to:', adminStatus);
+      setIsAdmin(adminStatus);
     } catch (error) {
       console.error('Error checking admin role:', error);
       setIsAdmin(false);
@@ -969,20 +975,18 @@ const Admin = () => {
                         <div className="text-xs text-gray-400">
                           {new Date(post.created_at).toLocaleDateString('ko-KR')}
                         </div>
-                        {isAdmin && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleDeleteCommunityPost(post.id)}
-                            className="p-1 h-auto"
-                          >
-                            <Trash2 className="w-4 h-4 text-red-600" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex space-x-3">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDeleteCommunityPost(post.id)}
+                          className="p-1 h-auto"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-600" />
+                        </Button>
+                       </div>
+                     </div>
+                     
+                     <div className="flex space-x-3">
                       {!post.is_anonymous && (
                         <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
                           {post.profiles?.pet_image_url ? (
