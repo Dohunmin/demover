@@ -66,13 +66,34 @@ const CommunityPostDetailModal = ({ post, isOpen, onClose, onEdit, onDelete }: C
   const [isDeleting, setIsDeleting] = useState(false);
   const [editingComment, setEditingComment] = useState<Comment | null>(null);
   const [showCommentEditModal, setShowCommentEditModal] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     if (post && isOpen) {
       fetchComments();
       fetchLikes();
     }
-  }, [post, isOpen]);
+    if (user) {
+      checkAdminRole();
+    }
+  }, [post, isOpen, user]);
+
+  const checkAdminRole = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .single();
+      
+      setIsAdmin(!!data && !error);
+    } catch (error) {
+      setIsAdmin(false);
+    }
+  };
 
   const fetchComments = async () => {
     if (!post) return;
@@ -243,7 +264,7 @@ const CommunityPostDetailModal = ({ post, isOpen, onClose, onEdit, onDelete }: C
   };
 
   const handleDeletePost = async () => {
-    if (!post || !user || post.user_id !== user.id) return;
+    if (!post || !user || !(user.id === post.user_id || isAdmin)) return;
 
     setIsDeleting(true);
     try {
@@ -290,7 +311,7 @@ const CommunityPostDetailModal = ({ post, isOpen, onClose, onEdit, onDelete }: C
               {post.title}
             </div>
             <div className="flex items-center gap-2">
-              {user && post && user.id === post.user_id && (
+              {user && post && (user.id === post.user_id || isAdmin) && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
@@ -298,10 +319,12 @@ const CommunityPostDetailModal = ({ post, isOpen, onClose, onEdit, onDelete }: C
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onEdit && onEdit(post)}>
-                      <Edit className="w-4 h-4 mr-2" />
-                      수정
-                    </DropdownMenuItem>
+                    {user.id === post.user_id && (
+                      <DropdownMenuItem onClick={() => onEdit && onEdit(post)}>
+                        <Edit className="w-4 h-4 mr-2" />
+                        수정
+                      </DropdownMenuItem>
+                    )}
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
