@@ -88,18 +88,41 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
   const markers = useRef<any[]>([]);
   const infoWindow = useRef<any>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>(
-    propSelectedCategory || initialCategory || "all"
-  );
+  // MBTI 코드인지 확인하는 함수
+  const isMbtiCode = (code: string) => {
+    return mbtiData.some(mbti => mbti.id === code);
+  };
 
-  // props로 전달된 selectedCategory 동기화
+  // 초기 카테고리와 MBTI 설정
+  const initCategory = propSelectedCategory || initialCategory;
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [initializedFromProps, setInitializedFromProps] = useState(false);
+
+  // props로 전달된 selectedCategory가 MBTI 코드인지 확인하고 처리
   useEffect(() => {
     console.log("🔍 Props selectedCategory 변경:", propSelectedCategory);
-    if (propSelectedCategory && propSelectedCategory !== selectedCategory) {
-      console.log(`카테고리 동기화: ${selectedCategory} -> ${propSelectedCategory}`);
-      setSelectedCategory(propSelectedCategory);
+    if (propSelectedCategory && !initializedFromProps) {
+      if (isMbtiCode(propSelectedCategory)) {
+        console.log(`🧠 MBTI 코드 감지: ${propSelectedCategory} -> MBTI 필터로 설정`);
+        setSelectedMbti(propSelectedCategory);
+        setSelectedCategory("all"); // 전체 카테고리에서 MBTI 필터 적용
+      } else {
+        console.log(`📂 일반 카테고리: ${propSelectedCategory}`);
+        setSelectedCategory(propSelectedCategory);
+      }
+      setInitializedFromProps(true);
     }
-  }, [propSelectedCategory]);
+  }, [propSelectedCategory, initializedFromProps]);
+  
+  // 초기 MBTI 설정 (initialCategory가 MBTI 코드인 경우)
+  useEffect(() => {
+    if (initialCategory && !initializedFromProps && isMbtiCode(initialCategory)) {
+      console.log(`🧠 초기 MBTI 코드 설정: ${initialCategory}`);
+      setSelectedMbti(initialCategory);
+      setSelectedCategory("all");
+      setInitializedFromProps(true);
+    }
+  }, [initialCategory, initializedFromProps]);
 
   // 필터링 실행 중 상태 추가
   const [isFiltering, setIsFiltering] = useState(false);
