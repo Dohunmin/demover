@@ -571,7 +571,7 @@ const MbtiTest = () => {
   };
 
   const handleRecommendTravel = () => {
-    navigate("/travel");
+    navigate(`/travel?category=${result}`);
   };
 
   // 결과 이미지로 저장하기
