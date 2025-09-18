@@ -511,18 +511,32 @@ const Admin = () => {
     if (!confirm('정말 이 커뮤니티 글을 삭제하시겠습니까?')) return;
     
     try {
+      // Check if user is admin first
+      if (!isAdmin) {
+        toast.error('관리자만 삭제할 수 있습니다.');
+        return;
+      }
+
       const { error } = await supabase
         .from('community_posts')
         .delete()
         .eq('id', postId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Delete error:', error);
+        if (error.message.includes('permission') || error.message.includes('policy')) {
+          toast.error('삭제 권한이 없습니다. 관리자 권한을 확인해주세요.');
+        } else {
+          toast.error(`삭제에 실패했습니다: ${error.message}`);
+        }
+        return;
+      }
       
       toast.success('커뮤니티 글이 삭제되었습니다.');
       fetchCommunityPosts();
     } catch (error) {
       console.error('Error deleting community post:', error);
-      toast.error('삭제에 실패했습니다.');
+      toast.error(`삭제 중 오류가 발생했습니다: ${error}`);
     }
   };
 
@@ -955,14 +969,16 @@ const Admin = () => {
                         <div className="text-xs text-gray-400">
                           {new Date(post.created_at).toLocaleDateString('ko-KR')}
                         </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleDeleteCommunityPost(post.id)}
-                          className="p-1 h-auto"
-                        >
-                          <Trash2 className="w-4 h-4 text-red-600" />
-                        </Button>
+                        {isAdmin && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDeleteCommunityPost(post.id)}
+                            className="p-1 h-auto"
+                          >
+                            <Trash2 className="w-4 h-4 text-red-600" />
+                          </Button>
+                        )}
                       </div>
                     </div>
                     
