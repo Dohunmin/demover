@@ -546,6 +546,39 @@ const Admin = () => {
     }
   };
 
+  const handleDeleteTravelRecord = async (recordId: string) => {
+    if (!confirm('정말 이 여행 기록을 삭제하시겠습니까?')) return;
+    
+    try {
+      // Check if user is admin first
+      if (!isAdmin) {
+        toast.error('관리자만 삭제할 수 있습니다.');
+        return;
+      }
+
+      const { error } = await supabase
+        .from('travel_records')
+        .delete()
+        .eq('id', recordId);
+
+      if (error) {
+        console.error('Delete error:', error);
+        if (error.message.includes('permission') || error.message.includes('policy')) {
+          toast.error('삭제 권한이 없습니다. 관리자 권한을 확인해주세요.');
+        } else {
+          toast.error(`삭제에 실패했습니다: ${error.message}`);
+        }
+        return;
+      }
+      
+      toast.success('여행 기록이 삭제되었습니다.');
+      fetchTravelRecords();
+    } catch (error) {
+      console.error('Error deleting travel record:', error);
+      toast.error(`삭제 중 오류가 발생했습니다: ${error}`);
+    }
+  };
+
   const resetForm = () => {
     setFormData({ title: '', content: '', category: 'event' });
     setEditingPost(null);
@@ -908,8 +941,18 @@ const Admin = () => {
                         <MapPin className="w-4 h-4 text-green-600" />
                         <span className="text-xs font-medium text-gray-500">여행 기록</span>
                       </div>
-                      <div className="text-xs text-gray-400">
-                        {new Date(record.created_at).toLocaleDateString('ko-KR')}
+                      <div className="flex items-center space-x-2">
+                        <div className="text-xs text-gray-400">
+                          {new Date(record.created_at).toLocaleDateString('ko-KR')}
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDeleteTravelRecord(record.id)}
+                          className="p-1 h-auto"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-600" />
+                        </Button>
                       </div>
                     </div>
                     
