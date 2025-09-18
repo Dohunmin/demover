@@ -17,6 +17,7 @@ interface TravelRecord {
   visit_date: string;
   memo?: string;
   rating?: number;
+  images?: string[];
 }
 
 interface TravelRecordsMapProps {
@@ -146,6 +147,16 @@ const TravelRecordsMap: React.FC<TravelRecordsMapProps> = ({ records, onRecordCl
           <div style="font-weight: bold; color: #333; margin-bottom: 6px; font-size: 13px; line-height: 1.3; word-break: break-word;">
             ${record.location_name.length > 20 ? record.location_name.substring(0, 20) + '...' : record.location_name}
           </div>
+          ${record.images && record.images.length > 0 ? `
+            <div style="margin-bottom: 6px;">
+              <img 
+                src="${record.images[0]}" 
+                alt="여행 기록 사진" 
+                style="width: 100%; max-width: 160px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid #e5e7eb;"
+                onerror="this.style.display='none'"
+              />
+            </div>
+          ` : ''}
           ${record.location_address ? `
             <div style="color: #666; font-size: 11px; margin-bottom: 4px; line-height: 1.2; word-break: break-word;">
               📍 ${record.location_address.length > 25 ? record.location_address.substring(0, 25) + '...' : record.location_address}
