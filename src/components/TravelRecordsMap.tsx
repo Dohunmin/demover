@@ -140,28 +140,28 @@ const TravelRecordsMap: React.FC<TravelRecordsMapProps> = ({ records, onRecordCl
 
       marker.setMap(mapRef.current);
 
-      // 정보창 생성
+      // 정보창 생성 (지도 영역에 맞게 크기 제한)
       const infoContent = `
-        <div style="padding: 12px; min-width: 200px; font-family: inherit;">
-          <div style="font-weight: bold; color: #333; margin-bottom: 8px; font-size: 14px;">
-            ${record.location_name}
+        <div style="padding: 10px; max-width: 220px; min-width: 180px; font-family: inherit; box-sizing: border-box;">
+          <div style="font-weight: bold; color: #333; margin-bottom: 6px; font-size: 13px; line-height: 1.3; word-break: break-word;">
+            ${record.location_name.length > 20 ? record.location_name.substring(0, 20) + '...' : record.location_name}
           </div>
           ${record.location_address ? `
-            <div style="color: #666; font-size: 12px; margin-bottom: 4px;">
-              📍 ${record.location_address}
+            <div style="color: #666; font-size: 11px; margin-bottom: 4px; line-height: 1.2; word-break: break-word;">
+              📍 ${record.location_address.length > 25 ? record.location_address.substring(0, 25) + '...' : record.location_address}
             </div>
           ` : ''}
-          <div style="color: #666; font-size: 12px; margin-bottom: 4px;">
+          <div style="color: #666; font-size: 11px; margin-bottom: 4px;">
             📅 ${new Date(record.visit_date).toLocaleDateString('ko-KR')}
           </div>
           ${record.rating ? `
-            <div style="color: #FFB800; font-size: 12px; margin-bottom: 4px;">
+            <div style="color: #FFB800; font-size: 11px; margin-bottom: 4px;">
               ${'⭐'.repeat(record.rating)} (${record.rating}/5)
             </div>
           ` : ''}
           ${record.memo ? `
-            <div style="color: #444; font-size: 12px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee;">
-              💭 ${record.memo.length > 50 ? record.memo.substring(0, 50) + '...' : record.memo}
+            <div style="color: #444; font-size: 11px; margin-top: 6px; padding-top: 6px; border-top: 1px solid #eee; line-height: 1.3; word-break: break-word;">
+              💭 ${record.memo.length > 30 ? record.memo.substring(0, 30) + '...' : record.memo}
             </div>
           ` : ''}
         </div>
