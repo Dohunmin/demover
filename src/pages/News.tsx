@@ -218,6 +218,7 @@ const News = () => {
 
   const handleViewModeChange = (mode: 'all' | 'events' | 'sales' | 'travel' | 'community') => {
     setViewMode(mode);
+    window.scrollTo(0, 0);
   };
 
   const handlePostClick = (post: CommunityPost) => {
