@@ -139,7 +139,7 @@ const CommunityPostModal = ({ isOpen, onClose, onPostCreated }: CommunityPostMod
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md mx-auto max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-md mx-auto max-h-[85dvh] overflow-y-auto touch-pan-y overscroll-contain">
         <DialogHeader>
           <DialogTitle>커뮤니티 글 작성</DialogTitle>
         </DialogHeader>
