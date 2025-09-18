@@ -28,7 +28,7 @@ const Auth = () => {
   const [userBirthYear, setUserBirthYear] = useState("");
   
   // 회원가입 단계 관리
-  const [signUpStep, setSignUpStep] = useState(1); // 1: 개인정보, 2: 계정정보
+  const [signUpStep, setSignUpStep] = useState(1); // 1: 개인정보, 2: 계정정보, 3: 이메일 인증 안내
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -164,12 +164,8 @@ const Auth = () => {
         throw new Error("사용자 생성에 실패했습니다.");
       }
 
-      toast.success("회원가입 신청이 완료되었습니다!", {
-        description: "가입 확인을 위해 이메일을 확인해주세요. 이메일의 링크를 클릭하셔야 최종 가입이 완료됩니다.",
-        duration: 8000
-      });
-      setIsSignUp(false);
-      setSignUpStep(1); // 단계 초기화
+      // 회원가입 신청 완료 후 3단계로 이동
+      setSignUpStep(3);
     } catch (error: any) {
       console.error('Signup error:', error);
       if (error.message.includes("already registered")) {
@@ -360,15 +356,19 @@ const Auth = () => {
             <CardTitle className="card-title text-xl">
               {isNewPasswordMode ? "새 비밀번호 설정" : 
                isPasswordReset ? "비밀번호 재설정" : 
-               isSignUp ? (signUpStep === 1 ? "회원가입 - 개인정보" : "회원가입 - 계정정보") : 
+               isSignUp ? (signUpStep === 1 ? "회원가입 - 개인정보" : 
+                          signUpStep === 2 ? "회원가입 - 계정정보" : 
+                          "이메일 인증") : 
                "로그인"}
             </CardTitle>
             {isSignUp && (
               <div className="flex justify-center mt-2">
                 <div className="flex items-center space-x-2">
-                  <div className={`w-3 h-3 rounded-full ${signUpStep === 1 ? 'bg-primary' : 'bg-border'}`}></div>
+                  <div className={`w-3 h-3 rounded-full ${signUpStep === 1 ? 'bg-primary' : signUpStep > 1 ? 'bg-primary/50' : 'bg-border'}`}></div>
                   <div className="w-8 h-0.5 bg-border"></div>
-                  <div className={`w-3 h-3 rounded-full ${signUpStep === 2 ? 'bg-primary' : 'bg-border'}`}></div>
+                  <div className={`w-3 h-3 rounded-full ${signUpStep === 2 ? 'bg-primary' : signUpStep > 2 ? 'bg-primary/50' : 'bg-border'}`}></div>
+                  <div className="w-8 h-0.5 bg-border"></div>
+                  <div className={`w-3 h-3 rounded-full ${signUpStep === 3 ? 'bg-primary' : 'bg-border'}`}></div>
                 </div>
               </div>
             )}
@@ -498,8 +498,63 @@ const Auth = () => {
               </form>
             )}
 
+            {/* 3단계: 이메일 인증 안내 */}
+            {isSignUp && signUpStep === 3 && (
+              <div className="text-center space-y-6">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                  <Mail className="w-8 h-8 text-primary" />
+                </div>
+                
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold text-foreground">이메일 인증이 필요합니다</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    <strong className="text-foreground">{email}</strong>로<br />
+                    인증 이메일을 발송했습니다.
+                  </p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    이메일함을 확인하시고<br />
+                    <strong className="text-primary">인증 링크를 클릭</strong>하시면<br />
+                    회원가입이 최종 완료됩니다.
+                  </p>
+                </div>
+
+                <div className="bg-muted p-4 rounded-lg text-left">
+                  <h4 className="text-sm font-semibold text-foreground mb-2">📧 이메일을 찾을 수 없나요?</h4>
+                  <ul className="text-xs text-muted-foreground space-y-1">
+                    <li>• 스팸함을 확인해주세요</li>
+                    <li>• 이메일 주소가 정확한지 확인해주세요</li>
+                    <li>• 몇 분 후에 다시 확인해주세요</li>
+                  </ul>
+                </div>
+
+                <div className="space-y-3">
+                  <Button
+                    onClick={() => {
+                      setIsSignUp(false);
+                      setSignUpStep(1);
+                      resetForm();
+                    }}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    로그인 화면으로 돌아가기
+                  </Button>
+                  
+                  <button
+                    onClick={() => {
+                      setSignUpStep(1);
+                      resetForm();
+                    }}
+                    className="text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    다른 이메일로 다시 가입하기
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* 2단계: 계정정보 입력 또는 일반 로그인/비밀번호 재설정 */}
-            {(!isSignUp || signUpStep === 2) && (
+            {(!isSignUp || signUpStep === 2) && signUpStep !== 3 && (
               <form onSubmit={isNewPasswordMode ? handleNewPasswordSubmit : isPasswordReset ? handlePasswordReset : isSignUp ? handleSignUp : handleSignIn} className="space-y-4">
                 {signUpStep === 2 && (
                   <div className="flex items-center justify-between mb-4">
@@ -626,7 +681,7 @@ const Auth = () => {
             )}
 
             {/* 카카오 로그인 섹션 */}
-            {!isPasswordReset && !isNewPasswordMode && (
+            {!isPasswordReset && !isNewPasswordMode && (!isSignUp || signUpStep !== 3) && (
               <div className="mt-6 pt-4 border-t border-border">
                 <div className="text-center mb-4">
                   <p className="text-sm text-muted-foreground">또는</p>
@@ -637,25 +692,27 @@ const Auth = () => {
               </div>
             )}
 
-            <div className="text-center space-y-2">
-              {!isPasswordReset && !isNewPasswordMode && (
-                <button
-                  onClick={toggleMode}
-                  className="text-sm text-primary hover:text-primary/80 font-medium block w-full"
-                >
-                  {isSignUp ? "이미 계정이 있나요? 로그인" : "계정이 없나요? 회원가입"}
-                </button>
-              )}
-              
-              {!isSignUp && !isNewPasswordMode && (
-                <button
-                  onClick={togglePasswordReset}
-                  className="text-sm text-muted-foreground hover:text-foreground font-medium"
-                >
-                  {isPasswordReset ? "로그인으로 돌아가기" : "비밀번호를 잊으셨나요?"}
-                </button>
-              )}
-            </div>
+            {(!isSignUp || signUpStep !== 3) && (
+              <div className="text-center space-y-2">
+                {!isPasswordReset && !isNewPasswordMode && (
+                  <button
+                    onClick={toggleMode}
+                    className="text-sm text-primary hover:text-primary/80 font-medium block w-full"
+                  >
+                    {isSignUp ? "이미 계정이 있나요? 로그인" : "계정이 없나요? 회원가입"}
+                  </button>
+                )}
+                
+                {!isSignUp && !isNewPasswordMode && (
+                  <button
+                    onClick={togglePasswordReset}
+                    className="text-sm text-muted-foreground hover:text-foreground font-medium"
+                  >
+                    {isPasswordReset ? "로그인으로 돌아가기" : "비밀번호를 잊으셨나요?"}
+                  </button>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
