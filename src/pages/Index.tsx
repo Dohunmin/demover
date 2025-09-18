@@ -117,14 +117,14 @@ const Index = () => {
         </header>
 
         {/* Main Content */}
-        <main className="pb-20 -mt-4">
+        <main className="pb-16 -mt-4">
           {/* Welcome Section */}
-          <div className="px-5 py-6">
+          <div className="px-5 py-3">
             <div className="card">
               {/* Section Title */}
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-white border border-gray-100 text-primary p-2 rounded-xl mx-auto mb-4 flex items-center justify-center shadow-[0_2px_6px_rgba(0,0,0,0.05)]">
-                  <Sparkles className="w-8 h-8" style={{ color: 'var(--primary-color)' }} />
+              <div className="text-center mb-4">
+                <div className="w-14 h-14 bg-white border border-gray-100 text-primary p-2 rounded-xl mx-auto mb-3 flex items-center justify-center shadow-[0_2px_6px_rgba(0,0,0,0.05)]">
+                  <Sparkles className="w-7 h-7" style={{ color: 'var(--primary-color)' }} />
                 </div>
                 <h2 className="card-title text-lg mb-2">
                   반려견과 함께하는 특별한 여행
@@ -135,7 +135,7 @@ const Index = () => {
               </div>
 
               {/* Hero Carousel */}
-              <div className="mb-6">
+              <div className="mb-4">
                 <HeroCarousel />
               </div>
 
@@ -215,12 +215,12 @@ const Index = () => {
       </header>
 
       {/* Main Content */}
-      <main className="pb-20 -mt-4">
+      <main className="pb-16 -mt-4">
         {/* MBTI Test Section */}
-        <div className="px-5 py-6 mb-6">
+        <div className="px-5 py-3 mb-3">
           <div className="card">
             {/* Section Title */}
-            <div className="text-center mb-6">
+            <div className="text-center mb-4">
               <h2 className="text-xl font-bold text-foreground mb-2">
                 우리 강아지는 어떤 여행 스타일?
               </h2>
@@ -230,7 +230,7 @@ const Index = () => {
             </div>
 
             {/* Hero Carousel */}
-            <div className="mb-6">
+            <div className="mb-4">
               <HeroCarousel />
             </div>
 

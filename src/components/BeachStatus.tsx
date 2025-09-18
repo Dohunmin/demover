@@ -177,8 +177,8 @@ const BeachStatus = () => {
   };
 
   return (
-    <div className="px-5 mb-24">
-      <h3 className="text-lg font-semibold text-gray-900 mb-5">실시간 해수욕장 현황</h3>
+    <div className="px-5 mb-4">
+      <h3 className="text-lg font-semibold text-gray-900 mb-3">실시간 해수욕장 현황</h3>
       {loading ? (
         <div className="flex items-center justify-center py-8">
           <Loader2 className="w-6 h-6 animate-spin text-blue-600" />

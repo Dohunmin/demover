@@ -129,7 +129,7 @@ const RecommendationSlider = () => {
 
   if (loading) {
     return (
-      <div className="px-5 py-6">
+      <div className="px-5 py-3">
         <h2 className="card-title text-lg mb-4">이런 곳은 어때요?</h2>
         <p className="card-subtitle text-sm mb-4">🌊 우리 강아지와 가볼만한 장소는?</p>
         <div className="flex space-x-3 overflow-hidden">
@@ -142,7 +142,7 @@ const RecommendationSlider = () => {
   }
 
   return (
-    <div className="px-5 py-6">
+    <div className="px-5 py-3">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="card-title text-lg mb-1">이런 곳은 어때요?</h2>

@@ -147,8 +147,8 @@ const CategoryGrid = () => {
   const displayedCategories = isOnTravelPage && !showAll ? categories.slice(0, 5) : categories;
 
   return (
-    <div className="px-5 mb-4">
-      <h3 className="text-sm font-medium text-gray-700 mb-3">카테고리별 둘러보기</h3>
+    <div className="px-5 mb-2">
+      <h3 className="text-sm font-medium text-gray-700 mb-2">카테고리별 둘러보기</h3>
       <div className="grid grid-cols-5 gap-2">
         {displayedCategories.map(({ id, label, icon: Icon, bgColor, iconColor, hoverColor }) => (
           <Card
