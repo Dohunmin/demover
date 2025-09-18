@@ -117,7 +117,7 @@ const Index = () => {
         </header>
 
         {/* Main Content */}
-        <main className="pb-16 -mt-4">
+        <main className="pb-8 -mt-4">
           {/* Welcome Section */}
           <div className="px-5 py-3">
             <div className="card">
@@ -215,7 +215,7 @@ const Index = () => {
       </header>
 
       {/* Main Content */}
-      <main className="pb-16 -mt-4">
+      <main className="pb-8 -mt-4">
         {/* MBTI Test Section */}
         <div className="px-5 py-3 mb-3">
           <div className="card">

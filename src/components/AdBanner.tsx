@@ -61,7 +61,7 @@ const AdBanner: React.FC = () => {
   };
 
   return (
-    <div className="w-full bg-muted/50 py-4">
+    <div className="w-full bg-muted/50 py-2">
       <div className="container mx-auto px-4 max-w-4xl">
         <div className="relative overflow-hidden rounded-lg shadow-lg">
           <div 
@@ -103,7 +103,7 @@ const AdBanner: React.FC = () => {
           </div>
         </div>
         
-        <div className="text-center mt-2">
+        <div className="text-center mt-1">
           <p className="text-xs text-muted-foreground">광고</p>
         </div>
       </div>
