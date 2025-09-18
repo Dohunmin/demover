@@ -164,7 +164,10 @@ const Auth = () => {
         throw new Error("사용자 생성에 실패했습니다.");
       }
 
-      toast.info("이메일을 확인해주세요.");
+      toast.success("회원가입 신청이 완료되었습니다!", {
+        description: "가입 확인을 위해 이메일을 확인해주세요. 이메일의 링크를 클릭하셔야 최종 가입이 완료됩니다.",
+        duration: 8000
+      });
       setIsSignUp(false);
       setSignUpStep(1); // 단계 초기화
     } catch (error: any) {
