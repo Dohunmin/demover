@@ -622,12 +622,12 @@ const News = () => {
                       <AvatarImage src={
                         post.is_anonymous 
                           ? "/placeholder.svg" 
-                          : (post.profiles?.avatar_url || "/placeholder.svg")
+                          : (post.profiles?.pet_image_url || post.profiles?.avatar_url || "/placeholder.svg")
                       } />
                       <AvatarFallback>
                         {post.is_anonymous 
                           ? '익' 
-                          : (post.profiles?.full_name?.[0] || "?")
+                          : ((post.profiles?.pet_name || post.profiles?.full_name)?.[0] || "?")
                         }
                       </AvatarFallback>
                     </Avatar>
@@ -636,7 +636,7 @@ const News = () => {
                         <span className="text-sm font-medium">
                           {post.is_anonymous 
                             ? '익명' 
-                            : (post.profiles?.full_name || "익명")
+                            : (post.profiles?.pet_name || post.profiles?.full_name || "익명")
                           }
                         </span>
                         <span className="inline-block bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs">
