@@ -157,7 +157,7 @@ const News = () => {
       const userIds = recordsData?.map(record => record.user_id) || [];
       const { data: profilesData } = await supabase
         .from('profiles')
-        .select('user_id, avatar_url, pet_name, pet_image_url, full_name')
+        .select('user_id, avatar_url, pet_name, pet_image_url')
         .in('user_id', userIds);
 
       // Combine records with profiles
@@ -192,7 +192,7 @@ const News = () => {
       const userIds = postsData?.map(post => post.user_id) || [];
       const { data: profilesData } = await supabase
         .from('profiles')
-        .select('user_id, avatar_url, pet_name, pet_image_url, full_name')
+        .select('user_id, avatar_url, pet_name, pet_image_url')
         .in('user_id', userIds);
 
       // Combine posts with profiles
@@ -482,7 +482,7 @@ const News = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-2 mb-1">
                           <span className="text-sm font-medium break-words line-clamp-1">
-                            {record.profiles?.pet_name || record.profiles?.full_name || "사용자"}
+                            {record.profiles?.pet_name || record.profiles?.full_name || "익명"}
                           </span>
                           <span className="text-xs text-muted-foreground flex-shrink-0">님이</span>
                         </div>
@@ -554,14 +554,19 @@ const News = () => {
                       onClick={() => handlePostClick(post)}
                       className="flex items-start p-3 bg-muted/30 rounded-xl hover:bg-blue-50 transition-colors cursor-pointer"
                     >
-                       <Avatar className="w-8 h-8 mr-3 flex-shrink-0">
+                      <Avatar className="w-8 h-8 mr-3 flex-shrink-0">
                         <AvatarImage src={
-                          post.profiles?.pet_image_url || post.profiles?.avatar_url || "/placeholder.svg"
+                          post.is_anonymous 
+                            ? "/placeholder.svg" 
+                            : (post.profiles?.pet_image_url || post.profiles?.avatar_url || "/placeholder.svg")
                         } />
                         <AvatarFallback>
-                          {(post.profiles?.pet_name || post.profiles?.full_name)?.[0] || "?"}
+                          {post.is_anonymous 
+                            ? '익' 
+                            : ((post.profiles?.pet_name || post.profiles?.full_name)?.[0] || "?")
+                          }
                         </AvatarFallback>
-                       </Avatar>
+                      </Avatar>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-2 mb-1">
                           <span className="inline-block bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs flex-shrink-0">
@@ -613,19 +618,27 @@ const News = () => {
               communityPosts.map((post) => (
                 <Card key={post.id} className="p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => handlePostClick(post)}>
                   <div className="flex items-start space-x-3">
-                     <Avatar className="w-10 h-10 flex-shrink-0">
-                       <AvatarImage src={
-                         post.profiles?.pet_image_url || post.profiles?.avatar_url || "/placeholder.svg"
-                       } />
-                       <AvatarFallback>
-                         {(post.profiles?.pet_name || post.profiles?.full_name)?.[0] || "?"}
-                       </AvatarFallback>
-                     </Avatar>
+                    <Avatar className="w-10 h-10 flex-shrink-0">
+                      <AvatarImage src={
+                        post.is_anonymous 
+                          ? "/placeholder.svg" 
+                          : (post.profiles?.pet_image_url || post.profiles?.avatar_url || "/placeholder.svg")
+                      } />
+                      <AvatarFallback>
+                        {post.is_anonymous 
+                          ? '익' 
+                          : ((post.profiles?.pet_name || post.profiles?.full_name)?.[0] || "?")
+                        }
+                      </AvatarFallback>
+                    </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2 mb-2">
-                         <span className="text-sm font-medium">
-                           {post.profiles?.pet_name || post.profiles?.full_name || "사용자"}
-                         </span>
+                        <span className="text-sm font-medium">
+                          {post.is_anonymous 
+                            ? '익명' 
+                            : (post.profiles?.pet_name || post.profiles?.full_name || "익명")
+                          }
+                        </span>
                         <span className="inline-block bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs">
                           {getPostTypeLabel(post.post_type)}
                         </span>
@@ -678,17 +691,17 @@ const News = () => {
               travelRecords.map((record) => (
                 <Card key={record.id} className="p-4 hover:shadow-md transition-shadow">
                   <div className="flex items-start space-x-3">
-                     <Avatar className="w-10 h-10 flex-shrink-0">
-                       <AvatarImage src={record.profiles?.pet_image_url || record.profiles?.avatar_url || ""} />
-                       <AvatarFallback>
-                         {(record.profiles?.pet_name || record.profiles?.full_name)?.[0] || "?"}
-                       </AvatarFallback>
-                     </Avatar>
+                    <Avatar className="w-10 h-10 flex-shrink-0">
+                      <AvatarImage src={record.profiles?.avatar_url || ""} />
+                      <AvatarFallback>
+                        {record.profiles?.full_name?.[0] || "?"}
+                      </AvatarFallback>
+                    </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2 mb-2">
-                         <span className="text-sm font-medium">
-                           {record.profiles?.pet_name || record.profiles?.full_name || "사용자"}
-                         </span>
+                        <span className="text-sm font-medium">
+                          {record.profiles?.full_name || "익명"}
+                        </span>
                         <span className="text-xs text-muted-foreground">님의 여행</span>
                       </div>
                       <div className="flex items-center space-x-1 mb-2">
