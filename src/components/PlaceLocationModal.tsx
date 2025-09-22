@@ -321,7 +321,7 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
             )}
             
             {/* 평점 버튼을 지도 아래로 이동 */}
-            <div className="flex justify-center pt-2">
+            <div className="flex justify-center pt-2 pb-2">
               <Button
                 variant="outline"
                 size="sm"
