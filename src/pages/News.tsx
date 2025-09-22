@@ -153,22 +153,22 @@ const News = () => {
 
       if (error) throw error;
 
-      // Fetch user profiles
+      // Fetch user profiles using safe public function
       const userIds = recordsData?.map(record => record.user_id) || [];
       const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('user_id, avatar_url, pet_name, pet_image_url, full_name')
-        .in('user_id', userIds);
+        .rpc('get_safe_public_profile_fields');
 
       // Combine records with profiles
       const recordsWithProfiles = recordsData?.map(record => {
         const images = Array.isArray(record.images) 
           ? record.images.filter((img): img is string => typeof img === 'string')
           : [];
+        const profile = profilesData?.find(profile => profile.user_id === record.user_id);
+        console.log('Travel Record Profile:', record.user_id, profile);
         return {
           ...record,
           images,
-          profiles: profilesData?.find(profile => profile.user_id === record.user_id)
+          profiles: profile
         };
       }) || [];
 
@@ -188,18 +188,20 @@ const News = () => {
 
       if (error) throw error;
 
-      // Fetch user profiles separately
+      // Fetch user profiles using safe public function
       const userIds = postsData?.map(post => post.user_id) || [];
       const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('user_id, avatar_url, pet_name, pet_image_url, full_name')
-        .in('user_id', userIds);
+        .rpc('get_safe_public_profile_fields');
 
       // Combine posts with profiles
-      const postsWithProfiles = postsData?.map(post => ({
-        ...post,
-        profiles: profilesData?.find(profile => profile.user_id === post.user_id)
-      })) || [];
+      const postsWithProfiles = postsData?.map(post => {
+        const profile = profilesData?.find(profile => profile.user_id === post.user_id);
+        console.log('Community Post Profile:', post.user_id, profile);
+        return {
+          ...post,
+          profiles: profile
+        };
+      }) || [];
 
       setCommunityPosts(postsWithProfiles);
     } catch (error) {
