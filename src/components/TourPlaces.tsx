@@ -738,7 +738,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
           {/* 콘텐츠 영역 */}
           <div className="flex-1 p-4 min-w-0">
             <div className="flex justify-between items-start">
-              <div className="flex-1 pr-1">
+              <div className="flex-1">
                 <h4 className="font-semibold text-gray-900 text-sm leading-tight line-clamp-1">
                   {place.title}
                 </h4>
