@@ -192,36 +192,23 @@ const AnimalHospitalMap: React.FC<AnimalHospitalMapProps> = ({ hospitals }) => {
         
         const position = new window.kakao.maps.LatLng(lat, lon);
 
-        // 흰색 배경에 파란색 테두리의 원형 마커, SVG로 직접 발바닥 그리기
+        // 로고 마커 이미지 생성
         const markerImageSrc = `data:image/svg+xml;base64,${btoa(`
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" width="30" height="30">
             <defs>
-              <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-                <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.3)"/>
-              </filter>
+              <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#60A5FA;stop-opacity:1" />
+                <stop offset="50%" style="stop-color:#93C5FD;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#FDE047;stop-opacity:1" />
+              </linearGradient>
             </defs>
-            <circle cx="16" cy="16" r="14" fill="white" stroke="#3B82F6" stroke-width="3" filter="url(#shadow)"/>
-            
-            <!-- 강아지 발바닥 모양 직접 그리기 -->
-            <g transform="translate(16, 16) scale(0.6)">
-              <!-- 위쪽 4개 발가락 -->
-              <ellipse cx="-6" cy="-8" rx="2.5" ry="4" fill="#333333"/>
-              <ellipse cx="-2" cy="-10" rx="2.5" ry="4" fill="#333333"/>
-              <ellipse cx="2" cy="-10" rx="2.5" ry="4" fill="#333333"/>
-              <ellipse cx="6" cy="-8" rx="2.5" ry="4" fill="#333333"/>
-              
-              <!-- 아래쪽 발바닥 패드 -->
-              <path d="M -5 0 Q -8 0 -8 4 Q -8 8 -4 10 Q 0 12 4 10 Q 8 8 8 4 Q 8 0 5 0 Q 2 2 0 2 Q -2 2 -5 0 Z" fill="#333333"/>
-              
-              <!-- 십자가 표시 -->
-              <rect x="-1" y="2" width="2" height="6" fill="white"/>
-              <rect x="-3" y="4" width="6" height="2" fill="white"/>
-            </g>
+            <circle cx="15" cy="15" r="14" fill="url(#grad)" stroke="white" stroke-width="2"/>
+            <image href="/lovable-uploads/ac67abbc-77f6-49be-9553-8f14fcad6271.png" x="9" y="9" width="12" height="12"/>
           </svg>
         `)}`;
         
-        const imageSize = new window.kakao.maps.Size(32, 32);
-        const imageOption = { offset: new window.kakao.maps.Point(16, 32) };
+        const imageSize = new window.kakao.maps.Size(30, 30);
+        const imageOption = { offset: new window.kakao.maps.Point(15, 30) };
         const markerImage = new window.kakao.maps.MarkerImage(markerImageSrc, imageSize, imageOption);
 
         const marker = new window.kakao.maps.Marker({
