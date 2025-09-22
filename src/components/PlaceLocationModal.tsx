@@ -236,12 +236,12 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
           <div style="padding: 12px; min-width: 200px; max-width: 240px; font-family: 'Malgun Gothic', sans-serif; position: relative; word-wrap: break-word; overflow: hidden; box-sizing: border-box;">
             <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px; color: #333; line-height: 1.2; word-wrap: break-word; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${place.title}</div>
             
-            <div style="font-size: 11px; color: #666; line-height: 1.3; word-wrap: break-word; overflow: hidden; ${place.tel && place.tel.trim() ? 'margin-bottom: 4px;' : 'margin-bottom: 8px;'}">
+            <div style="font-size: 11px; color: #666; line-height: 1.3; word-wrap: break-word; overflow: hidden; ${place.tel && place.tel.trim() ? 'margin-bottom: 4px;' : 'margin-bottom: 10px;'}">
               📍 ${place.addr1} ${place.addr2 || ''}
             </div>
             
             ${place.tel && place.tel.trim() ? `
-              <div style="font-size: 11px; color: #666; line-height: 1.3; word-wrap: break-word; overflow: hidden; margin-bottom: 4px;">
+              <div style="font-size: 11px; color: #666; line-height: 1.3; word-wrap: break-word; overflow: hidden; margin-bottom: 2px;">
                 📞 ${place.tel}
               </div>
             ` : ''}
