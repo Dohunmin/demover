@@ -695,7 +695,7 @@ const News = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2 mb-2">
                         <span className="text-sm font-medium">
-                          {record.profiles?.pet_name || record.profiles?.full_name || "익명"}
+                          {record.profiles?.pet_name || record.profiles?.full_name || "사용자"}
                         </span>
                         <span className="text-xs text-muted-foreground">님의 여행</span>
                       </div>
