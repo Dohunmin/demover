@@ -682,7 +682,7 @@ const News = () => {
               </div>
             ) : travelRecords.length > 0 ? (
               travelRecords.map((record) => (
-                <Card key={record.id} className="p-4 hover:shadow-md transition-shadow">
+                <Card key={record.id} className="p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleTravelRecordClick(record)}>
                   <div className="flex items-start space-x-3">
                     <Avatar className="w-10 h-10 flex-shrink-0">
                       <AvatarImage src={
