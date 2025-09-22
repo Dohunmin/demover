@@ -192,9 +192,9 @@ const AnimalHospitalMap: React.FC<AnimalHospitalMapProps> = ({ hospitals }) => {
         
         const position = new window.kakao.maps.LatLng(lat, lon);
 
-        // 강아지 발바닥 마커 이미지 생성
+        // 로고 마커 이미지 생성
         const markerImageSrc = `data:image/svg+xml;base64,${btoa(`
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" width="30" height="30">
             <defs>
               <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" style="stop-color:#60A5FA;stop-opacity:1" />
@@ -202,22 +202,13 @@ const AnimalHospitalMap: React.FC<AnimalHospitalMapProps> = ({ hospitals }) => {
                 <stop offset="100%" style="stop-color:#FDE047;stop-opacity:1" />
               </linearGradient>
             </defs>
-            <circle cx="12" cy="12" r="11" fill="url(#grad)" stroke="white" stroke-width="2"/>
-            <!-- 강아지 발바닥 모양 -->
-            <g fill="white">
-              <!-- 메인 패드 -->
-              <ellipse cx="12" cy="15" rx="3" ry="2.5"/>
-              <!-- 앞쪽 발가락 패드들 -->
-              <ellipse cx="8.5" cy="10.5" rx="1.2" ry="1.5"/>
-              <ellipse cx="11" cy="9" rx="1.2" ry="1.5"/>
-              <ellipse cx="13" cy="9" rx="1.2" ry="1.5"/>
-              <ellipse cx="15.5" cy="10.5" rx="1.2" ry="1.5"/>
-            </g>
+            <circle cx="15" cy="15" r="14" fill="url(#grad)" stroke="white" stroke-width="2"/>
+            <image href="/lovable-uploads/ac67abbc-77f6-49be-9553-8f14fcad6271.png" x="9" y="9" width="12" height="12"/>
           </svg>
         `)}`;
         
-        const imageSize = new window.kakao.maps.Size(24, 24);
-        const imageOption = { offset: new window.kakao.maps.Point(12, 24) };
+        const imageSize = new window.kakao.maps.Size(30, 30);
+        const imageOption = { offset: new window.kakao.maps.Point(15, 30) };
         const markerImage = new window.kakao.maps.MarkerImage(markerImageSrc, imageSize, imageOption);
 
         const marker = new window.kakao.maps.Marker({
