@@ -31,12 +31,18 @@ serve(async (req) => {
 
     console.log('Fetching animal hospital data with params:', { pageNo, numOfRows, gugun, hospitalName });
 
-    // 부산 동물병원 OpenAPI 호출 (HTTP 직접 사용 - Deno TLS 호환성 문제로 인해)
+    // 부산 동물병원 OpenAPI 호출 - URL 인코딩된 API 키 사용
     const apiUrl = `https://apis.data.go.kr/6260000/BusanAnimalHospService/getTblAnimalHospital?serviceKey=${apiKey}&pageNo=${pageNo}&numOfRows=${numOfRows}&resultType=json`;
     
     console.log('HTTP API URL:', apiUrl);
 
-    const response = await fetch(apiUrl);
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (compatible; Supabase Edge Function)'
+      }
+    });
     
     if (!response.ok) {
       console.error('API Response Error:', response.status, response.statusText);
