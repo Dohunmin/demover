@@ -233,7 +233,7 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
       // 인포윈도우 생성
       const infoWindow = new window.kakao.maps.InfoWindow({
         content: `
-          <div style="padding: 12px 12px 14px 12px; min-width: 200px; max-width: 240px; font-family: 'Malgun Gothic', sans-serif; position: relative; word-wrap: break-word; overflow: hidden; box-sizing: border-box;">
+          <div style="padding: 12px 12px 18px 12px; min-width: 200px; max-width: 240px; font-family: 'Malgun Gothic', sans-serif; position: relative; word-wrap: break-word; overflow: hidden; box-sizing: border-box;">
             <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px; color: #333; line-height: 1.2; word-wrap: break-word; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${place.title}</div>
             
             <div style="font-size: 11px; color: #666; margin-bottom: 4px; line-height: 1.3; word-wrap: break-word; overflow: hidden;">
@@ -241,7 +241,7 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
             </div>
             
             ${place.tel ? `
-              <div style="font-size: 11px; color: #666; line-height: 1.3; word-wrap: break-word; overflow: hidden; margin-bottom: 2px;">
+              <div style="font-size: 11px; color: #666; line-height: 1.3; word-wrap: break-word; overflow: hidden; margin-bottom: 6px;">
                 📞 ${place.tel}
               </div>
             ` : ''}
@@ -321,7 +321,7 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
             )}
             
             {/* 평점 버튼을 지도 아래로 이동 */}
-            <div className="flex justify-center pt-2 pb-2">
+            <div className="flex justify-center pt-2">
               <Button
                 variant="outline"
                 size="sm"
