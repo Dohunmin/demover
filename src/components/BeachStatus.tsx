@@ -198,21 +198,14 @@ const BeachStatus = () => {
           </div>
           
           <Card className="p-4 sm:p-6 bg-white border-gray-100 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-lg flex items-center justify-center">
-                  <Waves className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" strokeWidth={1.5} />
-                </div>
-                <div>
-                  <h5 className="font-semibold text-gray-900 text-base sm:text-lg">{selectedBeach.name}</h5>
-                  <p className="text-xs sm:text-sm text-gray-500">실시간 현황</p>
-                </div>
+            <div className="flex items-center mb-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-lg flex items-center justify-center">
+                <Waves className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" strokeWidth={1.5} />
               </div>
-              <Badge 
-                className={`${selectedBeach.statusColor} text-white text-xs sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 border-0`}
-              >
-                {selectedBeach.status}
-              </Badge>
+              <div className="ml-3">
+                <h5 className="font-semibold text-gray-900 text-base sm:text-lg">{selectedBeach.name}</h5>
+                <p className="text-xs sm:text-sm text-gray-500">실시간 현황</p>
+              </div>
             </div>
             
             {/* 기준 시간 표시 */}
