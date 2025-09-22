@@ -234,11 +234,7 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
       const infoWindow = new window.kakao.maps.InfoWindow({
         content: `
           <div style="padding: 12px; min-width: 200px; max-width: 240px; font-family: 'Malgun Gothic', sans-serif; position: relative; word-wrap: break-word; overflow: hidden;">
-            <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px; color: #2563eb; line-height: 1.2; word-wrap: break-word; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${place.title}</div>
-            
-            <div style="font-size: 10px; color: #666; margin-bottom: 6px; background: #FEF2F2; padding: 3px 6px; border-radius: 8px; display: inline-block;">
-              🐾 펫프렌들리 장소
-            </div>
+            <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px; color: #333; line-height: 1.2; word-wrap: break-word; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${place.title}</div>
             
             <div style="font-size: 11px; color: #666; margin-bottom: 4px; line-height: 1.3; word-wrap: break-word; overflow: hidden;">
               📍 ${place.addr1} ${place.addr2 || ''}
