@@ -738,8 +738,8 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
           {/* 콘텐츠 영역 */}
           <div className="flex-1 p-4 min-w-0">
             <div>
-              {/* 여행지명과 하트를 같은 라인에 배치 */}
-              <div className="flex justify-between items-center mb-1">
+              {/* 여행지명과 하트를 같은 라인에 배치 - 상단 여백 제거 */}
+              <div className="flex justify-between items-center">
                 <h4 className="font-semibold text-gray-900 text-sm leading-tight line-clamp-1 flex-1 pr-2">
                   {place.title}
                 </h4>
@@ -758,7 +758,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
               
               {/* 평점 정보 */}
               {reviewStats && reviewStats.totalReviews > 0 ? (
-                <div className="flex items-center gap-1 mb-1">
+                <div className="flex items-center gap-1 mt-1">
                   <div className="flex">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <Star
@@ -776,7 +776,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
               ) : (
                 /* 평점이 없으면 주소를 바로 표시 */
                 place.addr1 && (
-                  <div className="flex items-start gap-1 mb-1">
+                  <div className="flex items-start gap-1 mt-1">
                     <MapPin className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
                     <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
                       {place.addr1} {place.addr2}
