@@ -224,7 +224,16 @@ const AnimalHospitals = () => {
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-bold text-foreground">부산 동물병원</h1>
             <Button
-              onClick={() => setCurrentView('map')}
+              onClick={() => {
+                setCurrentView('map');
+                setSelectedGugun('중구');
+                // 중구로 필터링
+                const filtered = hospitals.filter(hospital => 
+                  hospital.gugun && hospital.gugun.includes('중구')
+                );
+                setFilteredHospitals(filtered);
+                setCurrentPage(1);
+              }}
               variant="outline"
               size="sm"
             >
