@@ -245,7 +245,7 @@ const Records = () => {
     try {
       const imageUrls = await uploadImages(newRecord.images);
       
-      const { data: recordData, error } = await (supabase as any)
+      const { error } = await (supabase as any)
         .from('travel_records')
         .insert({
           user_id: user.id,
@@ -258,19 +258,12 @@ const Records = () => {
           images: imageUrls,
           rating: newRecord.rating || null,
           is_public: newRecord.is_public
-        })
-        .select()
-        .single();
+        });
 
       if (error) {
         console.error('Error adding travel record:', error);
         toast.error('여행 기록 추가에 실패했습니다.');
         return;
-      }
-
-      // 공개 설정인 경우 place_reviews에도 추가
-      if (newRecord.is_public && recordData) {
-        await syncToPlaceReviews(recordData, 'insert');
       }
 
       toast.success('여행 기록이 추가되었습니다.');
@@ -339,58 +332,8 @@ const Records = () => {
     fetchTravelRecords(); // 목록 새로고침
   };
 
-  const syncToPlaceReviews = async (record: any, action: 'insert' | 'delete' | 'update') => {
-    try {
-      if (action === 'insert' || action === 'update') {
-        // 기존 리뷰 삭제 후 새로 추가 (업데이트의 경우)
-        if (action === 'update') {
-          await supabase
-            .from('place_reviews')
-            .delete()
-            .eq('user_id', record.user_id)
-            .eq('place_title', record.location_name);
-        }
-
-        // 평점이나 메모가 있는 경우에만 리뷰 추가
-        if (record.rating > 0 || (record.memo && record.memo.trim())) {
-          await supabase
-            .from('place_reviews')
-            .insert({
-              user_id: record.user_id,
-              content_id: record.id, // 여행 기록 ID를 content_id로 사용
-              place_title: record.location_name,
-              comment: record.memo || '',
-              rating: record.rating || 5
-            });
-        }
-      } else if (action === 'delete') {
-        await supabase
-          .from('place_reviews')
-          .delete()
-          .eq('user_id', record.user_id)
-          .eq('place_title', record.location_name)
-          .eq('content_id', record.id);
-      }
-    } catch (error) {
-      console.error('Error syncing to place reviews:', error);
-    }
-  };
-
   const togglePublicStatus = async (recordId: string, currentStatus: boolean) => {
     try {
-      // 먼저 해당 기록 정보 가져오기
-      const { data: recordData, error: fetchError } = await supabase
-        .from('travel_records')
-        .select('*')
-        .eq('id', recordId)
-        .single();
-
-      if (fetchError) {
-        console.error('Error fetching record:', fetchError);
-        toast.error('기록 정보를 가져오는데 실패했습니다.');
-        return;
-      }
-
       const { error } = await supabase
         .from('travel_records')
         .update({
@@ -403,15 +346,6 @@ const Records = () => {
         console.error('Error updating public status:', error);
         toast.error('공개 설정 변경에 실패했습니다.');
         return;
-      }
-
-      // place_reviews 동기화
-      if (!currentStatus) {
-        // 비공개 → 공개: place_reviews에 추가
-        await syncToPlaceReviews(recordData, 'insert');
-      } else {
-        // 공개 → 비공개: place_reviews에서 삭제
-        await syncToPlaceReviews(recordData, 'delete');
       }
 
       // 로컬 상태 업데이트
