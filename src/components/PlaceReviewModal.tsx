@@ -73,11 +73,8 @@ const PlaceReviewModal: React.FC<PlaceReviewModalProps> = ({ isOpen, onClose, on
       }
 
       // 프로필 정보 가져오기
-      const userIds = allReviews?.map(review => review.user_id) || [];
       const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('user_id, full_name, avatar_url, pet_name, pet_image_url')
-        .in('user_id', userIds);
+        .rpc('get_safe_public_profile_fields');
 
       // 리뷰에 프로필 정보 매핑
       const reviewsWithProfiles = allReviews?.map(review => ({
