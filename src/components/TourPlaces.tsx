@@ -765,9 +765,9 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
                   place.addr1 && (
                     <div className="flex items-start gap-1 mt-1.5">
                       <MapPin className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
-                      <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
-                        {place.addr1} {place.addr2}
-                      </p>
+                       <p className="text-xs text-gray-600 line-clamp-2">
+                         {place.addr1} {place.addr2}
+                       </p>
                     </div>
                   )
                 )}
@@ -789,9 +789,9 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
             {reviewStats && reviewStats.totalReviews > 0 && place.addr1 && (
               <div className="flex items-start gap-1 mt-1.5">
                 <MapPin className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
-                <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
-                  {place.addr1} {place.addr2}
-                </p>
+                 <p className="text-xs text-gray-600 line-clamp-2">
+                   {place.addr1} {place.addr2}
+                 </p>
               </div>
             )}
             
