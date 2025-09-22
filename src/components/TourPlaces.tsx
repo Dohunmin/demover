@@ -775,7 +775,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
               <Button
                 variant="ghost"
                 size="sm"
-                className={`bookmark-button flex-shrink-0 p-1 -mt-2 ${isBookmarked ? 'text-red-500 hover:text-red-600' : 'text-gray-400 hover:text-red-500'}`}
+                className={`bookmark-button flex-shrink-0 p-1 -mt-4 ${isBookmarked ? 'text-red-500 hover:text-red-600' : 'text-gray-400 hover:text-red-500'}`}
                 onClick={(e) => {
                   e.stopPropagation();
                   toggleBookmark(place, activeTab);
