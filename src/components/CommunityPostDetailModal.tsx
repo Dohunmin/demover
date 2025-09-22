@@ -108,18 +108,18 @@ const CommunityPostDetailModal = ({ post, isOpen, onClose, onEdit, onDelete }: C
 
       if (error) throw error;
 
-      // Fetch user profiles separately
-      const userIds = commentsData?.map(comment => comment.user_id) || [];
+      // Fetch user profiles using safe public function
       const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('user_id, avatar_url, pet_name, pet_image_url')
-        .in('user_id', userIds);
+        .rpc('get_safe_public_profile_fields');
 
       // Combine comments with profiles
-      const commentsWithProfiles = commentsData?.map(comment => ({
-        ...comment,
-        profiles: profilesData?.find(profile => profile.user_id === comment.user_id)
-      })) || [];
+      const commentsWithProfiles = commentsData?.map(comment => {
+        const profile = profilesData?.find(profile => profile.user_id === comment.user_id);
+        return {
+          ...comment,
+          profiles: profile
+        };
+      }) || [];
 
       setComments(commentsWithProfiles);
       setCommentsCount(commentsWithProfiles.length);
@@ -362,23 +362,17 @@ const CommunityPostDetailModal = ({ post, isOpen, onClose, onEdit, onDelete }: C
           <div className="flex items-center space-x-3">
             <Avatar className="w-8 h-8">
               <AvatarImage src={
-                post.is_anonymous 
-                  ? "/placeholder.svg" 
-                  : (post.profiles?.pet_image_url || post.profiles?.avatar_url || "/placeholder.svg")
+                post.profiles?.pet_image_url || 
+                post.profiles?.avatar_url || 
+                ""
               } />
               <AvatarFallback>
-                {post.is_anonymous 
-                  ? '익' 
-                  : ((post.profiles?.pet_name || post.profiles?.full_name)?.[0] || "?")
-                }
+                {(post.profiles?.pet_name || post.profiles?.full_name)?.[0] || "사"}
               </AvatarFallback>
             </Avatar>
             <div>
               <p className="text-sm font-medium">
-                {post.is_anonymous 
-                  ? '익명' 
-                  : (post.profiles?.pet_name || post.profiles?.full_name || "익명")
-                }
+                {post.profiles?.pet_name || post.profiles?.full_name || "사용자"}
               </p>
               <p className="text-xs text-muted-foreground">
                 {new Date(post.created_at).toLocaleDateString('ko-KR')}
@@ -439,24 +433,18 @@ const CommunityPostDetailModal = ({ post, isOpen, onClose, onEdit, onDelete }: C
               <div key={comment.id} className="flex space-x-3">
                 <Avatar className="w-6 h-6 flex-shrink-0">
                   <AvatarImage src={
-                    comment.is_anonymous 
-                      ? "/placeholder.svg" 
-                      : (comment.profiles?.pet_image_url || comment.profiles?.avatar_url || "/placeholder.svg")
+                    comment.profiles?.pet_image_url || 
+                    comment.profiles?.avatar_url || 
+                    ""
                   } />
                   <AvatarFallback className="text-xs">
-                    {comment.is_anonymous 
-                      ? '익' 
-                      : ((comment.profiles?.pet_name || comment.profiles?.full_name)?.[0] || "?")
-                    }
+                    {(comment.profiles?.pet_name || comment.profiles?.full_name)?.[0] || "사"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-medium">
-                      {comment.is_anonymous 
-                        ? '익명' 
-                        : (comment.profiles?.pet_name || comment.profiles?.full_name || "익명")
-                      }
+                      {comment.profiles?.pet_name || comment.profiles?.full_name || "사용자"}
                     </p>
                     {user?.id === comment.user_id && (
                       <div className="flex items-center space-x-1">
