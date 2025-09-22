@@ -226,7 +226,7 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
             </linearGradient>
           </defs>
           <circle cx="15" cy="15" r="14" fill="url(#grad)" stroke="white" stroke-width="2"/>
-          <image href="/lovable-uploads/ac67abbc-77f6-49be-9553-8f14fcad6271.png" x="9" y="9" width="12" height="12"/>
+          <image href="/lovable-uploads/travel-marker-paw.png" x="9" y="9" width="12" height="12"/>
         </svg>
       `)}`;
       
