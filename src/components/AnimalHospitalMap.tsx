@@ -203,7 +203,16 @@ const AnimalHospitalMap: React.FC<AnimalHospitalMapProps> = ({ hospitals }) => {
               </linearGradient>
             </defs>
             <circle cx="12" cy="12" r="11" fill="url(#grad)" stroke="white" stroke-width="2"/>
-            <image href="/src/assets/dog-paw-icon.png" x="6" y="6" width="12" height="12"/>
+            <!-- 강아지 발바닥 모양 -->
+            <g fill="white">
+              <!-- 메인 패드 -->
+              <ellipse cx="12" cy="15" rx="3" ry="2.5"/>
+              <!-- 앞쪽 발가락 패드들 -->
+              <ellipse cx="8.5" cy="10.5" rx="1.2" ry="1.5"/>
+              <ellipse cx="11" cy="9" rx="1.2" ry="1.5"/>
+              <ellipse cx="13" cy="9" rx="1.2" ry="1.5"/>
+              <ellipse cx="15.5" cy="10.5" rx="1.2" ry="1.5"/>
+            </g>
           </svg>
         `)}`;
         
