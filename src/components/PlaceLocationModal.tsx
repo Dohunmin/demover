@@ -213,12 +213,26 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
       mapInstanceRef.current = new window.kakao.maps.Map(mapRef.current, options);
       console.log('✅ 지도 인스턴스 생성 완료');
 
-      // 발바닥 마커 생성
+      // 로고 마커 생성
       const position = new window.kakao.maps.LatLng(lat, lng);
       
-      const imageSize = new window.kakao.maps.Size(32, 32);
-      const imageOption = { offset: new window.kakao.maps.Point(16, 32) };
-      const markerImage = new window.kakao.maps.MarkerImage('/lovable-uploads/travel-marker-paw-v2.png', imageSize, imageOption);
+      const markerImageSrc = `data:image/svg+xml;base64,${btoa(`
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" width="30" height="30">
+          <defs>
+            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#60A5FA;stop-opacity:1" />
+              <stop offset="50%" style="stop-color:#93C5FD;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#FDE047;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <circle cx="15" cy="15" r="14" fill="url(#grad)" stroke="white" stroke-width="2"/>
+          <image href="/lovable-uploads/ac67abbc-77f6-49be-9553-8f14fcad6271.png" x="9" y="9" width="12" height="12"/>
+        </svg>
+      `)}`;
+      
+      const imageSize = new window.kakao.maps.Size(30, 30);
+      const imageOption = { offset: new window.kakao.maps.Point(15, 30) };
+      const markerImage = new window.kakao.maps.MarkerImage(markerImageSrc, imageSize, imageOption);
       
       markerRef.current = new window.kakao.maps.Marker({
         position: position,
@@ -232,45 +246,51 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
       const infoWindow = new window.kakao.maps.InfoWindow({
         content: `
           <div style="
-            padding: 12px 15px; 
-            max-width: 300px;
-            min-width: 200px;
+            padding: 15px 18px; 
+            max-width: 400px; 
+            min-width: 280px;
             box-sizing: border-box;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Malgun Gothic', sans-serif;
             background: white;
+            border-radius: 8px;
           ">
             <h4 style="
-              margin: 0 0 8px 0; 
+              margin: 0 0 10px 0; 
               font-weight: bold; 
-              font-size: 14px; 
+              font-size: 16px; 
               color: #333;
-              line-height: 1.3;
-              word-break: break-word;
+              line-height: 1.4;
+              word-wrap: break-word;
+              overflow-wrap: break-word;
             ">
               ${place.title}
             </h4>
             <div style="
-              font-size: 12px; 
+              font-size: 13px; 
               color: #666; 
-              margin-bottom: 6px;
-              line-height: 1.4;
+              margin-bottom: 8px;
+              line-height: 1.5;
+              word-wrap: break-word;
+              overflow-wrap: break-word;
               display: flex;
               align-items: flex-start;
-              gap: 4px;
+              gap: 6px;
             ">
-              <span style="color: #4285f4; font-size: 12px; margin-top: 1px;">📍</span>
-              <span style="word-break: break-word;">${place.addr1} ${place.addr2 || ''}</span>
+              <span style="color: #4285f4; font-size: 14px;">📍</span>
+              <span>${place.addr1} ${place.addr2 || ''}</span>
             </div>
             ${place.tel ? `
               <div style="
-                font-size: 11px; 
+                font-size: 12px; 
                 color: #666;
-                line-height: 1.3;
+                line-height: 1.5;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
                 display: flex;
                 align-items: center;
-                gap: 4px;
+                gap: 6px;
               ">
-                <span style="color: #34a853; font-size: 12px;">📞</span>
+                <span style="color: #34a853; font-size: 14px;">📞</span>
                 <span>${place.tel}</span>
               </div>
             ` : ''}
@@ -314,7 +334,7 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl max-h-[90vh] p-0 overflow-hidden rounded-lg">
+        <DialogContent className="max-w-2xl max-h-[90vh] p-0 overflow-hidden">
           <DialogHeader className="p-6 pb-4">
             <div className="flex-1">
               <DialogTitle className="text-lg font-bold text-gray-900 mb-2">
@@ -355,7 +375,7 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => setShowReviewModal(true)}
-                className="flex items-center gap-2 text-sm rounded-lg"
+                className="flex items-center gap-2 text-sm"
               >
                 <Star className="h-4 w-4" />
                 평점
