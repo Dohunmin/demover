@@ -131,6 +131,43 @@ const TravelRecordEditModal: React.FC<TravelRecordEditModalProps> = ({
     return uploadedUrls;
   };
 
+  const syncToPlaceReviews = async (recordData: any, action: 'insert' | 'delete' | 'update') => {
+    try {
+      if (action === 'insert' || action === 'update') {
+        // 기존 리뷰 삭제 후 새로 추가 (업데이트의 경우)
+        if (action === 'update') {
+          await supabase
+            .from('place_reviews')
+            .delete()
+            .eq('user_id', recordData.user_id)
+            .eq('place_title', recordData.location_name);
+        }
+
+        // 평점이나 메모가 있는 경우에만 리뷰 추가
+        if (recordData.rating > 0 || (recordData.memo && recordData.memo.trim())) {
+          await supabase
+            .from('place_reviews')
+            .insert({
+              user_id: recordData.user_id,
+              content_id: recordData.id,
+              place_title: recordData.location_name,
+              comment: recordData.memo || '',
+              rating: recordData.rating || 5
+            });
+        }
+      } else if (action === 'delete') {
+        await supabase
+          .from('place_reviews')
+          .delete()
+          .eq('user_id', recordData.user_id)
+          .eq('place_title', recordData.location_name)
+          .eq('content_id', recordData.id);
+      }
+    } catch (error) {
+      console.error('Error syncing to place reviews:', error);
+    }
+  };
+
   const handleSave = async () => {
     if (!record || !editData.location_name || !editData.visit_date) {
       toast.error('위치명과 방문 날짜를 입력해주세요.');
@@ -149,7 +186,7 @@ const TravelRecordEditModal: React.FC<TravelRecordEditModalProps> = ({
       const finalImages = [...editData.existingImages, ...newImageUrls];
 
       // 여행 기록 업데이트
-      const { error } = await supabase
+      const { data: updatedRecord, error } = await supabase
         .from('travel_records')
         .update({
           location_name: editData.location_name,
@@ -163,12 +200,27 @@ const TravelRecordEditModal: React.FC<TravelRecordEditModalProps> = ({
           images: finalImages,
           updated_at: new Date().toISOString()
         })
-        .eq('id', record.id);
+        .eq('id', record.id)
+        .select()
+        .single();
 
       if (error) {
         console.error('Error updating travel record:', error);
         toast.error('여행 기록 수정에 실패했습니다.');
         return;
+      }
+
+      // place_reviews 동기화
+      if (editData.is_public !== record.is_public) {
+        // 공개 설정이 변경된 경우
+        if (editData.is_public) {
+          await syncToPlaceReviews(updatedRecord, 'insert');
+        } else {
+          await syncToPlaceReviews(updatedRecord, 'delete');
+        }
+      } else if (editData.is_public) {
+        // 공개 상태이고 내용이 변경된 경우 업데이트
+        await syncToPlaceReviews(updatedRecord, 'update');
       }
 
       toast.success('여행 기록이 수정되었습니다.');
