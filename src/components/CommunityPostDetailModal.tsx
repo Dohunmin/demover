@@ -70,6 +70,9 @@ const CommunityPostDetailModal = ({ post, isOpen, onClose, onEdit, onDelete }: C
 
   useEffect(() => {
     if (post && isOpen) {
+      console.log('Post data:', post);
+      console.log('Post is_anonymous:', post.is_anonymous);
+      console.log('Post profiles:', post.profiles);
       fetchComments();
       fetchLikes();
     }
@@ -114,10 +117,14 @@ const CommunityPostDetailModal = ({ post, isOpen, onClose, onEdit, onDelete }: C
         .rpc('get_safe_public_profile_fields');
 
       // Combine comments with profiles
-      const commentsWithProfiles = commentsData?.map(comment => ({
-        ...comment,
-        profiles: profilesData?.find(profile => profile.user_id === comment.user_id)
-      })) || [];
+      const commentsWithProfiles = commentsData?.map(comment => {
+        const profile = profilesData?.find(profile => profile.user_id === comment.user_id);
+        console.log('Comment profile:', comment.user_id, profile);
+        return {
+          ...comment,
+          profiles: profile
+        };
+      }) || [];
 
       setComments(commentsWithProfiles);
       setCommentsCount(commentsWithProfiles.length);
