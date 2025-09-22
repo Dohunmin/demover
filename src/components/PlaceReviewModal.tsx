@@ -13,6 +13,12 @@ interface Review {
   rating: number;
   comment: string;
   created_at: string;
+  profiles?: {
+    full_name?: string;
+    avatar_url?: string;
+    pet_name?: string;
+    pet_image_url?: string;
+  };
 }
 
 interface ReviewStats {
@@ -57,7 +63,19 @@ const PlaceReviewModal: React.FC<PlaceReviewModalProps> = ({ isOpen, onClose, on
       // 모든 리뷰 가져오기
       const { data: allReviews, error: reviewsError } = await supabase
         .from('place_reviews')
-        .select('id, user_id, rating, comment, created_at')
+        .select(`
+          id, 
+          user_id, 
+          rating, 
+          comment, 
+          created_at,
+          profiles (
+            full_name,
+            avatar_url,
+            pet_name,
+            pet_image_url
+          )
+        `)
         .eq('content_id', place.contentid)
         .order('created_at', { ascending: false });
 
@@ -282,7 +300,7 @@ const PlaceReviewModal: React.FC<PlaceReviewModalProps> = ({ isOpen, onClose, on
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm">
-                          {review.user_id === user?.id ? '내 리뷰' : '익명 사용자'}
+                          {review.user_id === user?.id ? '내 리뷰' : (review.profiles?.pet_name || review.profiles?.full_name || '사용자')}
                         </span>
                         {renderStars(review.rating)}
                       </div>
