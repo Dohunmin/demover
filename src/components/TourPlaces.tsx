@@ -738,7 +738,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
           {/* 콘텐츠 영역 */}
           <div className="flex-1 p-4 min-w-0">
             <div className="flex justify-between items-start">
-              <div className="flex-1">
+              <div className="flex-1 pr-2">
                 <h4 className="font-semibold text-gray-900 text-sm leading-tight line-clamp-1">
                   {place.title}
                 </h4>
@@ -765,9 +765,9 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
                   place.addr1 && (
                     <div className="flex items-start gap-1 mt-1.5">
                       <MapPin className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
-                       <p className="text-xs text-gray-600 line-clamp-2">
-                         {place.addr1} {place.addr2}
-                       </p>
+                      <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
+                        {place.addr1} {place.addr2}
+                      </p>
                     </div>
                   )
                 )}
@@ -775,7 +775,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
               <Button
                 variant="ghost"
                 size="sm"
-                className={`bookmark-button flex-shrink-0 p-1 -mt-4 ${isBookmarked ? 'text-red-500 hover:text-red-600' : 'text-gray-400 hover:text-red-500'}`}
+                className={`bookmark-button flex-shrink-0 p-1 -mt-2 ${isBookmarked ? 'text-red-500 hover:text-red-600' : 'text-gray-400 hover:text-red-500'}`}
                 onClick={(e) => {
                   e.stopPropagation();
                   toggleBookmark(place, activeTab);
@@ -789,9 +789,9 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
             {reviewStats && reviewStats.totalReviews > 0 && place.addr1 && (
               <div className="flex items-start gap-1 mt-1.5">
                 <MapPin className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
-                 <p className="text-xs text-gray-600 line-clamp-2">
-                   {place.addr1} {place.addr2}
-                 </p>
+                <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
+                  {place.addr1} {place.addr2}
+                </p>
               </div>
             )}
             
