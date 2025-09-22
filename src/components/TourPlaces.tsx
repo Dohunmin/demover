@@ -754,8 +754,8 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
               </Button>
             </div>
 
-            {/* 평점 정보 - 일정한 높이 유지 */}
-            <div className="mb-2 h-5 flex items-center">
+            {/* 평점 정보 - 여행지명과 주소 사이의 고정 공간 */}
+            <div className="mb-2">
               {reviewStats && reviewStats.totalReviews > 0 ? (
                 <div className="flex items-center gap-1">
                   <div className="flex">
@@ -773,7 +773,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
                   </span>
                 </div>
               ) : (
-                <div className="w-full h-full"></div>
+                <div className="h-4"></div>
               )}
             </div>
             
