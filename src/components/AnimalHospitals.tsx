@@ -29,7 +29,7 @@ const AnimalHospitals = () => {
   const [filteredHospitals, setFilteredHospitals] = useState<AnimalHospital[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchName, setSearchName] = useState('');
-  const [selectedGugun, setSelectedGugun] = useState(fromCategory ? 'all' : '중구');
+  const [selectedGugun, setSelectedGugun] = useState(fromCategory ? 'all' : '동구');
   const [currentView, setCurrentView] = useState<'list' | 'map'>('list');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -52,9 +52,9 @@ const AnimalHospitals = () => {
         // 카테고리에서 들어온 경우 전체 데이터 표시
         setFilteredHospitals(hospitals);
       } else {
-        // 다른 경로로 들어온 경우 중구 데이터로 필터링
+        // 다른 경로로 들어온 경우 동구 데이터로 필터링
         const filtered = hospitals.filter(hospital => 
-          hospital.gugun && hospital.gugun.includes('중구')
+          hospital.gugun && hospital.gugun.includes('동구')
         );
         setFilteredHospitals(filtered);
       }
@@ -113,7 +113,7 @@ const AnimalHospitals = () => {
 
   const handleReset = () => {
     setSearchName('');
-    setSelectedGugun(fromCategory ? 'all' : '중구');
+    setSelectedGugun(fromCategory ? 'all' : '동구');
     setFilteredHospitals(hospitals);
     setCurrentPage(1); // 리셋 시 첫 페이지로 이동
   };
@@ -226,10 +226,10 @@ const AnimalHospitals = () => {
             <Button
               onClick={() => {
                 setCurrentView('map');
-                setSelectedGugun('중구');
-                // 중구로 필터링
+                setSelectedGugun('동구');
+                // 동구로 필터링
                 const filtered = hospitals.filter(hospital => 
-                  hospital.gugun && hospital.gugun.includes('중구')
+                  hospital.gugun && hospital.gugun.includes('동구')
                 );
                 setFilteredHospitals(filtered);
                 setCurrentPage(1);

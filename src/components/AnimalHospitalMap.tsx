@@ -208,18 +208,18 @@ const AnimalHospitalMap: React.FC<AnimalHospitalMapProps> = ({ hospitals }) => {
         // 인포윈도우 생성
         const infoWindow = new window.kakao.maps.InfoWindow({
           content: `
-            <div style="padding: 12px; min-width: 220px; max-width: 280px;">
-              <h4 style="margin: 0 0 8px 0; font-weight: bold; font-size: 14px; color: #333; line-height: 1.3;">
+            <div style="padding: 12px; min-width: 220px; max-width: 280px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+              <h4 style="margin: 0 0 8px 0; font-weight: bold; font-size: 14px; color: #333; line-height: 1.3; word-wrap: break-word; word-break: keep-all; overflow-wrap: break-word;">
                 🏥 ${hospital.animal_hospital || '병원명 정보 없음'}
               </h4>
               <div style="font-size: 10px; color: #666; margin-bottom: 6px; background: #F3F4F6; padding: 3px 6px; border-radius: 8px; display: inline-block;">
                 📍 ${hospital.gugun || '구/군 정보 없음'}
               </div>
-              <div style="font-size: 11px; color: #333; margin-bottom: 4px; line-height: 1.2;">
+              <div style="font-size: 11px; color: #333; margin-bottom: 4px; line-height: 1.4; word-wrap: break-word; word-break: keep-all; overflow-wrap: break-word;">
                 <strong>주소:</strong> ${hospital.road_address || '주소 정보 없음'}
               </div>
               ${hospital.tel ? `
-                <div style="font-size: 11px; color: #333; margin-bottom: 4px;">
+                <div style="font-size: 11px; color: #333; margin-bottom: 4px; word-wrap: break-word;">
                   <strong>전화:</strong> ${hospital.tel}
                 </div>
               ` : ''}
