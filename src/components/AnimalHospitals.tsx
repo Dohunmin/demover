@@ -8,6 +8,7 @@ import AdBanner from '@/components/AdBanner';
 import Footer from '@/components/Footer';
 import AnimalHospitalMap from '@/components/AnimalHospitalMap';
 import { supabase } from '@/integrations/supabase/client';
+import { useLocation } from 'react-router-dom';
 
 interface AnimalHospital {
   animal_hospital: string;
@@ -20,11 +21,15 @@ interface AnimalHospital {
 }
 
 const AnimalHospitals = () => {
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const fromCategory = searchParams.get('from') === 'category';
+  
   const [hospitals, setHospitals] = useState<AnimalHospital[]>([]);
   const [filteredHospitals, setFilteredHospitals] = useState<AnimalHospital[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchName, setSearchName] = useState('');
-  const [selectedGugun, setSelectedGugun] = useState('중구');
+  const [selectedGugun, setSelectedGugun] = useState(fromCategory ? 'all' : '중구');
   const [currentView, setCurrentView] = useState<'list' | 'map'>('list');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -40,15 +45,21 @@ const AnimalHospitals = () => {
     fetchHospitals();
   }, []);
 
-  // 병원 데이터가 로드되면 기본으로 중구 데이터로 필터링
+  // 병원 데이터가 로드되면 초기 필터링 적용
   useEffect(() => {
     if (hospitals.length > 0) {
-      const filtered = hospitals.filter(hospital => 
-        hospital.gugun && hospital.gugun.includes('중구')
-      );
-      setFilteredHospitals(filtered);
+      if (fromCategory) {
+        // 카테고리에서 들어온 경우 전체 데이터 표시
+        setFilteredHospitals(hospitals);
+      } else {
+        // 다른 경로로 들어온 경우 중구 데이터로 필터링
+        const filtered = hospitals.filter(hospital => 
+          hospital.gugun && hospital.gugun.includes('중구')
+        );
+        setFilteredHospitals(filtered);
+      }
     }
-  }, [hospitals]);
+  }, [hospitals, fromCategory]);
 
   const fetchHospitals = async () => {
     try {
@@ -102,7 +113,7 @@ const AnimalHospitals = () => {
 
   const handleReset = () => {
     setSearchName('');
-    setSelectedGugun('중구');
+    setSelectedGugun(fromCategory ? 'all' : '중구');
     setFilteredHospitals(hospitals);
     setCurrentPage(1); // 리셋 시 첫 페이지로 이동
   };

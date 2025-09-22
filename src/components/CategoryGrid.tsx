@@ -136,7 +136,7 @@ const CategoryGrid = () => {
 
   const handleCategoryClick = (categoryId: string) => {
     if (categoryId === 'hospital') {
-      navigate('/animal-hospitals');
+      navigate('/animal-hospitals?from=category');
     } else {
       // 여행지 페이지로 이동하면서 카테고리 정보 전달
       navigate(`/travel?category=${categoryId}`);
