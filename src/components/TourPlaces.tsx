@@ -737,10 +737,41 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
           
           {/* 콘텐츠 영역 */}
           <div className="flex-1 p-4 min-w-0">
-            <div className="flex justify-between items-start mb-2">
-              <h4 className="font-semibold text-gray-900 text-sm leading-tight line-clamp-1 pr-2">
-                {place.title}
-              </h4>
+            <div className="flex justify-between items-start">
+              <div className="flex-1 pr-2">
+                <h4 className="font-semibold text-gray-900 text-sm leading-tight line-clamp-1">
+                  {place.title}
+                </h4>
+                
+                {/* 평점 정보 - 여행지명 바로 아래 */}
+                {reviewStats && reviewStats.totalReviews > 0 ? (
+                  <div className="flex items-center gap-1 mt-1">
+                    <div className="flex">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`w-3 h-3 ${
+                            star <= reviewStats.averageRating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-xs text-gray-600">
+                      {reviewStats.averageRating}점 ({reviewStats.totalReviews}개)
+                    </span>
+                  </div>
+                ) : (
+                  /* 평점이 없으면 주소를 바로 아래 표시 */
+                  place.addr1 && (
+                    <div className="flex items-start gap-1 mt-1">
+                      <MapPin className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
+                      <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
+                        {place.addr1} {place.addr2}
+                      </p>
+                    </div>
+                  )
+                )}
+              </div>
               <Button
                 variant="ghost"
                 size="sm"
@@ -754,28 +785,9 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
               </Button>
             </div>
 
-            {/* 평점 정보 */}
-            {reviewStats && reviewStats.totalReviews > 0 && (
-              <div className="flex items-center gap-1 mb-2">
-                <div className="flex">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star
-                      key={star}
-                      className={`w-3 h-3 ${
-                        star <= reviewStats.averageRating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
-                      }`}
-                    />
-                  ))}
-                </div>
-                <span className="text-xs text-gray-600">
-                  {reviewStats.averageRating}점 ({reviewStats.totalReviews}개)
-                </span>
-              </div>
-            )}
-            
-            {/* 주소 */}
-            {place.addr1 && (
-              <div className="flex items-start gap-1 mb-2">
+            {/* 평점이 있을 때만 주소를 따로 표시 */}
+            {reviewStats && reviewStats.totalReviews > 0 && place.addr1 && (
+              <div className="flex items-start gap-1 mt-2">
                 <MapPin className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
                 <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
                   {place.addr1} {place.addr2}
