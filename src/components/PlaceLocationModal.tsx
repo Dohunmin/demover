@@ -233,50 +233,63 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
         content: `
           <div style="
             padding: 15px 18px; 
-            max-width: 400px; 
-            min-width: 280px;
+            width: 280px;
+            height: 100px;
             box-sizing: border-box;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Malgun Gothic', sans-serif;
             background: white;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
           ">
             <h4 style="
-              margin: 0 0 10px 0; 
+              margin: 0 0 8px 0; 
               font-weight: bold; 
               font-size: 16px; 
               color: #333;
-              line-height: 1.4;
-              word-wrap: break-word;
-              overflow-wrap: break-word;
+              line-height: 1.2;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
             ">
               ${place.title}
             </h4>
             <div style="
               font-size: 13px; 
               color: #666; 
-              margin-bottom: 8px;
-              line-height: 1.5;
-              word-wrap: break-word;
-              overflow-wrap: break-word;
+              margin-bottom: 6px;
+              line-height: 1.3;
               display: flex;
               align-items: flex-start;
               gap: 6px;
+              overflow: hidden;
             ">
-              <span style="color: #4285f4; font-size: 14px;">📍</span>
-              <span>${place.addr1} ${place.addr2 || ''}</span>
+              <span style="color: #4285f4; font-size: 14px; flex-shrink: 0;">📍</span>
+              <span style="
+                overflow: hidden;
+                text-overflow: ellipsis;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+              ">${place.addr1} ${place.addr2 || ''}</span>
             </div>
             ${place.tel ? `
               <div style="
                 font-size: 12px; 
                 color: #666;
-                line-height: 1.5;
-                word-wrap: break-word;
-                overflow-wrap: break-word;
+                line-height: 1.3;
                 display: flex;
                 align-items: center;
                 gap: 6px;
+                overflow: hidden;
               ">
-                <span style="color: #34a853; font-size: 14px;">📞</span>
-                <span>${place.tel}</span>
+                <span style="color: #34a853; font-size: 14px; flex-shrink: 0;">📞</span>
+                <span style="
+                  white-space: nowrap;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                ">${place.tel}</span>
               </div>
             ` : ''}
           </div>
