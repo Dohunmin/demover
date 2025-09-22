@@ -208,23 +208,82 @@ const AnimalHospitalMap: React.FC<AnimalHospitalMapProps> = ({ hospitals }) => {
         // 인포윈도우 생성
         const infoWindow = new window.kakao.maps.InfoWindow({
           content: `
-            <div style="padding: 12px; min-width: 220px; max-width: 280px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-              <h4 style="margin: 0 0 8px 0; font-weight: bold; font-size: 14px; color: #333; line-height: 1.3; word-wrap: break-word; word-break: keep-all; overflow-wrap: break-word;">
+            <div style="
+              padding: 12px; 
+              width: 260px; 
+              max-width: 260px; 
+              min-width: 260px; 
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              box-sizing: border-box;
+            ">
+              <h4 style="
+                margin: 0 0 8px 0; 
+                font-weight: bold; 
+                font-size: 14px; 
+                color: #333; 
+                line-height: 1.3; 
+                word-break: break-all;
+                white-space: normal;
+                overflow: hidden;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                max-height: 2.6em;
+              ">
                 🏥 ${hospital.animal_hospital || '병원명 정보 없음'}
               </h4>
-              <div style="font-size: 10px; color: #666; margin-bottom: 6px; background: #F3F4F6; padding: 3px 6px; border-radius: 8px; display: inline-block;">
+              <div style="
+                font-size: 10px; 
+                color: #666; 
+                margin-bottom: 6px; 
+                background: #F3F4F6; 
+                padding: 3px 6px; 
+                border-radius: 8px; 
+                display: inline-block;
+                max-width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+              ">
                 📍 ${hospital.gugun || '구/군 정보 없음'}
               </div>
-              <div style="font-size: 11px; color: #333; margin-bottom: 4px; line-height: 1.4; word-wrap: break-word; word-break: keep-all; overflow-wrap: break-word;">
+              <div style="
+                font-size: 11px; 
+                color: #333; 
+                margin-bottom: 4px; 
+                line-height: 1.4; 
+                word-break: break-all;
+                white-space: normal;
+                overflow: hidden;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                max-height: 2.8em;
+              ">
                 <strong>주소:</strong> ${hospital.road_address || '주소 정보 없음'}
               </div>
               ${hospital.tel ? `
-                <div style="font-size: 11px; color: #333; margin-bottom: 4px; word-wrap: break-word;">
+                <div style="
+                  font-size: 11px; 
+                  color: #333; 
+                  margin-bottom: 4px; 
+                  word-break: break-all;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                  white-space: nowrap;
+                ">
                   <strong>전화:</strong> ${hospital.tel}
                 </div>
               ` : ''}
               ${hospital.approval ? `
-                <div style="font-size: 10px; color: #666; margin-top: 6px;">
+                <div style="
+                  font-size: 10px; 
+                  color: #666; 
+                  margin-top: 6px;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                  white-space: nowrap;
+                ">
                   승인일: ${hospital.approval.slice(0, 10)}
                 </div>
               ` : ''}
