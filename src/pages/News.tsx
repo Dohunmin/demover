@@ -475,15 +475,15 @@ const News = () => {
                           record.profiles?.avatar_url || 
                           ""
                         } />
-                        <AvatarFallback>
-                           {record.profiles?.pet_name?.[0] || "사"}
-                         </AvatarFallback>
+                         <AvatarFallback>
+                            {(record.profiles?.pet_name || record.profiles?.full_name)?.[0] || "사"}
+                          </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-2 mb-1">
-                         <span className="text-sm font-medium break-words line-clamp-1">
-                             {record.profiles?.pet_name || "사용자"}
-                           </span>
+                          <span className="text-sm font-medium break-words line-clamp-1">
+                              {record.profiles?.pet_name || record.profiles?.full_name || "사용자"}
+                            </span>
                           <span className="text-xs text-muted-foreground flex-shrink-0">님이</span>
                         </div>
                         <div className="flex items-center space-x-1 mb-1">
@@ -621,14 +621,14 @@ const News = () => {
                         post.profiles?.avatar_url || 
                         "/placeholder.svg"
                       } />
-                      <AvatarFallback>
-                        {post.profiles?.pet_name?.[0] || "사"}
+                       <AvatarFallback>
+                        {(post.profiles?.pet_name || post.profiles?.full_name)?.[0] || "사"}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2 mb-2">
-                        <span className="text-sm font-medium">
-                          {post.profiles?.pet_name || "사용자"}
+                         <span className="text-sm font-medium">
+                          {post.profiles?.pet_name || post.profiles?.full_name || "사용자"}
                         </span>
                         <span className="inline-block bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs">
                           {getPostTypeLabel(post.post_type)}
@@ -688,14 +688,14 @@ const News = () => {
                         record.profiles?.avatar_url || 
                         ""
                       } />
-                      <AvatarFallback>
-                        {record.profiles?.pet_name?.[0] || "사"}
+                       <AvatarFallback>
+                        {(record.profiles?.pet_name || record.profiles?.full_name)?.[0] || "사"}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2 mb-2">
-                        <span className="text-sm font-medium">
-                          {record.profiles?.pet_name || "사용자"}
+                         <span className="text-sm font-medium">
+                          {record.profiles?.pet_name || record.profiles?.full_name || "사용자"}
                         </span>
                         <span className="text-xs text-muted-foreground">님의 여행</span>
                       </div>
