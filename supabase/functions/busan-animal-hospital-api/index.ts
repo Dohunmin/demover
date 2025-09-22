@@ -32,7 +32,7 @@ serve(async (req) => {
     console.log('Fetching animal hospital data with params:', { pageNo, numOfRows, gugun, hospitalName });
 
     // 부산 동물병원 OpenAPI 호출 (HTTP 직접 사용 - Deno TLS 호환성 문제로 인해)
-    const apiUrl = `http://apis.data.go.kr/6260000/BusanAnimalHospService/getTblAnimalHospital?serviceKey=${apiKey}&pageNo=${pageNo}&numOfRows=${numOfRows}&resultType=json`;
+    const apiUrl = `https://apis.data.go.kr/6260000/BusanAnimalHospService/getTblAnimalHospital?serviceKey=${apiKey}&pageNo=${pageNo}&numOfRows=${numOfRows}&resultType=json`;
     
     console.log('HTTP API URL:', apiUrl);
 
