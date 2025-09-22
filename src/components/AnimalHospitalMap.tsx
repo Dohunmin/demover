@@ -192,11 +192,25 @@ const AnimalHospitalMap: React.FC<AnimalHospitalMapProps> = ({ hospitals }) => {
         
         const position = new window.kakao.maps.LatLng(lat, lon);
 
-        // 마커 이미지 생성 (24x24 크기의 업로드된 이미지 사용)
-        const markerImageSrc = "/lovable-uploads/pet-hospital-marker.png";
+        // 동그란 배경에 아이콘이 들어간 마커 이미지 생성
+        const markerImageSrc = `data:image/svg+xml;base64,${btoa(`
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+            <defs>
+              <linearGradient id="markerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#1E40AF;stop-opacity:1" />
+              </linearGradient>
+              <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.3)"/>
+              </filter>
+            </defs>
+            <circle cx="16" cy="16" r="14" fill="url(#markerGrad)" stroke="white" stroke-width="2" filter="url(#shadow)"/>
+            <image href="/lovable-uploads/pet-hospital-icon.png" x="8" y="8" width="16" height="16"/>
+          </svg>
+        `)}`;
         
-        const imageSize = new window.kakao.maps.Size(24, 24);
-        const imageOption = { offset: new window.kakao.maps.Point(12, 24) };
+        const imageSize = new window.kakao.maps.Size(32, 32);
+        const imageOption = { offset: new window.kakao.maps.Point(16, 32) };
         const markerImage = new window.kakao.maps.MarkerImage(markerImageSrc, imageSize, imageOption);
 
         const marker = new window.kakao.maps.Marker({
