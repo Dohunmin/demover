@@ -320,7 +320,7 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl max-h-[90vh] p-0 overflow-hidden">
+        <DialogContent className="max-w-2xl max-h-[90vh] p-0 overflow-hidden rounded-lg">
           <DialogHeader className="p-6 pb-4">
             <div className="flex-1">
               <DialogTitle className="text-lg font-bold text-gray-900 mb-2">
@@ -361,7 +361,7 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => setShowReviewModal(true)}
-                className="flex items-center gap-2 text-sm"
+                className="flex items-center gap-2 text-sm rounded-lg"
               >
                 <Star className="h-4 w-4" />
                 평점
