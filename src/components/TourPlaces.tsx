@@ -754,28 +754,24 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
               </Button>
             </div>
 
-            {/* 평점 정보 - 여행지명과 주소 사이의 고정 공간 */}
-            <div className="mb-2">
-              {reviewStats && reviewStats.totalReviews > 0 ? (
-                <div className="flex items-center gap-1">
-                  <div className="flex">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        className={`w-3 h-3 ${
-                          star <= reviewStats.averageRating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-xs text-gray-600">
-                    {reviewStats.averageRating}점 ({reviewStats.totalReviews}개)
-                  </span>
+            {/* 평점 정보 */}
+            {reviewStats && reviewStats.totalReviews > 0 && (
+              <div className="flex items-center gap-1 mb-2">
+                <div className="flex">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`w-3 h-3 ${
+                        star <= reviewStats.averageRating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+                      }`}
+                    />
+                  ))}
                 </div>
-              ) : (
-                <div className="h-4"></div>
-              )}
-            </div>
+                <span className="text-xs text-gray-600">
+                  {reviewStats.averageRating}점 ({reviewStats.totalReviews}개)
+                </span>
+              </div>
+            )}
             
             {/* 주소 */}
             {place.addr1 && (
