@@ -238,9 +238,6 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
             box-sizing: border-box;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Malgun Gothic', sans-serif;
             background: white;
-            border-radius: 8px;
-            border: 1px solid #e0e0e0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
           ">
             <h4 style="
               margin: 0 0 10px 0; 
