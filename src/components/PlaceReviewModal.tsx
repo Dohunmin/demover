@@ -63,29 +63,35 @@ const PlaceReviewModal: React.FC<PlaceReviewModalProps> = ({ isOpen, onClose, on
       // 모든 리뷰 가져오기
       const { data: allReviews, error: reviewsError } = await supabase
         .from('place_reviews')
-        .select(`
-          id, 
-          user_id, 
-          rating, 
-          comment, 
-          created_at,
-          profiles (
-            full_name,
-            avatar_url,
-            pet_name,
-            pet_image_url
-          )
-        `)
+        .select('id, user_id, rating, comment, created_at')
         .eq('content_id', place.contentid)
         .order('created_at', { ascending: false });
 
+      if (reviewsError) {
+        console.error('Error fetching reviews:', reviewsError);
+        return;
+      }
+
+      // 프로필 정보 가져오기
+      const userIds = allReviews?.map(review => review.user_id) || [];
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, avatar_url, pet_name, pet_image_url')
+        .in('user_id', userIds);
+
+      // 리뷰에 프로필 정보 매핑
+      const reviewsWithProfiles = allReviews?.map(review => ({
+        ...review,
+        profiles: profilesData?.find(profile => profile.user_id === review.user_id)
+      })) || [];
+
       if (reviewsError) throw reviewsError;
 
-      setReviews(allReviews || []);
+      setReviews(reviewsWithProfiles);
 
       // 평균 평점 계산
-      if (allReviews && allReviews.length > 0) {
-        const avg = allReviews.reduce((sum, review) => sum + review.rating, 0) / allReviews.length;
+      if (reviewsWithProfiles && reviewsWithProfiles.length > 0) {
+        const avg = reviewsWithProfiles.reduce((sum, review) => sum + review.rating, 0) / reviewsWithProfiles.length;
         const avgRating = Math.round(avg * 10) / 10;
         setAverageRating(avgRating);
         
@@ -93,8 +99,16 @@ const PlaceReviewModal: React.FC<PlaceReviewModalProps> = ({ isOpen, onClose, on
         if (onReviewUpdate) {
           onReviewUpdate({
             averageRating: avgRating,
-            totalReviews: allReviews.length
+            totalReviews: reviewsWithProfiles.length
           });
+        }
+        
+        // 현재 사용자의 리뷰 찾기
+        const currentUserReview = reviewsWithProfiles.find(review => review.user_id === user?.id);
+        if (currentUserReview) {
+          setUserReview(currentUserReview);
+          setRating(currentUserReview.rating);
+          setComment(currentUserReview.comment);
         }
       } else {
         setAverageRating(0);
@@ -103,20 +117,6 @@ const PlaceReviewModal: React.FC<PlaceReviewModalProps> = ({ isOpen, onClose, on
             averageRating: 0,
             totalReviews: 0
           });
-        }
-      }
-
-      // 현재 사용자의 리뷰 확인
-      if (user) {
-        const userReviewData = allReviews?.find(review => review.user_id === user.id);
-        if (userReviewData) {
-          setUserReview(userReviewData);
-          setRating(userReviewData.rating);
-          setComment(userReviewData.comment || '');
-        } else {
-          setUserReview(null);
-          setRating(0);
-          setComment('');
         }
       }
     } catch (error) {
