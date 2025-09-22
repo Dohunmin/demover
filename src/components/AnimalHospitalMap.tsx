@@ -192,18 +192,24 @@ const AnimalHospitalMap: React.FC<AnimalHospitalMapProps> = ({ hospitals }) => {
         
         const position = new window.kakao.maps.LatLng(lat, lon);
 
-        // 로고 마커 이미지 생성
+        // 주사기 마커 이미지 생성
         const markerImageSrc = `data:image/svg+xml;base64,${btoa(`
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" width="30" height="30">
             <defs>
               <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#60A5FA;stop-opacity:1" />
-                <stop offset="50%" style="stop-color:#93C5FD;stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#FDE047;stop-opacity:1" />
+                <stop offset="0%" style="stop-color:#22C55E;stop-opacity:1" />
+                <stop offset="50%" style="stop-color:#4ADE80;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#86EFAC;stop-opacity:1" />
               </linearGradient>
             </defs>
             <circle cx="15" cy="15" r="14" fill="url(#grad)" stroke="white" stroke-width="2"/>
-            <image href="/lovable-uploads/ac67abbc-77f6-49be-9553-8f14fcad6271.png" x="9" y="9" width="12" height="12"/>
+            <g transform="translate(8, 8)">
+              <path d="M3 7l1-1 8 8-1 1-8-8z" fill="white" stroke="#333" stroke-width="0.5"/>
+              <path d="M2 8l2-2 1 1-2 2-1-1z" fill="white" stroke="#333" stroke-width="0.5"/>
+              <circle cx="12" cy="4" r="1.5" fill="white" stroke="#333" stroke-width="0.5"/>
+              <path d="M11 2h2v1h-2v-1z" fill="#333"/>
+              <path d="M10.5 3h3v0.5h-3v-0.5z" fill="#333"/>
+            </g>
           </svg>
         `)}`;
         
