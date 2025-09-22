@@ -24,7 +24,7 @@ const AnimalHospitals = () => {
   const [filteredHospitals, setFilteredHospitals] = useState<AnimalHospital[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchName, setSearchName] = useState('');
-  const [selectedGugun, setSelectedGugun] = useState('all');
+  const [selectedGugun, setSelectedGugun] = useState('중구');
   const [currentView, setCurrentView] = useState<'list' | 'map'>('list');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -39,6 +39,16 @@ const AnimalHospitals = () => {
   useEffect(() => {
     fetchHospitals();
   }, []);
+
+  // 병원 데이터가 로드되면 기본으로 중구 데이터로 필터링
+  useEffect(() => {
+    if (hospitals.length > 0) {
+      const filtered = hospitals.filter(hospital => 
+        hospital.gugun && hospital.gugun.includes('중구')
+      );
+      setFilteredHospitals(filtered);
+    }
+  }, [hospitals]);
 
   const fetchHospitals = async () => {
     try {
@@ -92,7 +102,7 @@ const AnimalHospitals = () => {
 
   const handleReset = () => {
     setSearchName('');
-    setSelectedGugun('all');
+    setSelectedGugun('중구');
     setFilteredHospitals(hospitals);
     setCurrentPage(1); // 리셋 시 첫 페이지로 이동
   };
