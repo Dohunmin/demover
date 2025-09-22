@@ -737,7 +737,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
           
           {/* 콘텐츠 영역 */}
           <div className="flex-1 p-4 min-w-0">
-            <div className="flex justify-between items-start mb-1">
+            <div className={`flex justify-between items-start ${reviewStats && reviewStats.totalReviews > 0 ? 'mb-1' : 'mb-1'}`}>
               <h4 className="font-semibold text-gray-900 text-sm leading-tight line-clamp-1 pr-2">
                 {place.title}
               </h4>
@@ -754,26 +754,26 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
               </Button>
             </div>
 
-            {/* 평점 정보 공간 - 평점이 있을 때만 표시, 없을 때는 빈 공간 유지 */}
-            <div className="h-5 mb-1">
-              {reviewStats && reviewStats.totalReviews > 0 && (
-                <div className="flex items-center gap-1">
-                  <div className="flex">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        className={`w-3 h-3 ${
-                          star <= reviewStats.averageRating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-xs text-gray-600">
-                    {reviewStats.averageRating}점 ({reviewStats.totalReviews}개)
-                  </span>
+            {/* 평점 정보 또는 빈 공간 */}
+            {reviewStats && reviewStats.totalReviews > 0 ? (
+              <div className="flex items-center gap-1 mb-1">
+                <div className="flex">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`w-3 h-3 ${
+                        star <= reviewStats.averageRating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+                      }`}
+                    />
+                  ))}
                 </div>
-              )}
-            </div>
+                <span className="text-xs text-gray-600">
+                  {reviewStats.averageRating}점 ({reviewStats.totalReviews}개)
+                </span>
+              </div>
+            ) : (
+              <div className="h-5 mb-1"></div>
+            )}
             
             {/* 주소 */}
             {place.addr1 && (
