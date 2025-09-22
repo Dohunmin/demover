@@ -556,15 +556,12 @@ const News = () => {
                     >
                       <Avatar className="w-8 h-8 mr-3 flex-shrink-0">
                         <AvatarImage src={
-                          post.is_anonymous 
-                            ? "/placeholder.svg" 
-                            : (post.profiles?.pet_image_url || post.profiles?.avatar_url || "/placeholder.svg")
+                          post.profiles?.pet_image_url || 
+                          post.profiles?.avatar_url || 
+                          "/placeholder.svg"
                         } />
                         <AvatarFallback>
-                          {post.is_anonymous 
-                            ? '익' 
-                            : ((post.profiles?.pet_name || post.profiles?.full_name)?.[0] || "?")
-                          }
+                          {(post.profiles?.pet_name || post.profiles?.full_name)?.[0] || "?"}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
@@ -620,24 +617,18 @@ const News = () => {
                   <div className="flex items-start space-x-3">
                     <Avatar className="w-10 h-10 flex-shrink-0">
                       <AvatarImage src={
-                        post.is_anonymous 
-                          ? "/placeholder.svg" 
-                          : (post.profiles?.pet_image_url || post.profiles?.avatar_url || "/placeholder.svg")
+                        post.profiles?.pet_image_url || 
+                        post.profiles?.avatar_url || 
+                        "/placeholder.svg"
                       } />
                       <AvatarFallback>
-                        {post.is_anonymous 
-                          ? '익' 
-                          : ((post.profiles?.pet_name || post.profiles?.full_name)?.[0] || "?")
-                        }
+                        {(post.profiles?.pet_name || post.profiles?.full_name)?.[0] || "?"}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2 mb-2">
                         <span className="text-sm font-medium">
-                          {post.is_anonymous 
-                            ? '익명' 
-                            : (post.profiles?.pet_name || post.profiles?.full_name || "익명")
-                          }
+                          {post.profiles?.pet_name || post.profiles?.full_name || "사용자"}
                         </span>
                         <span className="inline-block bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs">
                           {getPostTypeLabel(post.post_type)}
