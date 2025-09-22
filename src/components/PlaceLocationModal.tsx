@@ -216,22 +216,10 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
       // 로고 마커 생성
       const position = new window.kakao.maps.LatLng(lat, lng);
       
-      const markerImageSrc = `data:image/svg+xml;base64,${btoa(`
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" width="30" height="30">
-          <defs>
-            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#60A5FA;stop-opacity:1" />
-              <stop offset="50%" style="stop-color:#93C5FD;stop-opacity:1" />
-              <stop offset="100%" style="stop-color:#FDE047;stop-opacity:1" />
-            </linearGradient>
-          </defs>
-          <circle cx="15" cy="15" r="14" fill="url(#grad)" stroke="white" stroke-width="2"/>
-          <image href="/lovable-uploads/ac67abbc-77f6-49be-9553-8f14fcad6271.png" x="9" y="9" width="12" height="12"/>
-        </svg>
-      `)}`;
+      const markerImageSrc = "/lovable-uploads/paw-marker.png";
       
-      const imageSize = new window.kakao.maps.Size(30, 30);
-      const imageOption = { offset: new window.kakao.maps.Point(15, 30) };
+      const imageSize = new window.kakao.maps.Size(40, 40);
+      const imageOption = { offset: new window.kakao.maps.Point(20, 40) };
       const markerImage = new window.kakao.maps.MarkerImage(markerImageSrc, imageSize, imageOption);
       
       markerRef.current = new window.kakao.maps.Marker({
