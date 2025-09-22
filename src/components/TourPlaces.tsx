@@ -756,7 +756,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
 
             {/* 평점 정보 */}
             {reviewStats && reviewStats.totalReviews > 0 && (
-              <div className="flex items-center gap-1 mb-2">
+              <div className="flex items-center mb-2">
                 <div className="flex">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <Star
