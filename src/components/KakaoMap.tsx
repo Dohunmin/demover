@@ -575,6 +575,9 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         beach: "해수욕장",
       };
       
+      // 이전 토스트 메시지들 모두 제거
+      toast.dismiss();
+      
       if (markerCount > 0) {
         const categoryName = categoryLabels[categoryId as keyof typeof categoryLabels] || categoryId;
         const mbtiText = mbtiFilter ? ` (${mbtiFilter} 필터)` : "";
