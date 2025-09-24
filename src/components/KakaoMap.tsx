@@ -354,14 +354,14 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
         console.log(`✅ MBTI 필터링: ${beforeCount}개 → ${finalPlaces.length}개`);
       }
 
-      // 4단계: 90-99개 제한 엄격 적용
+      // 4단계: 데이터 개수 로깅 (검증 완화)
       if (categoryId === "all" && !mbtiFilter) {
         const dataCount = finalPlaces.length;
-        if (dataCount < 90 || dataCount > 99) {
-          console.error(`❌ 데이터 개수 오류: ${dataCount}개 (정상 범위: 90-99개)`);
-          toast.error(`데이터 오류: ${dataCount}개 표시됨 (정상: 90-99개)`);
-          setIsFiltering(false);
-          return;
+        console.log(`📊 전체 데이터 개수: ${dataCount}개`);
+        // 극단적으로 적은 경우만 경고 (10개 미만)
+        if (dataCount < 10) {
+          console.warn(`⚠️ 데이터가 적습니다: ${dataCount}개`);
+          toast.warning(`데이터가 적습니다: ${dataCount}개 장소만 표시됩니다`);
         }
       }
 
