@@ -325,16 +325,17 @@ serve(async (req) => {
           console.log("📍 1단계: areaBasedList API로 기존 반려동물 정보 수집 중...");
           
           try {
-            // 여러 페이지를 가져와서 모든 데이터를 수집
-            const maxPages = 3; // 최대 3페이지까지 가져오기
+            // 더 많은 페이지를 가져와서 충분한 데이터 확보
+            const maxPages = 10; // 최대 10페이지까지 확장
             const itemsPerPage = 100;
+            let totalFromAreaBased = 0;
             
             for (let page = 1; page <= maxPages; page++) {
               const areaBasedUrl = `https://apis.data.go.kr/B551011/KorPetTourService/areaBasedList?serviceKey=${encodeURIComponent(
                 decodedApiKey
               )}&MobileOS=ETC&MobileApp=PetTravelApp&areaCode=${areaCode}&numOfRows=${itemsPerPage}&pageNo=${page}&_type=xml`;
 
-              console.log(`areaBasedList API URL (페이지 ${page}):`, areaBasedUrl);
+              console.log(`🔍 areaBasedList API 호출 (페이지 ${page}/${maxPages})`);
 
               const areaBasedResponse = await fetch(areaBasedUrl).catch(
                 async (httpsError) => {
@@ -346,7 +347,7 @@ serve(async (req) => {
 
               if (areaBasedResponse.ok) {
                 const responseText = await areaBasedResponse.text();
-                console.log(`areaBasedList 페이지 ${page} 응답 길이: ${responseText.length}`);
+                console.log(`📄 페이지 ${page} 응답 길이: ${responseText.length}`);
                 
                 const parsedData = parseXmlToJson(responseText);
                 
@@ -362,7 +363,8 @@ serve(async (req) => {
                     });
                   });
                   
-                  console.log(`✅ 페이지 ${page} 완료: areaBasedList에서 ${items.length}개 수집`);
+                  totalFromAreaBased += items.length;
+                  console.log(`✅ 페이지 ${page} 완료: ${items.length}개 수집 (누적: ${totalFromAreaBased}개)`);
                   
                   // 만약 이 페이지에서 가져온 데이터가 요청한 수보다 적다면, 다음 페이지는 없다는 뜻
                   if (items.length < itemsPerPage) {
@@ -374,10 +376,13 @@ serve(async (req) => {
                   break;
                 }
               } else {
-                console.log(`⚠️ areaBasedList API 페이지 ${page} 실패: ${areaBasedResponse.status}`);
-                break;
+                console.log(`❌ areaBasedList API 페이지 ${page} 실패: ${areaBasedResponse.status}`);
+                // 실패해도 계속 다음 페이지 시도
               }
             }
+            
+            console.log(`🎯 1단계 완료: areaBasedList에서 총 ${totalFromAreaBased}개 수집`);
+            
           } catch (error) {
             console.log(`⚠️ areaBasedList API 오류: ${error.message}`);
           }
@@ -415,13 +420,13 @@ serve(async (req) => {
                     keywordItem
                   )}&areaCode=${areaCode}&numOfRows=50&pageNo=1&_type=xml`;
 
-                  // 재시도 로직 (최대 3번 시도)
-                  for (let attempt = 1; attempt <= 3; attempt++) {
+                  // 재시도 로직 (최대 5번 시도로 증가)
+                  for (let attempt = 1; attempt <= 5; attempt++) {
                     try {
                       console.log(
                         `🔍 [${i + index + 1}/${
                           petFriendlyKeywords.length
-                        }] "${keywordItem}" 검색 중... (시도 ${attempt}/3)`
+                        }] "${keywordItem}" 검색 중... (시도 ${attempt}/5)`
                       );
 
                       const response = await fetch(searchUrl).catch(
@@ -439,42 +444,52 @@ serve(async (req) => {
                       if (response.ok) {
                         const responseText = await response.text();
                         
-                        const parsedData = parseXmlToJson(responseText);
-                        
-                        if (parsedData?.response?.body?.items?.item) {
-                          // 다건 응답 시 최대 3개 아이템까지 사용 (더 많은 데이터 수집)
-                          const items = Array.isArray(parsedData.response.body.items.item)
-                            ? parsedData.response.body.items.item.slice(0, 3)
-                            : [parsedData.response.body.items.item];
+                        if (responseText && responseText.length > 100) {
+                          const parsedData = parseXmlToJson(responseText);
+                          
+                          if (parsedData?.response?.body?.items?.item) {
+                            // 다건 응답 시 최대 3개 아이템까지 사용 (더 많은 데이터 수집)
+                            const items = Array.isArray(parsedData.response.body.items.item)
+                              ? parsedData.response.body.items.item.slice(0, 3)
+                              : [parsedData.response.body.items.item];
 
-                          items.forEach((item) => {
-                            allResults.push({
-                              ...item,
-                              searchKeyword: keywordItem,
+                            items.forEach((item) => {
+                              allResults.push({
+                                ...item,
+                                searchKeyword: keywordItem,
+                              });
                             });
-                          });
 
-                          successCount++;
-                          console.log(
-                            `✅ [${i + index + 1}] "${keywordItem}" 성공: ${items.length}개 수집`
-                          );
-                        } else {
-                          console.log(`⚠️ [${i + index + 1}] "${keywordItem}" 결과 없음`);
+                            successCount++;
+                            console.log(
+                              `✅ [${i + index + 1}] "${keywordItem}" 성공: ${items.length}개 수집`
+                            );
+                            return; // 성공 시 재시도 루프 완전 종료
+                          }
                         }
-                        break; // 성공 시 재시도 루프 탈출
+                        
+                        console.log(`⚠️ [${i + index + 1}] "${keywordItem}" 빈 응답 또는 데이터 없음 (시도 ${attempt}/5)`);
+                        
+                        // 빈 응답도 마지막 시도에서는 성공으로 처리
+                        if (attempt === 5) {
+                          successCount++;
+                          console.log(`✅ [${i + index + 1}] "${keywordItem}" 성공: 0개 (데이터 없음)`);
+                          return;
+                        }
                       } else {
                         throw new Error(`HTTP ${response.status}`);
                       }
                     } catch (error) {
                       console.log(
-                        `❌ [${i + index + 1}] "${keywordItem}" 실패 (시도 ${attempt}/3): ${error.message}`
+                        `❌ [${i + index + 1}] "${keywordItem}" 실패 (시도 ${attempt}/5): ${error.message}`
                       );
                       
-                      if (attempt === 3) {
+                      if (attempt === 5) {
                         errorCount++;
+                        console.log(`💀 [${i + index + 1}] "${keywordItem}" 최종 실패 (5회 모두 실패)`);
                       } else {
-                        // 재시도 전 잠시 대기
-                        await new Promise((resolve) => setTimeout(resolve, 1000));
+                        // 재시도 전 백오프 대기 (지수적 증가)
+                        await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
                       }
                     }
                   }
