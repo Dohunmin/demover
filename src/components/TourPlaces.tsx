@@ -80,7 +80,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [selectedPlaceForLocation, setSelectedPlaceForLocation] = useState<any>(null);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
-  const [placeReviews, setPlaceReviews] = useState<Record<string, {averageRating: number, totalReviews: number, travelRecords?: any[]}>>({});
+  const [placeReviews, setPlaceReviews] = useState<Record<string, {averageRating: number, totalReviews: number, travelRecords?: any[], placeReviews?: any[]}>>({});
   
   // 반려동물 키워드 검색 결과 캐시
   const [allPetPlacesCache, setAllPetPlacesCache] = useState<any[]>([]);
@@ -107,7 +107,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
         if (contentId) {
           const { data: reviewData, error: reviewError } = await supabase
             .from('place_reviews')
-            .select('rating')
+            .select('rating, comment')
             .eq('content_id', contentId);
 
           if (!reviewError && reviewData) {
@@ -143,7 +143,8 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
             stats: {
               averageRating: Math.round(averageRating * 10) / 10, // 소수점 1자리
               totalReviews,
-              travelRecords: travelReviewsData // 여행기록 데이터 포함
+              travelRecords: travelReviewsData, // 여행기록 데이터 포함
+              placeReviews: placeReviewsData // 장소 리뷰 데이터 포함
             }
           };
         }
@@ -154,7 +155,7 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
       const reviewResults = await Promise.all(reviewPromises);
       
       // 리뷰 통계 상태 업데이트
-      const newPlaceReviews: Record<string, {averageRating: number, totalReviews: number, travelRecords?: any[]}> = {};
+      const newPlaceReviews: Record<string, {averageRating: number, totalReviews: number, travelRecords?: any[], placeReviews?: any[]}> = {};
       reviewResults.forEach(({ contentId, stats }) => {
         if (stats) {
           newPlaceReviews[contentId] = stats;
@@ -790,11 +791,26 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
                         {reviewStats.averageRating}점 ({reviewStats.totalReviews}개)
                       </span>
                     </div>
-                    {/* 여행기록 메모 표시 */}
-                    {reviewStats.travelRecords && reviewStats.travelRecords.length > 0 && (
-                      <div className="text-xs text-gray-500 italic">
-                        "{reviewStats.travelRecords[0].memo?.substring(0, 30)}
-                        {reviewStats.travelRecords[0].memo && reviewStats.travelRecords[0].memo.length > 30 ? '...' : ''}"
+                    {/* 리뷰 댓글 표시 (place_reviews + travel_records) */}
+                    {((reviewStats.placeReviews && reviewStats.placeReviews.length > 0) || 
+                      (reviewStats.travelRecords && reviewStats.travelRecords.length > 0)) && (
+                      <div className="space-y-1">
+                        {/* place_reviews 댓글 표시 */}
+                        {reviewStats.placeReviews && reviewStats.placeReviews.length > 0 && 
+                         reviewStats.placeReviews[0].comment && (
+                          <div className="text-xs text-gray-500 italic">
+                            "{reviewStats.placeReviews[0].comment.substring(0, 30)}
+                            {reviewStats.placeReviews[0].comment.length > 30 ? '...' : ''}"
+                          </div>
+                        )}
+                        {/* travel_records 메모 표시 */}
+                        {reviewStats.travelRecords && reviewStats.travelRecords.length > 0 && 
+                         reviewStats.travelRecords[0].memo && (
+                          <div className="text-xs text-gray-500 italic">
+                            "{reviewStats.travelRecords[0].memo.substring(0, 30)}
+                            {reviewStats.travelRecords[0].memo.length > 30 ? '...' : ''}"
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
