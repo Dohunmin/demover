@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { MapPin, Search, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Place {
   place_name: string;
@@ -24,79 +25,18 @@ interface PlaceSearchProps {
   initialValue?: string;
 }
 
-declare global {
-  interface Window {
-    kakao: any;
-  }
-}
-
 const PlaceSearch: React.FC<PlaceSearchProps> = ({ onPlaceSelect, initialValue = "" }) => {
   const [searchQuery, setSearchQuery] = useState(initialValue);
   const [searchResults, setSearchResults] = useState<Place[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [isKakaoLoaded, setIsKakaoLoaded] = useState(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
-  useEffect(() => {
-    const initializeKakao = () => {
-      if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
-        console.log('✅ Kakao Maps API already loaded');
-        setIsKakaoLoaded(true);
-        return;
-      }
-
-      console.log('🔄 Loading Kakao Maps API...');
-      
-      // Kakao Maps JavaScript API 키 (웹 플랫폼용 공개 키)
-      const apiKey = 'c7cf9e7ecec81ad0090f5b7881b89e97';
-      
-      const script = document.createElement('script');
-      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&libraries=services`;
-      script.async = true;
-      script.onload = () => {
-        console.log('📍 Kakao Maps script loaded');
-        if (window.kakao && window.kakao.maps) {
-          window.kakao.maps.load(() => {
-            console.log('✅ Kakao Maps services loaded');
-            setIsKakaoLoaded(true);
-          });
-        }
-      };
-      script.onerror = (error) => {
-        console.error('❌ Failed to load Kakao Maps SDK:', error);
-        // 대안 키로 재시도
-        const fallbackScript = document.createElement('script');
-        fallbackScript.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=c7cf9e7ecec81ad0090f5b7881b89e97&libraries=services`;
-        fallbackScript.async = true;
-        fallbackScript.onload = () => {
-          console.log('📍 Fallback Kakao Maps script loaded');
-          if (window.kakao && window.kakao.maps) {
-            window.kakao.maps.load(() => {
-              console.log('✅ Fallback Kakao Maps services loaded');
-              setIsKakaoLoaded(true);
-            });
-          }
-        };
-        fallbackScript.onerror = () => {
-          console.error('❌ Fallback Kakao Maps SDK also failed');
-        };
-        document.head.appendChild(fallbackScript);
-      };
-      
-      document.head.appendChild(script);
-    };
-
-    initializeKakao();
-  }, []);
-
-  const searchPlaces = (query: string) => {
+  const searchPlaces = async (query: string) => {
     console.log('🔍 Searching for:', query);
-    console.log('Kakao loaded?', isKakaoLoaded);
-    console.log('Kakao services available?', !!window.kakao?.maps?.services);
     
-    if (!isKakaoLoaded || !window.kakao?.maps?.services || !query.trim()) {
-      console.log('❌ Search cancelled - missing requirements');
+    if (!query.trim()) {
+      console.log('❌ Search cancelled - empty query');
       setSearchResults([]);
       setShowResults(false);
       return;
@@ -105,39 +45,49 @@ const PlaceSearch: React.FC<PlaceSearchProps> = ({ onPlaceSelect, initialValue =
     setIsLoading(true);
     
     try {
-      const places = new window.kakao.maps.services.Places();
-      console.log('📍 Places service created');
+      console.log('📍 Calling Supabase function for place search');
       
-      places.keywordSearch(query, (result: Place[], status: string) => {
-        console.log('📍 Search result status:', status);
-        console.log('📍 Search results:', result);
-        
-        setIsLoading(false);
-        
-        if (status === window.kakao.maps.services.Status.OK && result) {
-          // 부산 지역 결과 우선순위로 정렬
-          const sortedResults = result.sort((a, b) => {
-            const aBusan = a.address_name.includes('부산') || a.road_address_name?.includes('부산');
-            const bBusan = b.address_name.includes('부산') || b.road_address_name?.includes('부산');
-            if (aBusan && !bBusan) return -1;
-            if (!aBusan && bBusan) return 1;
-            return 0;
-          });
-          
-          console.log('✅ Found', sortedResults.length, 'results');
-          setSearchResults(sortedResults.slice(0, 8)); // 더 많은 결과 표시
-          setShowResults(true);
-        } else {
-          console.log('❌ No results found or error occurred');
-          setSearchResults([]);
-          setShowResults(false);
+      const { data, error } = await supabase.functions.invoke('kakao-proxy', {
+        body: { 
+          op: 'keyword',
+          query: query.trim(),
+          size: 10
         }
       });
+
+      console.log('📍 Supabase function response:', { data, error });
+      
+      if (error) {
+        console.error('❌ Supabase function error:', error);
+        setSearchResults([]);
+        setShowResults(false);
+        return;
+      }
+
+      if (data && data.documents) {
+        // 부산 지역 결과 우선순위로 정렬
+        const sortedResults = data.documents.sort((a: Place, b: Place) => {
+          const aBusan = a.address_name.includes('부산') || a.road_address_name?.includes('부산');
+          const bBusan = b.address_name.includes('부산') || b.road_address_name?.includes('부산');
+          if (aBusan && !bBusan) return -1;
+          if (!aBusan && bBusan) return 1;
+          return 0;
+        });
+        
+        console.log('✅ Found', sortedResults.length, 'results');
+        setSearchResults(sortedResults.slice(0, 8));
+        setShowResults(true);
+      } else {
+        console.log('❌ No results found');
+        setSearchResults([]);
+        setShowResults(false);
+      }
     } catch (error) {
       console.error('❌ Search error:', error);
-      setIsLoading(false);
       setSearchResults([]);
       setShowResults(false);
+    } finally {
+      setIsLoading(false);
     }
   };
 
