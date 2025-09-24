@@ -306,6 +306,8 @@ const Records = () => {
     latitude: number;
     longitude: number;
   }) => {
+    console.log('🎯 handlePlaceSelect called with:', place);
+    
     setNewRecord({
       ...newRecord,
       location_name: place.name,
@@ -313,6 +315,8 @@ const Records = () => {
       latitude: place.latitude,
       longitude: place.longitude
     });
+    
+    console.log('✅ newRecord updated');
   };
 
   const handleRecordClick = (record: TravelRecord) => {

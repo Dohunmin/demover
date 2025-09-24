@@ -41,10 +41,13 @@ const PlaceSearch: React.FC<PlaceSearchProps> = ({ onPlaceSelect, initialValue =
   useEffect(() => {
     const initializeKakao = () => {
       if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
+        console.log('✅ Kakao Maps API already loaded');
         setIsKakaoLoaded(true);
         return;
       }
 
+      console.log('🔄 Loading Kakao Maps API...');
+      
       // Kakao Maps JavaScript API 키 (웹 플랫폼용 공개 키)
       const apiKey = 'c7cf9e7ecec81ad0090f5b7881b89e97';
       
@@ -52,24 +55,31 @@ const PlaceSearch: React.FC<PlaceSearchProps> = ({ onPlaceSelect, initialValue =
       script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&libraries=services`;
       script.async = true;
       script.onload = () => {
+        console.log('📍 Kakao Maps script loaded');
         if (window.kakao && window.kakao.maps) {
           window.kakao.maps.load(() => {
+            console.log('✅ Kakao Maps services loaded');
             setIsKakaoLoaded(true);
           });
         }
       };
       script.onerror = (error) => {
-        console.error('Failed to load Kakao Maps SDK:', error);
+        console.error('❌ Failed to load Kakao Maps SDK:', error);
         // 대안 키로 재시도
         const fallbackScript = document.createElement('script');
         fallbackScript.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=c7cf9e7ecec81ad0090f5b7881b89e97&libraries=services`;
         fallbackScript.async = true;
         fallbackScript.onload = () => {
+          console.log('📍 Fallback Kakao Maps script loaded');
           if (window.kakao && window.kakao.maps) {
             window.kakao.maps.load(() => {
+              console.log('✅ Fallback Kakao Maps services loaded');
               setIsKakaoLoaded(true);
             });
           }
+        };
+        fallbackScript.onerror = () => {
+          console.error('❌ Fallback Kakao Maps SDK also failed');
         };
         document.head.appendChild(fallbackScript);
       };
@@ -81,7 +91,12 @@ const PlaceSearch: React.FC<PlaceSearchProps> = ({ onPlaceSelect, initialValue =
   }, []);
 
   const searchPlaces = (query: string) => {
+    console.log('🔍 Searching for:', query);
+    console.log('Kakao loaded?', isKakaoLoaded);
+    console.log('Kakao services available?', !!window.kakao?.maps?.services);
+    
     if (!isKakaoLoaded || !window.kakao?.maps?.services || !query.trim()) {
+      console.log('❌ Search cancelled - missing requirements');
       setSearchResults([]);
       setShowResults(false);
       return;
@@ -91,8 +106,12 @@ const PlaceSearch: React.FC<PlaceSearchProps> = ({ onPlaceSelect, initialValue =
     
     try {
       const places = new window.kakao.maps.services.Places();
+      console.log('📍 Places service created');
       
       places.keywordSearch(query, (result: Place[], status: string) => {
+        console.log('📍 Search result status:', status);
+        console.log('📍 Search results:', result);
+        
         setIsLoading(false);
         
         if (status === window.kakao.maps.services.Status.OK && result) {
@@ -105,15 +124,17 @@ const PlaceSearch: React.FC<PlaceSearchProps> = ({ onPlaceSelect, initialValue =
             return 0;
           });
           
+          console.log('✅ Found', sortedResults.length, 'results');
           setSearchResults(sortedResults.slice(0, 8)); // 더 많은 결과 표시
           setShowResults(true);
         } else {
+          console.log('❌ No results found or error occurred');
           setSearchResults([]);
           setShowResults(false);
         }
       });
     } catch (error) {
-      console.error('Search error:', error);
+      console.error('❌ Search error:', error);
       setIsLoading(false);
       setSearchResults([]);
       setShowResults(false);
@@ -140,6 +161,8 @@ const PlaceSearch: React.FC<PlaceSearchProps> = ({ onPlaceSelect, initialValue =
   };
 
   const handlePlaceSelect = (place: Place) => {
+    console.log('📍 Place selected:', place);
+    
     const selectedPlace = {
       name: place.place_name,
       address: place.road_address_name || place.address_name,
@@ -147,6 +170,8 @@ const PlaceSearch: React.FC<PlaceSearchProps> = ({ onPlaceSelect, initialValue =
       longitude: parseFloat(place.x)
     };
 
+    console.log('📍 Selected place data:', selectedPlace);
+    
     setSearchQuery(place.place_name);
     setShowResults(false);
     onPlaceSelect(selectedPlace);
