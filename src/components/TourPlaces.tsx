@@ -80,52 +80,81 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [selectedPlaceForLocation, setSelectedPlaceForLocation] = useState<any>(null);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
-  const [placeReviews, setPlaceReviews] = useState<Record<string, {averageRating: number, totalReviews: number}>>({});
+  const [placeReviews, setPlaceReviews] = useState<Record<string, {averageRating: number, totalReviews: number, travelRecords?: any[]}>>({});
   
   // 반려동물 키워드 검색 결과 캐시
   const [allPetPlacesCache, setAllPetPlacesCache] = useState<any[]>([]);
   const [petCacheLoaded, setPetCacheLoaded] = useState(false);
   const [petDataLoading, setPetDataLoading] = useState(false);
 
-  // 장소별 리뷰 통계 로드
+  // 장소별 리뷰 통계 로드 (place_reviews + travel_records)
   const loadPlaceReviews = async (places: any[]) => {
     if (!places || places.length === 0) return;
     
     const contentIds = places.map(place => place.contentid || place.contentId).filter(Boolean);
-    if (contentIds.length === 0) return;
+    const placeNames = places.map(place => place.title).filter(Boolean);
+    
+    if (contentIds.length === 0 && placeNames.length === 0) return;
 
     try {
       // 각 장소별로 리뷰 통계 조회
-      const reviewPromises = contentIds.map(async (contentId) => {
-        const { data, error } = await supabase
-          .from('place_reviews')
-          .select('rating')
-          .eq('content_id', contentId);
+      const reviewPromises = places.map(async (place) => {
+        const contentId = place.contentid || place.contentId;
+        const placeName = place.title;
+        
+        // place_reviews 테이블 조회
+        let placeReviewsData = [];
+        if (contentId) {
+          const { data: reviewData, error: reviewError } = await supabase
+            .from('place_reviews')
+            .select('rating')
+            .eq('content_id', contentId);
 
-        if (error) {
-          console.error(`장소 ${contentId} 리뷰 로드 오류:`, error);
-          return { contentId, stats: null };
+          if (!reviewError && reviewData) {
+            placeReviewsData = reviewData;
+          }
         }
 
-        if (data && data.length > 0) {
-          const totalReviews = data.length;
-          const averageRating = data.reduce((sum, review) => sum + review.rating, 0) / totalReviews;
+        // travel_records 테이블 조회 (장소명으로 매칭)
+        let travelReviewsData = [];
+        if (placeName) {
+          const { data: travelData, error: travelError } = await supabase
+            .from('travel_records')
+            .select('rating, memo')
+            .ilike('location_name', `%${placeName}%`)
+            .not('rating', 'is', null);
+
+          if (!travelError && travelData) {
+            travelReviewsData = travelData;
+          }
+        }
+
+        // 두 데이터 합치기
+        const combinedRatings = [
+          ...placeReviewsData.map(r => r.rating),
+          ...travelReviewsData.map(r => r.rating)
+        ];
+
+        if (combinedRatings.length > 0) {
+          const totalReviews = combinedRatings.length;
+          const averageRating = combinedRatings.reduce((sum, rating) => sum + rating, 0) / totalReviews;
           return {
-            contentId,
+            contentId: contentId || placeName,
             stats: {
               averageRating: Math.round(averageRating * 10) / 10, // 소수점 1자리
-              totalReviews
+              totalReviews,
+              travelRecords: travelReviewsData // 여행기록 데이터 포함
             }
           };
         }
 
-        return { contentId, stats: null };
+        return { contentId: contentId || placeName, stats: null };
       });
 
       const reviewResults = await Promise.all(reviewPromises);
       
       // 리뷰 통계 상태 업데이트
-      const newPlaceReviews: Record<string, {averageRating: number, totalReviews: number}> = {};
+      const newPlaceReviews: Record<string, {averageRating: number, totalReviews: number, travelRecords?: any[]}> = {};
       reviewResults.forEach(({ contentId, stats }) => {
         if (stats) {
           newPlaceReviews[contentId] = stats;
@@ -743,22 +772,31 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
                   {place.title}
                 </h4>
                 
-                {/* 평점 정보 - 여행지명 바로 아래 */}
+                {/* 평점 정보 - 여행지명 바로 아래 (place_reviews + travel_records) */}
                 {reviewStats && reviewStats.totalReviews > 0 ? (
-                  <div className="flex items-center gap-1 mt-1.5">
-                    <div className="flex">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                          key={star}
-                          className={`w-3 h-3 ${
-                            star <= reviewStats.averageRating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
-                          }`}
-                        />
-                      ))}
+                  <div className="flex flex-col gap-1 mt-1.5">
+                    <div className="flex items-center gap-1">
+                      <div className="flex">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            className={`w-3 h-3 ${
+                              star <= reviewStats.averageRating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-xs text-gray-600">
+                        {reviewStats.averageRating}점 ({reviewStats.totalReviews}개)
+                      </span>
                     </div>
-                    <span className="text-xs text-gray-600">
-                      {reviewStats.averageRating}점 ({reviewStats.totalReviews}개)
-                    </span>
+                    {/* 여행기록 메모 표시 */}
+                    {reviewStats.travelRecords && reviewStats.travelRecords.length > 0 && (
+                      <div className="text-xs text-gray-500 italic">
+                        "{reviewStats.travelRecords[0].memo?.substring(0, 30)}
+                        {reviewStats.travelRecords[0].memo && reviewStats.travelRecords[0].memo.length > 30 ? '...' : ''}"
+                      </div>
+                    )}
                   </div>
                 ) : (
                   /* 평점이 없으면 주소를 바로 아래 표시 */

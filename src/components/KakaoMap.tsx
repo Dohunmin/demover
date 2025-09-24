@@ -88,6 +88,84 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
   const markers = useRef<any[]>([]);
   const infoWindow = useRef<any>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const [placeReviews, setPlaceReviews] = useState<Record<string, {averageRating: number, totalReviews: number, travelRecords?: any[]}>>({});
+  
+  // 장소별 리뷰 통계 로드 (place_reviews + travel_records)
+  const loadPlaceReviews = async (places: any[]) => {
+    if (!places || places.length === 0) return;
+    
+    try {
+      // 각 장소별로 리뷰 통계 조회
+      const reviewPromises = places.map(async (place) => {
+        const placeName = place.title;
+        
+        if (!placeName) return { contentId: place.contentid || placeName, stats: null };
+        
+        // place_reviews 테이블 조회
+        let placeReviewsData = [];
+        if (place.contentid) {
+          const { data: reviewData, error: reviewError } = await supabase
+            .from('place_reviews')
+            .select('rating')
+            .eq('content_id', place.contentid);
+
+          if (!reviewError && reviewData) {
+            placeReviewsData = reviewData;
+          }
+        }
+
+        // travel_records 테이블 조회 (장소명으로 매칭)
+        const { data: travelData, error: travelError } = await supabase
+          .from('travel_records')
+          .select('rating, memo')
+          .ilike('location_name', `%${placeName}%`)
+          .not('rating', 'is', null);
+
+        let travelReviewsData = [];
+        if (!travelError && travelData) {
+          travelReviewsData = travelData;
+        }
+
+        // 두 데이터 합치기
+        const combinedRatings = [
+          ...placeReviewsData.map(r => r.rating),
+          ...travelReviewsData.map(r => r.rating)
+        ];
+
+        if (combinedRatings.length > 0) {
+          const totalReviews = combinedRatings.length;
+          const averageRating = combinedRatings.reduce((sum, rating) => sum + rating, 0) / totalReviews;
+          return {
+            contentId: place.contentid || placeName,
+            stats: {
+              averageRating: Math.round(averageRating * 10) / 10,
+              totalReviews,
+              travelRecords: travelReviewsData
+            }
+          };
+        }
+
+        return { contentId: place.contentid || placeName, stats: null };
+      });
+
+      const reviewResults = await Promise.all(reviewPromises);
+      
+      const newPlaceReviews: Record<string, {averageRating: number, totalReviews: number, travelRecords?: any[]}> = {};
+      reviewResults.forEach(({ contentId, stats }) => {
+        if (stats) {
+          newPlaceReviews[contentId] = stats;
+        }
+      });
+
+      setPlaceReviews(prev => ({
+        ...prev,
+        ...newPlaceReviews
+      }));
+
+    } catch (error) {
+      console.error('리뷰 통계 로드 실패:', error);
+    }
+  };
   // MBTI 코드인지 확인하는 함수
   const isMbtiCode = (code: string) => {
     return mbtiData.some(mbti => mbti.id === code);
@@ -408,6 +486,20 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
           // 마커 클릭 이벤트
           window.kakao.maps.event.addListener(marker, "click", () => {
+            const reviewStats = placeReviews[place.contentid || place.title];
+            
+            // 여행기록 평점과 메모 정보 추가
+            let travelRecordInfo = '';
+            if (reviewStats?.travelRecords && reviewStats.travelRecords.length > 0) {
+              const travelRecord = reviewStats.travelRecords[0];
+              travelRecordInfo = `
+                <div style="background: #FFF7ED; padding: 6px; border-radius: 8px; margin-bottom: 6px;">
+                  <div style="font-size: 10px; color: #EA580C; font-weight: bold; margin-bottom: 2px;">🏃‍♂️ 여행기록 (${reviewStats.averageRating}점)</div>
+                  ${travelRecord.memo ? `<div style="font-size: 9px; color: #9A3412; line-height: 1.2;">"${travelRecord.memo.substring(0, 50)}${travelRecord.memo.length > 50 ? '...' : ''}"</div>` : ''}
+                </div>
+              `;
+            }
+            
             const content = `
               <div style="padding: 12px; min-width: 200px; max-width: 240px; font-family: 'Malgun Gothic', sans-serif; position: relative; word-wrap: break-word; overflow: hidden;">
                 <button onclick="window.closeInfoWindow()" style="position: absolute; top: 6px; right: 6px; background: #f3f4f6; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 12px; color: #6b7280;">×</button>
@@ -417,6 +509,8 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
                 <div style="font-size: 10px; color: #666; margin-bottom: 6px; background: #FEF2F2; padding: 3px 6px; border-radius: 8px; display: inline-block;">
                   🐾 반려동물 동반 가능
                 </div>
+                
+                ${travelRecordInfo}
                 
                 ${place.locationGubun ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px; background: #F3F4F6; padding: 3px 6px; border-radius: 8px; display: inline-block; max-width: 100%; word-wrap: break-word;">📍 ${place.locationGubun}</div>` : ""}
                 ${place.mbti && place.mbti !== "all" ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px; background: #E0F2FE; padding: 3px 6px; border-radius: 8px; display: inline-block; max-width: 100%; word-wrap: break-word;">🧠 MBTI: ${Array.isArray(place.mbti) ? place.mbti.join(', ') : place.mbti}</div>` : ""}
@@ -458,6 +552,9 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
 
       setPetTourismMarkers(newMarkers);
       console.log(`🎯 최종 마커 생성 완료: ${markerCount}개`);
+      
+      // 여행기록 데이터 로드
+      loadPlaceReviews(finalPlaces);
       
       // 토스트 메시지
       const categoryLabels = {
