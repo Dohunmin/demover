@@ -13,13 +13,29 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const op = url.searchParams.get('op');
-    const query = url.searchParams.get('query');
-    const x = url.searchParams.get('x');
-    const y = url.searchParams.get('y');
-    const radius = url.searchParams.get('radius');
-    const page = url.searchParams.get('page') || '1';
-    const size = url.searchParams.get('size') || '15';
+    let op = url.searchParams.get('op');
+    let query = url.searchParams.get('query');
+    let x = url.searchParams.get('x');
+    let y = url.searchParams.get('y');
+    let radius = url.searchParams.get('radius');
+    let page = url.searchParams.get('page') || '1';
+    let size = url.searchParams.get('size') || '15';
+
+    // If parameters not in URL, try to get them from POST body
+    if (!op || !query) {
+      try {
+        const body = await req.json();
+        op = op || body.op;
+        query = query || body.query;
+        x = x || body.x;
+        y = y || body.y;
+        radius = radius || body.radius;
+        page = page || body.page || '1';
+        size = size || body.size || '15';
+      } catch (e) {
+        // Body parsing failed, continue with URL params only
+      }
+    }
 
     const kakaoApiKey = Deno.env.get('KAKAO_REST_API_KEY');
     if (!kakaoApiKey) {
@@ -32,9 +48,18 @@ serve(async (req) => {
 
     console.log('Kakao API Proxy Request:', { op, query, x, y, radius, page, size });
 
-    // Build Kakao API URL
+    // Build Kakao API URL - fix the endpoint path
     const kakaoBaseUrl = 'https://dapi.kakao.com';
-    const kakaoUrl = new URL(kakaoBaseUrl + op);
+    let endpoint = op;
+    if (op === 'keyword') {
+      endpoint = '/v2/local/search/keyword.json';
+    } else if (op === 'category') {
+      endpoint = '/v2/local/search/category.json';
+    } else if (!op.startsWith('/')) {
+      endpoint = op;
+    }
+    
+    const kakaoUrl = new URL(kakaoBaseUrl + endpoint);
     
     // Add parameters
     kakaoUrl.searchParams.set('query', query);
