@@ -791,28 +791,28 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
                         {reviewStats.averageRating}점 ({reviewStats.totalReviews}개)
                       </span>
                     </div>
-                    {/* 리뷰 댓글 표시 (place_reviews + travel_records) */}
-                    {((reviewStats.placeReviews && reviewStats.placeReviews.length > 0) || 
-                      (reviewStats.travelRecords && reviewStats.travelRecords.length > 0)) && (
-                      <div className="space-y-1">
-                        {/* place_reviews 댓글 표시 */}
-                        {reviewStats.placeReviews && reviewStats.placeReviews.length > 0 && 
-                         reviewStats.placeReviews[0].comment && (
+                    {/* 리뷰 댓글 표시 (place_reviews 우선, 없으면 travel_records) */}
+                    {(() => {
+                      // place_reviews 댓글이 있으면 우선 표시
+                      if (reviewStats.placeReviews && reviewStats.placeReviews.length > 0 && reviewStats.placeReviews[0].comment) {
+                        return (
                           <div className="text-xs text-gray-500 italic">
                             "{reviewStats.placeReviews[0].comment.substring(0, 30)}
                             {reviewStats.placeReviews[0].comment.length > 30 ? '...' : ''}"
                           </div>
-                        )}
-                        {/* travel_records 메모 표시 */}
-                        {reviewStats.travelRecords && reviewStats.travelRecords.length > 0 && 
-                         reviewStats.travelRecords[0].memo && (
+                        );
+                      }
+                      // place_reviews 댓글이 없으면 travel_records 메모 표시
+                      else if (reviewStats.travelRecords && reviewStats.travelRecords.length > 0 && reviewStats.travelRecords[0].memo) {
+                        return (
                           <div className="text-xs text-gray-500 italic">
                             "{reviewStats.travelRecords[0].memo.substring(0, 30)}
                             {reviewStats.travelRecords[0].memo.length > 30 ? '...' : ''}"
                           </div>
-                        )}
-                      </div>
-                    )}
+                        );
+                      }
+                      return null;
+                    })()}
                   </div>
                 ) : (
                   /* 평점이 없으면 주소를 바로 아래 표시 */
