@@ -877,96 +877,151 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       return;
     }
 
+    console.log("🔍 검색 시작:", searchQuery);
     setLoading(true);
 
     try {
-      // 카카오맵 장소 검색 서비스 사용
-      if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
-        const ps = new window.kakao.maps.services.Places();
+      // 카카오맵 Places 서비스 확인
+      if (!window.kakao || !window.kakao.maps || !window.kakao.maps.services) {
+        console.error("❌ 카카오맵 서비스가 로드되지 않음");
+        toast.error("카카오맵 서비스가 준비되지 않았습니다.");
+        setLoading(false);
+        return;
+      }
 
-        // 현재 지도 중심 좌표
-        const center = mapInstance.current.getCenter();
-        const searchOptions = {
-          location: center,
-          radius: 10000, // 10km 반경
-          size: 15,
-        };
+      console.log("✅ 카카오맵 서비스 확인됨");
+      const ps = new window.kakao.maps.services.Places();
 
-        ps.keywordSearch(
-          searchQuery,
-          (data: any[], status: any) => {
-            if (status === window.kakao.maps.services.Status.OK) {
-              // 기존 검색 마커 제거
-              markers.current.forEach((marker) => marker.setMap(null));
-              markers.current = [];
+      // 부산 지역으로 검색 범위 설정
+      const busanCenter = new window.kakao.maps.LatLng(35.1796, 129.0756);
+      const searchOptions = {
+        location: busanCenter,
+        radius: 20000, // 20km 반경으로 확대
+        size: 15,
+        page: 1
+      };
 
-              // 새 마커 추가
-              data.forEach((place: any) => {
-                const position = new window.kakao.maps.LatLng(place.y, place.x);
-                
-                const marker = new window.kakao.maps.Marker({
-                  position: position,
-                  clickable: true,
-                });
+      console.log("🔄 Places 검색 실행:", { query: searchQuery, options: searchOptions });
 
-                marker.setMap(mapInstance.current);
-                markers.current.push(marker);
+      ps.keywordSearch(
+        searchQuery,
+        (data: any[], status: any, pagination: any) => {
+          console.log("📡 검색 결과:", { status, dataLength: data?.length, pagination });
+          
+          if (status === window.kakao.maps.services.Status.OK) {
+            console.log("✅ 검색 성공:", data.length + "개 결과");
+            
+            // 기존 검색 마커 제거 (Pet 마커는 유지)
+            const searchMarkers = markers.current.filter(marker => marker._isSearchMarker);
+            searchMarkers.forEach(marker => marker.setMap(null));
+            markers.current = markers.current.filter(marker => !marker._isSearchMarker);
 
-                // 마커 클릭 이벤트
-                window.kakao.maps.event.addListener(marker, "click", () => {
-                  const content = `
-                    <div style="padding: 12px; min-width: 200px; max-width: 240px; font-family: 'Malgun Gothic', sans-serif; position: relative;">
-                      <button onclick="window.closeInfoWindow()" style="position: absolute; top: 6px; right: 6px; background: #f3f4f6; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 12px; color: #6b7280;">×</button>
-                      
-                      <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px; color: #2563eb; padding-right: 26px; line-height: 1.2;">${place.place_name}</div>
-                      
-                      <div style="font-size: 10px; color: #666; margin-bottom: 6px; background: #eff6ff; padding: 3px 6px; border-radius: 8px; display: inline-block;">
-                        📍 ${place.category_name}
-                      </div>
-                      
-                      <div style="font-size: 10px; color: #333; margin-bottom: 4px; line-height: 1.2; word-wrap: break-word; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${place.address_name}</div>
-                      ${place.road_address_name ? `<div style="font-size: 9px; color: #666; margin-bottom: 4px; word-wrap: break-word; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;">${place.road_address_name}</div>` : ""}
-                      ${place.phone ? `<div style="font-size: 10px; color: #666; margin-bottom: 6px;">📞 ${place.phone}</div>` : ""}
-                      
-                      ${place.place_url ? `
-                        <div style="text-align: center; margin-top: 6px;">
-                          <a href="${place.place_url}" target="_blank" style="color: #2563eb; font-size: 10px; text-decoration: none; background: #eff6ff; padding: 4px 8px; border-radius: 6px; display: inline-block; border: 1px solid #93c5fd;">
-                            🔗 카카오맵에서 보기
-                          </a>
-                        </div>
-                      ` : ""}
-                    </div>
-                  `;
-                  infoWindow.current.setContent(content);
-                  infoWindow.current.open(mapInstance.current, marker);
-
-                  // 정보창 닫기 함수를 전역에 등록
-                  (window as any).closeInfoWindow = () => {
-                    infoWindow.current.close();
-                  };
-                });
+            // 새 마커 추가
+            const bounds = new window.kakao.maps.LatLngBounds();
+            
+            data.forEach((place: any, index: number) => {
+              console.log(`📍 장소 ${index + 1}:`, place.place_name, place.address_name);
+              
+              const position = new window.kakao.maps.LatLng(place.y, place.x);
+              
+              // 검색 결과 마커 (빨간색)
+              const imageSize = new window.kakao.maps.Size(30, 35);
+              const imageOption = { offset: new window.kakao.maps.Point(15, 35) };
+              
+              const svgContent = `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 35" width="30" height="35">
+                  <defs>
+                    <filter id="shadow-search" x="-50%" y="-50%" width="200%" height="200%">
+                      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.4)"/>
+                    </filter>
+                  </defs>
+                  <path d="M15 0C6.71 0 0 6.71 0 15c0 11.25 15 20 15 20s15-8.75 15-20C30 6.71 23.29 0 15 0z" fill="#DC2626" stroke="white" stroke-width="1" filter="url(#shadow-search)"/>
+                  <circle cx="15" cy="15" r="8" fill="white"/>
+                  <text x="15" y="19" text-anchor="middle" font-size="10" font-weight="bold" fill="#DC2626">${index + 1}</text>
+                </svg>
+              `;
+              const searchMarkerSvg = `data:image/svg+xml;utf8,${encodeURIComponent(svgContent)}`;
+              
+              const markerImage = new window.kakao.maps.MarkerImage(searchMarkerSvg, imageSize, imageOption);
+              const marker = new window.kakao.maps.Marker({
+                position: position,
+                image: markerImage,
+                clickable: true,
               });
 
-              // 첫 번째 검색 결과로 지도 이동
-              if (data.length > 0) {
+              // 검색 마커 표시
+              marker._isSearchMarker = true; // 검색 마커 식별용
+              marker.setMap(mapInstance.current);
+              markers.current.push(marker);
+              
+              bounds.extend(position);
+
+              // 마커 클릭 이벤트
+              window.kakao.maps.event.addListener(marker, "click", () => {
+                const content = `
+                  <div style="padding: 12px; min-width: 200px; max-width: 280px; font-family: 'Malgun Gothic', sans-serif; position: relative; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 8px;">
+                    <button onclick="window.closeInfoWindow()" style="position: absolute; top: 8px; right: 8px; background: #f3f4f6; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; font-size: 14px; color: #6b7280;">×</button>
+                    
+                    <div style="font-weight: bold; font-size: 15px; margin-bottom: 8px; color: #DC2626; padding-right: 30px; line-height: 1.3;">${place.place_name}</div>
+                    
+                    <div style="font-size: 11px; color: #666; margin-bottom: 8px; background: #fef2f2; padding: 4px 8px; border-radius: 6px; display: inline-block; border: 1px solid #fecaca;">
+                      📍 ${place.category_name || '일반'}
+                    </div>
+                    
+                    <div style="font-size: 11px; color: #374151; margin-bottom: 6px; line-height: 1.4; word-wrap: break-word;">${place.address_name}</div>
+                    ${place.road_address_name ? `<div style="font-size: 10px; color: #6b7280; margin-bottom: 6px; line-height: 1.3;">(도로명) ${place.road_address_name}</div>` : ""}
+                    ${place.phone ? `<div style="font-size: 11px; color: #374151; margin-bottom: 8px;">📞 ${place.phone}</div>` : ""}
+                    
+                    <div style="text-align: center; margin-top: 10px;">
+                      ${place.place_url ? `<a href="${place.place_url}" target="_blank" style="color: white; font-size: 11px; text-decoration: none; background: #DC2626; padding: 6px 12px; border-radius: 6px; display: inline-block; margin-right: 8px;">🔗 카카오맵</a>` : ""}
+                      <button onclick="navigator.clipboard.writeText('${place.address_name}'); alert('주소가 복사되었습니다!');" style="color: #374151; font-size: 11px; background: #f3f4f6; padding: 6px 12px; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer;">📋 주소복사</button>
+                    </div>
+                  </div>
+                `;
+                infoWindow.current.setContent(content);
+                infoWindow.current.open(mapInstance.current, marker);
+
+                // 정보창 닫기 함수를 전역에 등록
+                (window as any).closeInfoWindow = () => {
+                  infoWindow.current.close();
+                };
+              });
+            });
+
+            // 검색 결과에 맞게 지도 범위 조정
+            if (data.length > 0) {
+              if (data.length === 1) {
+                // 결과가 1개면 해당 위치로 이동
                 const firstPlace = data[0];
                 const moveLatLng = new window.kakao.maps.LatLng(firstPlace.y, firstPlace.x);
-                mapInstance.current.panTo(moveLatLng);
+                mapInstance.current.setCenter(moveLatLng);
                 mapInstance.current.setLevel(3);
+              } else {
+                // 여러 결과가 있으면 모든 결과가 보이도록 범위 조정
+                mapInstance.current.setBounds(bounds);
               }
-
-              toast.success(`${data.length}개의 장소를 찾았습니다.`);
-            } else if (status === window.kakao.maps.services.Status.ZERO_RESULT) {
-              toast.warning("검색 결과가 없습니다.");
-            } else {
-              toast.error("검색 중 오류가 발생했습니다.");
             }
-          },
-          searchOptions
-        );
-      }
+
+            toast.success(`${data.length}개의 장소를 찾았습니다.`);
+            
+          } else if (status === window.kakao.maps.services.Status.ZERO_RESULT) {
+            console.log("⚠️ 검색 결과 없음");
+            toast.warning("검색 결과가 없습니다. 다른 키워드로 시도해보세요.");
+            
+          } else if (status === window.kakao.maps.services.Status.ERROR) {
+            console.error("❌ 검색 API 오류");
+            toast.error("검색 서비스에 일시적인 문제가 있습니다.");
+            
+          } else {
+            console.error("❌ 알 수 없는 검색 오류:", status);
+            toast.error("검색 중 알 수 없는 오류가 발생했습니다.");
+          }
+        },
+        searchOptions
+      );
+      
     } catch (error) {
-      console.error("장소 검색 오류:", error);
+      console.error("❌ 장소 검색 오류:", error);
       toast.error("검색 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
