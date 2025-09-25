@@ -686,29 +686,14 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
           if (window.kakao && window.kakao.maps) {
             window.kakao.maps.load(() => {
               if (isMounted) {
-                console.log("✅ 카카오 지도 초기화 완료");
-                initializeMap();
-              }
-            });
-          } else {
-            console.error("❌ 카카오 지도 객체를 찾을 수 없습니다");
-            toast.error("카카오 지도 초기화에 실패했습니다.");
-          }
-        };
-
-        script.onerror = () => {
-          console.error("❌ 카카오 지도 스크립트 로딩 실패");
-          toast.error("카카오 지도를 불러올 수 없습니다.");
-        };
-
-        script.onload = () => {
-          console.log("✅ 카카오 지도 스크립트 로드 성공");
-
-          if (window.kakao && window.kakao.maps) {
-            window.kakao.maps.load(() => {
-              if (isMounted) {
-                console.log("✅ 카카오 지도 초기화 완료");
-                initializeMap();
+                console.log("✅ 카카오 지도 API 로드 완료");
+                // 서비스가 준비될 때까지 잠시 대기
+                setTimeout(() => {
+                  if (window.kakao?.maps?.services) {
+                    console.log("✅ 카카오맵 서비스 준비 완료");
+                  }
+                  initializeMap();
+                }, 500);
               }
             });
           } else {
@@ -881,32 +866,15 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     setLoading(true);
 
     try {
-      // 카카오맵 서비스 로드 대기
-      const waitForServices = () => {
-        return new Promise((resolve, reject) => {
-          let attempts = 0;
-          const maxAttempts = 50; // 5초 대기
-          
-          const checkServices = () => {
-            attempts++;
-            
-            if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
-              console.log("✅ 카카오맵 서비스 확인됨");
-              resolve(true);
-            } else if (attempts >= maxAttempts) {
-              console.error("❌ 카카오맵 서비스 로드 시간 초과");
-              reject(new Error("카카오맵 서비스 로드 시간 초과"));
-            } else {
-              setTimeout(checkServices, 100);
-            }
-          };
-          
-          checkServices();
-        });
-      };
+      // 카카오맵 서비스 확인 - 더 간단하고 안정적인 방식
+      if (!window.kakao?.maps?.services?.Places) {
+        console.error("❌ 카카오맵 Places 서비스를 사용할 수 없습니다");
+        toast.error("지도 서비스 초기화가 필요합니다. 잠시 후 다시 시도해주세요.");
+        setLoading(false);
+        return;
+      }
 
-      // 서비스가 준비될 때까지 대기
-      await waitForServices();
+      console.log("✅ 카카오맵 Places 서비스 확인됨");
 
       const ps = new window.kakao.maps.services.Places();
 
