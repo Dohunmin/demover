@@ -60,35 +60,60 @@ const PlaceReviewModal: React.FC<PlaceReviewModalProps> = ({ isOpen, onClose, on
 
   const fetchReviews = async () => {
     try {
-      // 모든 리뷰 가져오기
-      const { data: allReviews, error: reviewsError } = await supabase
+      // place_reviews 테이블에서 리뷰 가져오기
+      const { data: placeReviews, error: reviewsError } = await supabase
         .from('place_reviews')
         .select('id, user_id, rating, comment, created_at')
         .eq('content_id', place.contentid)
         .order('created_at', { ascending: false });
 
       if (reviewsError) {
-        console.error('Error fetching reviews:', reviewsError);
+        console.error('Error fetching place reviews:', reviewsError);
         return;
+      }
+
+      // travel_records 테이블에서 리뷰 가져오기 (장소명으로 매칭)
+      const { data: travelReviews, error: travelError } = await supabase
+        .from('travel_records')
+        .select('id, user_id, rating, memo, created_at')
+        .ilike('location_name', `%${place.title}%`)
+        .not('rating', 'is', null)
+        .order('created_at', { ascending: false });
+
+      if (travelError) {
+        console.error('Error fetching travel reviews:', travelError);
       }
 
       // 프로필 정보 가져오기
       const { data: profilesData } = await supabase
         .rpc('get_safe_public_profile_fields');
 
-      // 리뷰에 프로필 정보 매핑
-      const reviewsWithProfiles = allReviews?.map(review => ({
+      // place_reviews에 프로필 정보 매핑
+      const placeReviewsWithProfiles = placeReviews?.map(review => ({
         ...review,
-        profiles: profilesData?.find(profile => profile.user_id === review.user_id)
+        profiles: profilesData?.find(profile => profile.user_id === review.user_id),
+        source: 'place_review'
       })) || [];
 
-      if (reviewsError) throw reviewsError;
+      // travel_records에 프로필 정보 매핑 (comment 필드를 memo로 매핑)
+      const travelReviewsWithProfiles = travelReviews?.map(record => ({
+        id: record.id,
+        user_id: record.user_id,
+        rating: record.rating,
+        comment: record.memo,
+        created_at: record.created_at,
+        profiles: profilesData?.find(profile => profile.user_id === record.user_id),
+        source: 'travel_record'
+      })) || [];
 
-      setReviews(reviewsWithProfiles);
+      // 두 데이터 합치기
+      const allReviewsWithProfiles = [...placeReviewsWithProfiles, ...travelReviewsWithProfiles];
+
+      setReviews(allReviewsWithProfiles);
 
       // 평균 평점 계산
-      if (reviewsWithProfiles && reviewsWithProfiles.length > 0) {
-        const avg = reviewsWithProfiles.reduce((sum, review) => sum + review.rating, 0) / reviewsWithProfiles.length;
+      if (allReviewsWithProfiles && allReviewsWithProfiles.length > 0) {
+        const avg = allReviewsWithProfiles.reduce((sum, review) => sum + review.rating, 0) / allReviewsWithProfiles.length;
         const avgRating = Math.round(avg * 10) / 10;
         setAverageRating(avgRating);
         
@@ -96,12 +121,12 @@ const PlaceReviewModal: React.FC<PlaceReviewModalProps> = ({ isOpen, onClose, on
         if (onReviewUpdate) {
           onReviewUpdate({
             averageRating: avgRating,
-            totalReviews: reviewsWithProfiles.length
+            totalReviews: allReviewsWithProfiles.length
           });
         }
         
-        // 현재 사용자의 리뷰 찾기
-        const currentUserReview = reviewsWithProfiles.find(review => review.user_id === user?.id);
+        // 현재 사용자의 place_review 리뷰 찾기 (수정/삭제 용도)
+        const currentUserReview = placeReviewsWithProfiles.find(review => review.user_id === user?.id);
         if (currentUserReview) {
           setUserReview(currentUserReview);
           setRating(currentUserReview.rating);
