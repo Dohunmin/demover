@@ -881,15 +881,33 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
     setLoading(true);
 
     try {
-      // 카카오맵 Places 서비스 확인
-      if (!window.kakao || !window.kakao.maps || !window.kakao.maps.services) {
-        console.error("❌ 카카오맵 서비스가 로드되지 않음");
-        toast.error("카카오맵 서비스가 준비되지 않았습니다.");
-        setLoading(false);
-        return;
-      }
+      // 카카오맵 서비스 로드 대기
+      const waitForServices = () => {
+        return new Promise((resolve, reject) => {
+          let attempts = 0;
+          const maxAttempts = 50; // 5초 대기
+          
+          const checkServices = () => {
+            attempts++;
+            
+            if (window.kakao && window.kakao.maps && window.kakao.maps.services) {
+              console.log("✅ 카카오맵 서비스 확인됨");
+              resolve(true);
+            } else if (attempts >= maxAttempts) {
+              console.error("❌ 카카오맵 서비스 로드 시간 초과");
+              reject(new Error("카카오맵 서비스 로드 시간 초과"));
+            } else {
+              setTimeout(checkServices, 100);
+            }
+          };
+          
+          checkServices();
+        });
+      };
 
-      console.log("✅ 카카오맵 서비스 확인됨");
+      // 서비스가 준비될 때까지 대기
+      await waitForServices();
+
       const ps = new window.kakao.maps.services.Places();
 
       // 부산 지역으로 검색 범위 설정
@@ -1022,7 +1040,7 @@ const KakaoMap: React.FC<KakaoMapProps> = ({
       
     } catch (error) {
       console.error("❌ 장소 검색 오류:", error);
-      toast.error("검색 중 오류가 발생했습니다.");
+      toast.error("카카오맵 서비스를 기다리는 중입니다. 잠시 후 다시 시도해주세요.");
     } finally {
       setLoading(false);
     }
