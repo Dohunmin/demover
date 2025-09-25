@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { X, MapPin, Phone, Star } from "lucide-react";
+import { X, MapPin, Phone, Star, Copy } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import PlaceReviewModal from './PlaceReviewModal';
+import { toast } from "sonner";
 
 interface PlaceLocationModalProps {
   place: {
@@ -278,6 +279,17 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
     }
   };
 
+  const copyAddress = async () => {
+    const fullAddress = `${place.addr1} ${place.addr2 || ''}`.trim();
+    try {
+      await navigator.clipboard.writeText(fullAddress);
+      toast.success("주소가 복사되었습니다");
+    } catch (error) {
+      console.error("주소 복사 실패:", error);
+      toast.error("주소 복사에 실패했습니다");
+    }
+  };
+
   if (!place) return null;
 
   const contentId = place.contentid || place.contentId;
@@ -291,9 +303,19 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
               <DialogTitle className="text-lg font-bold text-gray-900 mb-2">
                 {place.title}
               </DialogTitle>
-              <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
-                <MapPin className="w-4 h-4" />
-                <span>{place.addr1} {place.addr2}</span>
+              <div className="flex items-center justify-between text-sm text-gray-600 mb-1">
+                <div className="flex items-center gap-1">
+                  <MapPin className="w-4 h-4" />
+                  <span>{place.addr1} {place.addr2}</span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={copyAddress}
+                  className="h-6 w-6 p-0 ml-2 hover:bg-gray-100"
+                >
+                  <Copy className="h-3 w-3" />
+                </Button>
               </div>
               {place.tel && (
                 <div className="flex items-center gap-1 text-sm text-gray-600">
