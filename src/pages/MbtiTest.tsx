@@ -620,7 +620,7 @@ const MbtiTest = () => {
       const boxX = 30;
       const boxY = 190;
       const boxWidth = 540;
-      const boxHeight = 380;
+      const boxHeight = 480;
       
       // 박스 배경 (흰색)
       ctx.fillStyle = '#ffffff';
@@ -638,7 +638,7 @@ const MbtiTest = () => {
       await new Promise((resolve, reject) => {
         characterImg.onload = () => {
           // 이미지를 박스 상단 중앙에 그리기
-          const imgSize = 160;
+          const imgSize = 220;
           ctx.drawImage(characterImg, (600 - imgSize) / 2, boxY + 20, imgSize, imgSize);
           resolve(null);
         };
@@ -653,7 +653,7 @@ const MbtiTest = () => {
       const lineHeight = 22;
       const words = resultData.description.split(' ');
       let line = '';
-      let y = boxY + 200;
+      let y = boxY + 260;
 
       for (let i = 0; i < words.length; i++) {
         const testLine = line + words[i] + ' ';
