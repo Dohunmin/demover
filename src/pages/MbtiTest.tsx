@@ -900,14 +900,16 @@ const MbtiTest = () => {
             {resultData.tags.map((tag, index) => (
               <span
                 key={index}
-                className="bg-secondary text-muted-foreground text-sm rounded-full"
+                className="bg-secondary text-muted-foreground rounded-full"
                 style={{ 
                   paddingLeft: '12px',
                   paddingRight: '12px',
-                  paddingTop: '6px',
+                  paddingTop: '8px',
                   paddingBottom: '8px',
                   display: 'inline-block',
-                  lineHeight: '1.2'
+                  fontSize: '14px',
+                  lineHeight: '1',
+                  verticalAlign: 'top'
                 }}
               >
                 {tag}
