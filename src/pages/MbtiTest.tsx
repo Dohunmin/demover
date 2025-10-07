@@ -583,7 +583,8 @@ const MbtiTest = () => {
         backgroundColor: '#ffffff',
         scale: 2,
         useCORS: true,
-        allowTaint: false
+        allowTaint: false,
+        logging: false
       });
 
       // Canvas를 Blob으로 변환
@@ -904,12 +905,12 @@ const MbtiTest = () => {
                 style={{ 
                   paddingLeft: '12px',
                   paddingRight: '12px',
-                  paddingTop: '8px',
-                  paddingBottom: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '14px'
+                  paddingTop: '7px',
+                  paddingBottom: '9px',
+                  display: 'inline-block',
+                  fontSize: '14px',
+                  fontFamily: 'Pretendard, -apple-system, sans-serif',
+                  lineHeight: '1'
                 }}
               >
                 {tag}
