@@ -878,7 +878,7 @@ const MbtiTest = () => {
           </div>
 
           {/* Result Card */}
-          <Card className="card mb-6">
+          <Card className="card mb-3">
             {/* 캐릭터 이미지 */}
             {mbtiImages[result] && (
               <div className="flex justify-center mb-6">
