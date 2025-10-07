@@ -600,27 +600,27 @@ const MbtiTest = () => {
       ctx.fillRect(0, 0, 600, 1067);
 
       // 폰트 설정
-      ctx.font = '40px Pretendard, -apple-system, sans-serif';
+      ctx.font = '52px Pretendard, -apple-system, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
       // 이모지 아이콘
       ctx.fillStyle = '#000000';
-      ctx.fillText(resultData.icon, 300, 60);
+      ctx.fillText(resultData.icon, 300, 70);
 
       // MBTI 코드
-      ctx.font = 'bold 32px Pretendard, -apple-system, sans-serif';
-      ctx.fillText(result, 300, 120);
+      ctx.font = 'bold 42px Pretendard, -apple-system, sans-serif';
+      ctx.fillText(result, 300, 135);
 
       // 제목
-      ctx.font = 'bold 20px Pretendard, -apple-system, sans-serif';
-      ctx.fillText(resultData.title, 300, 155);
+      ctx.font = 'bold 26px Pretendard, -apple-system, sans-serif';
+      ctx.fillText(resultData.title, 300, 180);
 
       // 박스 그리기 (이미지와 설명을 감싸는 카드)
-      const boxX = 30;
-      const boxY = 190;
-      const boxWidth = 540;
-      const boxHeight = 480;
+      const boxX = 20;
+      const boxY = 220;
+      const boxWidth = 560;
+      const boxHeight = 600;
       
       // 박스 배경 (흰색)
       ctx.fillStyle = '#ffffff';
@@ -638,8 +638,8 @@ const MbtiTest = () => {
       await new Promise((resolve, reject) => {
         characterImg.onload = () => {
           // 이미지를 박스 상단 중앙에 그리기
-          const imgSize = 220;
-          ctx.drawImage(characterImg, (600 - imgSize) / 2, boxY + 20, imgSize, imgSize);
+          const imgSize = 280;
+          ctx.drawImage(characterImg, (600 - imgSize) / 2, boxY + 30, imgSize, imgSize);
           resolve(null);
         };
         characterImg.onerror = reject;
@@ -647,13 +647,13 @@ const MbtiTest = () => {
       });
 
       // 설명 텍스트 (박스 안, 여러 줄)
-      ctx.font = '15px Pretendard, -apple-system, sans-serif';
+      ctx.font = '17px Pretendard, -apple-system, sans-serif';
       ctx.fillStyle = '#333333';
-      const maxWidth = 490;
-      const lineHeight = 22;
+      const maxWidth = 520;
+      const lineHeight = 26;
       const words = resultData.description.split(' ');
       let line = '';
-      let y = boxY + 260;
+      let y = boxY + 340;
 
       for (let i = 0; i < words.length; i++) {
         const testLine = line + words[i] + ' ';
@@ -669,20 +669,20 @@ const MbtiTest = () => {
       ctx.fillText(line, 300, y);
 
       // 태그 그리기 (박스 밖)
-      const tagY = boxY + boxHeight + 25;
-      const tagPadding = 10;
-      const tagHeight = 28;
-      const tagGap = 6;
-      let currentX = 40;
+      const tagY = boxY + boxHeight + 30;
+      const tagPadding = 12;
+      const tagHeight = 32;
+      const tagGap = 8;
+      let currentX = 30;
 
-      ctx.font = '13px Pretendard, -apple-system, sans-serif';
+      ctx.font = '14px Pretendard, -apple-system, sans-serif';
       
       for (const tag of resultData.tags) {
         const tagWidth = ctx.measureText(tag).width + tagPadding * 2;
         
         // 다음 줄로 넘어가야 하는지 확인
-        if (currentX + tagWidth > 560) {
-          currentX = 40;
+        if (currentX + tagWidth > 570) {
+          currentX = 30;
         }
 
         // 배경 박스 (회색)
@@ -701,15 +701,15 @@ const MbtiTest = () => {
       }
 
       // 하단에 워터마크 추가
-      ctx.font = 'bold 13px Pretendard, -apple-system, sans-serif';
+      ctx.font = 'bold 14px Pretendard, -apple-system, sans-serif';
       ctx.fillStyle = '#666666';
       ctx.textAlign = 'center';
-      ctx.fillText('[멍멍! 일단출발해]', 300, 980);
+      ctx.fillText('[멍멍! 일단출발해]', 300, 1000);
       
-      ctx.font = '11px Pretendard, -apple-system, sans-serif';
+      ctx.font = '12px Pretendard, -apple-system, sans-serif';
       ctx.fillStyle = '#999999';
-      ctx.fillText('멍BTI - 반려견 여행 성향 테스트', 300, 1005);
-      ctx.fillText('letsgomong.com', 300, 1025);
+      ctx.fillText('멍BTI - 반려견 여행 성향 테스트', 300, 1025);
+      ctx.fillText('letsgomong.com', 300, 1045);
 
       // 캔버스를 Blob으로 변환하여 다운로드
       canvas.toBlob((blob) => {
