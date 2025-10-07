@@ -580,11 +580,11 @@ const MbtiTest = () => {
     if (!resultData) return;
 
     try {
-      // 캔버스 생성 (모바일 최적화 사이즈)
+      // 캔버스 생성 (모바일 뷰포트 비율: 9:16)
       const canvas = document.createElement('canvas');
       const scale = 2;
       canvas.width = 600 * scale;
-      canvas.height = 900 * scale;
+      canvas.height = 1067 * scale;
       const ctx = canvas.getContext('2d');
       
       if (!ctx) {
@@ -597,7 +597,7 @@ const MbtiTest = () => {
 
       // 배경색
       ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, 600, 900);
+      ctx.fillRect(0, 0, 600, 1067);
 
       // 폰트 설정
       ctx.font = '40px Pretendard, -apple-system, sans-serif';
@@ -704,12 +704,12 @@ const MbtiTest = () => {
       ctx.font = 'bold 13px Pretendard, -apple-system, sans-serif';
       ctx.fillStyle = '#666666';
       ctx.textAlign = 'center';
-      ctx.fillText('[멍멍! 일단출발해]', 300, 820);
+      ctx.fillText('[멍멍! 일단출발해]', 300, 980);
       
       ctx.font = '11px Pretendard, -apple-system, sans-serif';
       ctx.fillStyle = '#999999';
-      ctx.fillText('멍BTI - 반려견 여행 성향 테스트', 300, 845);
-      ctx.fillText('letsgomong.com', 300, 865);
+      ctx.fillText('멍BTI - 반려견 여행 성향 테스트', 300, 1005);
+      ctx.fillText('letsgomong.com', 300, 1025);
 
       // 캔버스를 Blob으로 변환하여 다운로드
       canvas.toBlob((blob) => {
