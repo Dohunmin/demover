@@ -896,11 +896,11 @@ const MbtiTest = () => {
           </Card>
 
           {/* Tags */}
-          <div className="flex flex-wrap gap-2 mb-6">
+          <div className="flex flex-wrap gap-2 mb-6 items-center">
             {resultData.tags.map((tag, index) => (
               <span
                 key={index}
-                className="px-3 py-1 bg-secondary text-muted-foreground text-sm rounded-full"
+                className="px-3 py-1 bg-secondary text-muted-foreground text-sm rounded-full inline-flex items-center"
               >
                 {tag}
               </span>
