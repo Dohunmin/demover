@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, PawPrint, Heart, MapPin, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import dogPawIcon from "@/assets/dog-paw-icon.png";
@@ -9,7 +9,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import html2canvas from "html2canvas";
 
 
 // 4가지 평가차원 데이터
@@ -439,7 +438,6 @@ const MbtiTest = () => {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const resultRef = useRef<HTMLDivElement>(null);
 
   // 기존 MBTI 결과 불러오기
   useEffect(() => {
@@ -574,20 +572,126 @@ const MbtiTest = () => {
     navigate(`/travel?category=${result}`);
   };
 
-  // 결과 이미지로 저장하기
+  // 결과 이미지로 저장하기 (Canvas API 직접 사용)
   const handleShareResult = async () => {
-    if (!resultRef.current) return;
+    if (!result) return;
+
+    const resultData = travelTypes.find(type => type.code === result);
+    if (!resultData) return;
 
     try {
-      const canvas = await html2canvas(resultRef.current, {
-        backgroundColor: '#ffffff',
-        scale: 2,
-        useCORS: true,
-        allowTaint: false,
-        logging: false
+      // 캔버스 생성 (고해상도)
+      const canvas = document.createElement('canvas');
+      const scale = 2;
+      canvas.width = 800 * scale;
+      canvas.height = 1000 * scale;
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx) {
+        toast.error("이미지 생성에 실패했습니다.");
+        return;
+      }
+
+      // 스케일 적용
+      ctx.scale(scale, scale);
+
+      // 배경색
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, 800, 1000);
+
+      // 폰트 설정
+      ctx.font = '48px Pretendard, -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // 이모지 아이콘
+      ctx.fillStyle = '#000000';
+      ctx.fillText(resultData.icon, 400, 80);
+
+      // MBTI 코드
+      ctx.font = 'bold 36px Pretendard, -apple-system, sans-serif';
+      ctx.fillText(result, 400, 150);
+
+      // 제목
+      ctx.font = 'bold 24px Pretendard, -apple-system, sans-serif';
+      ctx.fillText(resultData.title, 400, 190);
+
+      // 캐릭터 이미지 로드 및 그리기
+      const characterImg = new Image();
+      characterImg.crossOrigin = 'anonymous';
+      
+      await new Promise((resolve, reject) => {
+        characterImg.onload = () => {
+          // 이미지를 중앙에 그리기
+          const imgSize = 200;
+          ctx.drawImage(characterImg, (800 - imgSize) / 2, 240, imgSize, imgSize);
+          resolve(null);
+        };
+        characterImg.onerror = reject;
+        characterImg.src = mbtiImages[result];
       });
 
-      // Canvas를 Blob으로 변환
+      // 설명 텍스트 (여러 줄)
+      ctx.font = '16px Pretendard, -apple-system, sans-serif';
+      ctx.fillStyle = '#333333';
+      const maxWidth = 700;
+      const lineHeight = 24;
+      const words = resultData.description.split(' ');
+      let line = '';
+      let y = 480;
+
+      for (let i = 0; i < words.length; i++) {
+        const testLine = line + words[i] + ' ';
+        const metrics = ctx.measureText(testLine);
+        if (metrics.width > maxWidth && i > 0) {
+          ctx.fillText(line, 400, y);
+          line = words[i] + ' ';
+          y += lineHeight;
+        } else {
+          line = testLine;
+        }
+      }
+      ctx.fillText(line, 400, y);
+
+      // 태그 그리기
+      const tagY = y + 50;
+      const tagPadding = 12;
+      const tagHeight = 32;
+      const tagGap = 8;
+      let currentX = 50;
+
+      ctx.font = '14px Pretendard, -apple-system, sans-serif';
+      
+      for (const tag of resultData.tags) {
+        const tagWidth = ctx.measureText(tag).width + tagPadding * 2;
+        
+        // 다음 줄로 넘어가야 하는지 확인
+        if (currentX + tagWidth > 750) {
+          currentX = 50;
+        }
+
+        // 배경 박스 (회색)
+        ctx.fillStyle = '#f1f1f1';
+        ctx.beginPath();
+        ctx.roundRect(currentX, tagY, tagWidth, tagHeight, 16);
+        ctx.fill();
+
+        // 텍스트 (중앙 정렬)
+        ctx.fillStyle = '#666666';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(tag, currentX + tagWidth / 2, tagY + tagHeight / 2);
+
+        currentX += tagWidth + tagGap;
+      }
+
+      // 하단에 워터마크 추가
+      ctx.font = '12px Pretendard, -apple-system, sans-serif';
+      ctx.fillStyle = '#999999';
+      ctx.textAlign = 'center';
+      ctx.fillText('멍BTI - 반려견 여행 성향 테스트', 400, 950);
+
+      // 캔버스를 Blob으로 변환하여 다운로드
       canvas.toBlob((blob) => {
         if (blob) {
           const url = URL.createObjectURL(blob);
@@ -866,7 +970,7 @@ const MbtiTest = () => {
         </header>
 
         {/* Result Content */}
-        <div ref={resultRef} className="bg-background p-5">
+        <div className="bg-background p-5">
           {/* Result Header */}
           <div className="text-center py-8">
             <div className="text-6xl mb-4">{resultData.icon}</div>
