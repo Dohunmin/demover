@@ -900,7 +900,8 @@ const MbtiTest = () => {
             {resultData.tags.map((tag, index) => (
               <span
                 key={index}
-                className="px-3 py-1 bg-secondary text-muted-foreground text-sm rounded-full inline-flex items-center"
+                className="px-3 py-1.5 bg-secondary text-muted-foreground text-sm rounded-full inline-flex items-center justify-center leading-none"
+                style={{ lineHeight: '1' }}
               >
                 {tag}
               </span>
