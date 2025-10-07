@@ -634,7 +634,7 @@ const MbtiTest = () => {
       // 설명 텍스트 (여러 줄)
       ctx.font = '16px Pretendard, -apple-system, sans-serif';
       ctx.fillStyle = '#333333';
-      const maxWidth = 700;
+      const maxWidth = 550;
       const lineHeight = 24;
       const words = resultData.description.split(' ');
       let line = '';
@@ -686,10 +686,15 @@ const MbtiTest = () => {
       }
 
       // 하단에 워터마크 추가
+      ctx.font = 'bold 14px Pretendard, -apple-system, sans-serif';
+      ctx.fillStyle = '#666666';
+      ctx.textAlign = 'center';
+      ctx.fillText('[멍멍! 일단출발해]', 400, 920);
+      
       ctx.font = '12px Pretendard, -apple-system, sans-serif';
       ctx.fillStyle = '#999999';
-      ctx.textAlign = 'center';
-      ctx.fillText('멍BTI - 반려견 여행 성향 테스트', 400, 950);
+      ctx.fillText('멍BTI - 반려견 여행 성향 테스트', 400, 945);
+      ctx.fillText('letsgomong.com', 400, 970);
 
       // 캔버스를 Blob으로 변환하여 다운로드
       canvas.toBlob((blob) => {
