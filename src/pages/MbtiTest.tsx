@@ -904,8 +904,8 @@ const MbtiTest = () => {
                 style={{ 
                   paddingLeft: '12px',
                   paddingRight: '12px',
-                  paddingTop: '8px',
-                  paddingBottom: '8px',
+                  paddingTop: '10px',
+                  paddingBottom: '6px',
                   display: 'inline-block',
                   fontSize: '14px',
                   lineHeight: '1',
