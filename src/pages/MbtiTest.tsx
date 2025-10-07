@@ -910,7 +910,9 @@ const MbtiTest = () => {
                   display: 'inline-block',
                   fontSize: '14px',
                   fontFamily: 'Pretendard, -apple-system, sans-serif',
-                  lineHeight: '1'
+                  lineHeight: '1',
+                  position: 'relative',
+                  top: '-2px'
                 }}
               >
                 {tag}
