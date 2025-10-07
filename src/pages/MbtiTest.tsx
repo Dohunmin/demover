@@ -896,12 +896,18 @@ const MbtiTest = () => {
           </Card>
 
           {/* Tags */}
-          <div className="flex flex-wrap gap-2 mb-6 items-center">
+          <div className="flex flex-wrap gap-2 mb-6">
             {resultData.tags.map((tag, index) => (
               <span
                 key={index}
-                className="px-3 py-1.5 bg-secondary text-muted-foreground text-sm rounded-full inline-flex items-center justify-center leading-none"
-                style={{ lineHeight: '1' }}
+                className="px-3 bg-secondary text-muted-foreground text-sm rounded-full"
+                style={{ 
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  height: '32px',
+                  lineHeight: '32px',
+                  verticalAlign: 'middle'
+                }}
               >
                 {tag}
               </span>
