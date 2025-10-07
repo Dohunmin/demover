@@ -616,29 +616,44 @@ const MbtiTest = () => {
       ctx.font = 'bold 24px Pretendard, -apple-system, sans-serif';
       ctx.fillText(resultData.title, 400, 190);
 
-      // 캐릭터 이미지 로드 및 그리기
+      // 박스 그리기 (이미지와 설명을 감싸는 카드)
+      const boxX = 40;
+      const boxY = 240;
+      const boxWidth = 720;
+      const boxHeight = 380;
+      
+      // 박스 배경
+      ctx.fillStyle = '#f8f8f8';
+      ctx.strokeStyle = '#e0e0e0';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 20);
+      ctx.fill();
+      ctx.stroke();
+
+      // 캐릭터 이미지 로드 및 그리기 (박스 안)
       const characterImg = new Image();
       characterImg.crossOrigin = 'anonymous';
       
       await new Promise((resolve, reject) => {
         characterImg.onload = () => {
-          // 이미지를 중앙에 그리기
-          const imgSize = 200;
-          ctx.drawImage(characterImg, (800 - imgSize) / 2, 240, imgSize, imgSize);
+          // 이미지를 박스 상단 중앙에 그리기
+          const imgSize = 180;
+          ctx.drawImage(characterImg, (800 - imgSize) / 2, boxY + 20, imgSize, imgSize);
           resolve(null);
         };
         characterImg.onerror = reject;
         characterImg.src = mbtiImages[result];
       });
 
-      // 설명 텍스트 (여러 줄)
+      // 설명 텍스트 (박스 안, 여러 줄)
       ctx.font = '16px Pretendard, -apple-system, sans-serif';
       ctx.fillStyle = '#333333';
-      const maxWidth = 550;
+      const maxWidth = 650;
       const lineHeight = 24;
       const words = resultData.description.split(' ');
       let line = '';
-      let y = 480;
+      let y = boxY + 230;
 
       for (let i = 0; i < words.length; i++) {
         const testLine = line + words[i] + ' ';
@@ -653,8 +668,8 @@ const MbtiTest = () => {
       }
       ctx.fillText(line, 400, y);
 
-      // 태그 그리기
-      const tagY = y + 50;
+      // 태그 그리기 (박스 밖)
+      const tagY = boxY + boxHeight + 30;
       const tagPadding = 12;
       const tagHeight = 32;
       const tagGap = 8;
