@@ -906,13 +906,13 @@ const MbtiTest = () => {
                   paddingLeft: '12px',
                   paddingRight: '12px',
                   paddingTop: '7px',
-                  paddingBottom: '9px',
+                  paddingBottom: '12px',
                   display: 'inline-block',
                   fontSize: '14px',
                   fontFamily: 'Pretendard, -apple-system, sans-serif',
                   lineHeight: '1',
                   position: 'relative',
-                  top: '-2px'
+                  top: '-3px'
                 }}
               >
                 {tag}
