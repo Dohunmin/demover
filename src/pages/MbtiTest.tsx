@@ -722,8 +722,6 @@ const MbtiTest = () => {
           link.click();
           document.body.removeChild(link);
           URL.revokeObjectURL(url);
-          
-          toast.success("결과 이미지가 저장되었습니다!");
         }
       }, 'image/png');
     } catch (error) {
