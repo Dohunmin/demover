@@ -622,8 +622,8 @@ const MbtiTest = () => {
       const boxWidth = 540;
       const boxHeight = 380;
       
-      // 박스 배경
-      ctx.fillStyle = '#f8f8f8';
+      // 박스 배경 (흰색)
+      ctx.fillStyle = '#ffffff';
       ctx.strokeStyle = '#e0e0e0';
       ctx.lineWidth = 2;
       ctx.beginPath();
