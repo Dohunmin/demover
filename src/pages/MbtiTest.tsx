@@ -904,12 +904,12 @@ const MbtiTest = () => {
                 style={{ 
                   paddingLeft: '12px',
                   paddingRight: '12px',
-                  paddingTop: '0',
-                  paddingBottom: '0',
-                  display: 'inline-block',
-                  fontSize: '14px',
-                  height: '28px',
-                  lineHeight: '28px'
+                  paddingTop: '8px',
+                  paddingBottom: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '14px'
                 }}
               >
                 {tag}
