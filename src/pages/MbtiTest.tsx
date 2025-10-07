@@ -580,11 +580,11 @@ const MbtiTest = () => {
     if (!resultData) return;
 
     try {
-      // 캔버스 생성 (고해상도)
+      // 캔버스 생성 (모바일 최적화 사이즈)
       const canvas = document.createElement('canvas');
       const scale = 2;
-      canvas.width = 800 * scale;
-      canvas.height = 1000 * scale;
+      canvas.width = 600 * scale;
+      canvas.height = 900 * scale;
       const ctx = canvas.getContext('2d');
       
       if (!ctx) {
@@ -597,29 +597,29 @@ const MbtiTest = () => {
 
       // 배경색
       ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, 800, 1000);
+      ctx.fillRect(0, 0, 600, 900);
 
       // 폰트 설정
-      ctx.font = '48px Pretendard, -apple-system, sans-serif';
+      ctx.font = '40px Pretendard, -apple-system, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
       // 이모지 아이콘
       ctx.fillStyle = '#000000';
-      ctx.fillText(resultData.icon, 400, 80);
+      ctx.fillText(resultData.icon, 300, 60);
 
       // MBTI 코드
-      ctx.font = 'bold 36px Pretendard, -apple-system, sans-serif';
-      ctx.fillText(result, 400, 150);
+      ctx.font = 'bold 32px Pretendard, -apple-system, sans-serif';
+      ctx.fillText(result, 300, 120);
 
       // 제목
-      ctx.font = 'bold 24px Pretendard, -apple-system, sans-serif';
-      ctx.fillText(resultData.title, 400, 190);
+      ctx.font = 'bold 20px Pretendard, -apple-system, sans-serif';
+      ctx.fillText(resultData.title, 300, 155);
 
       // 박스 그리기 (이미지와 설명을 감싸는 카드)
-      const boxX = 40;
-      const boxY = 240;
-      const boxWidth = 720;
+      const boxX = 30;
+      const boxY = 190;
+      const boxWidth = 540;
       const boxHeight = 380;
       
       // 박스 배경
@@ -638,8 +638,8 @@ const MbtiTest = () => {
       await new Promise((resolve, reject) => {
         characterImg.onload = () => {
           // 이미지를 박스 상단 중앙에 그리기
-          const imgSize = 180;
-          ctx.drawImage(characterImg, (800 - imgSize) / 2, boxY + 20, imgSize, imgSize);
+          const imgSize = 160;
+          ctx.drawImage(characterImg, (600 - imgSize) / 2, boxY + 20, imgSize, imgSize);
           resolve(null);
         };
         characterImg.onerror = reject;
@@ -647,48 +647,48 @@ const MbtiTest = () => {
       });
 
       // 설명 텍스트 (박스 안, 여러 줄)
-      ctx.font = '16px Pretendard, -apple-system, sans-serif';
+      ctx.font = '15px Pretendard, -apple-system, sans-serif';
       ctx.fillStyle = '#333333';
-      const maxWidth = 650;
-      const lineHeight = 24;
+      const maxWidth = 490;
+      const lineHeight = 22;
       const words = resultData.description.split(' ');
       let line = '';
-      let y = boxY + 230;
+      let y = boxY + 200;
 
       for (let i = 0; i < words.length; i++) {
         const testLine = line + words[i] + ' ';
         const metrics = ctx.measureText(testLine);
         if (metrics.width > maxWidth && i > 0) {
-          ctx.fillText(line, 400, y);
+          ctx.fillText(line, 300, y);
           line = words[i] + ' ';
           y += lineHeight;
         } else {
           line = testLine;
         }
       }
-      ctx.fillText(line, 400, y);
+      ctx.fillText(line, 300, y);
 
       // 태그 그리기 (박스 밖)
-      const tagY = boxY + boxHeight + 30;
-      const tagPadding = 12;
-      const tagHeight = 32;
-      const tagGap = 8;
-      let currentX = 50;
+      const tagY = boxY + boxHeight + 25;
+      const tagPadding = 10;
+      const tagHeight = 28;
+      const tagGap = 6;
+      let currentX = 40;
 
-      ctx.font = '14px Pretendard, -apple-system, sans-serif';
+      ctx.font = '13px Pretendard, -apple-system, sans-serif';
       
       for (const tag of resultData.tags) {
         const tagWidth = ctx.measureText(tag).width + tagPadding * 2;
         
         // 다음 줄로 넘어가야 하는지 확인
-        if (currentX + tagWidth > 750) {
-          currentX = 50;
+        if (currentX + tagWidth > 560) {
+          currentX = 40;
         }
 
         // 배경 박스 (회색)
         ctx.fillStyle = '#f1f1f1';
         ctx.beginPath();
-        ctx.roundRect(currentX, tagY, tagWidth, tagHeight, 16);
+        ctx.roundRect(currentX, tagY, tagWidth, tagHeight, 14);
         ctx.fill();
 
         // 텍스트 (중앙 정렬)
@@ -701,15 +701,15 @@ const MbtiTest = () => {
       }
 
       // 하단에 워터마크 추가
-      ctx.font = 'bold 14px Pretendard, -apple-system, sans-serif';
+      ctx.font = 'bold 13px Pretendard, -apple-system, sans-serif';
       ctx.fillStyle = '#666666';
       ctx.textAlign = 'center';
-      ctx.fillText('[멍멍! 일단출발해]', 400, 920);
+      ctx.fillText('[멍멍! 일단출발해]', 300, 820);
       
-      ctx.font = '12px Pretendard, -apple-system, sans-serif';
+      ctx.font = '11px Pretendard, -apple-system, sans-serif';
       ctx.fillStyle = '#999999';
-      ctx.fillText('멍BTI - 반려견 여행 성향 테스트', 400, 945);
-      ctx.fillText('letsgomong.com', 400, 970);
+      ctx.fillText('멍BTI - 반려견 여행 성향 테스트', 300, 845);
+      ctx.fillText('letsgomong.com', 300, 865);
 
       // 캔버스를 Blob으로 변환하여 다운로드
       canvas.toBlob((blob) => {
