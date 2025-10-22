@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MapPin } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 // Kakao Maps API 타입 정의
 declare global {
@@ -34,27 +35,74 @@ const TravelRecordsMap: React.FC<TravelRecordsMapProps> = ({ records, onRecordCl
 
   // Kakao Maps API 로드
   useEffect(() => {
-    const loadKakaoMaps = () => {
+    const loadKakaoMaps = async () => {
+      // 1. Kakao Maps API가 이미 로드되어 있는지 확인
       if (window.kakao && window.kakao.maps) {
         setIsKakaoLoaded(true);
         setIsLoading(false);
         return;
       }
 
-      const script = document.createElement('script');
-      script.src = 'https://dapi.kakao.com/v2/maps/sdk.js?appkey=c7cf9e7ecec81ad0090f5b7881b89e97&autoload=false';
-      script.async = true;
-      script.onload = () => {
-        window.kakao.maps.load(() => {
-          setIsKakaoLoaded(true);
-          setIsLoading(false);
+      // 2. 스크립트가 이미 DOM에 추가되어 있는지 확인
+      const existingScript = document.querySelector('script[src*="dapi.kakao.com"]');
+      
+      if (existingScript) {
+        // 스크립트가 이미 있으면 로드될 때까지 대기
+        const waitForKakao = setInterval(() => {
+          if (window.kakao && window.kakao.maps) {
+            clearInterval(waitForKakao);
+            setIsKakaoLoaded(true);
+            setIsLoading(false);
+          }
+        }, 100);
+
+        // 10초 후 타임아웃
+        setTimeout(() => {
+          clearInterval(waitForKakao);
+          if (!window.kakao || !window.kakao.maps) {
+            console.error('Kakao Maps API load timeout');
+            setIsLoading(false);
+          }
+        }, 10000);
+        
+        return;
+      }
+
+      // 3. 새로 스크립트 로드
+      try {
+        // Supabase에서 API 키 가져오기
+        const { data: secretData, error: secretError } = await supabase.functions.invoke('test-api-key', {
+          body: { key: 'KAKAO_JS_KEY' }
         });
-      };
-      script.onerror = () => {
-        console.error('Failed to load Kakao Maps API');
+
+        const apiKey = secretData?.value || 'c7cf9e7ecec81ad0090f5b7881b89e97';
+
+        const script = document.createElement('script');
+        script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&autoload=false`;
+        script.async = true;
+        
+        script.onload = () => {
+          if (window.kakao && window.kakao.maps) {
+            window.kakao.maps.load(() => {
+              setIsKakaoLoaded(true);
+              setIsLoading(false);
+            });
+          } else {
+            console.error('Kakao object not found after script load');
+            setIsLoading(false);
+          }
+        };
+        
+        script.onerror = () => {
+          console.error('Failed to load Kakao Maps API script');
+          setIsLoading(false);
+        };
+        
+        document.head.appendChild(script);
+      } catch (error) {
+        console.error('Error loading Kakao Maps API:', error);
         setIsLoading(false);
-      };
-      document.head.appendChild(script);
+      }
     };
 
     loadKakaoMaps();
