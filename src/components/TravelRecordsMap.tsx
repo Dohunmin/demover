@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 // Kakao Maps API 타입 정의
 declare global {
@@ -35,77 +36,109 @@ const TravelRecordsMap: React.FC<TravelRecordsMapProps> = ({ records, onRecordCl
 
   // Kakao Maps API 로드
   useEffect(() => {
-    const loadKakaoMaps = async () => {
-      // 1. Kakao Maps API가 이미 로드되어 있는지 확인
-      if (window.kakao && window.kakao.maps) {
-        setIsKakaoLoaded(true);
-        setIsLoading(false);
-        return;
-      }
+    let isMounted = true;
 
-      // 2. 스크립트가 이미 DOM에 추가되어 있는지 확인
-      const existingScript = document.querySelector('script[src*="dapi.kakao.com"]');
-      
-      if (existingScript) {
-        // 스크립트가 이미 있으면 로드될 때까지 대기
-        const waitForKakao = setInterval(() => {
-          if (window.kakao && window.kakao.maps) {
-            clearInterval(waitForKakao);
-            setIsKakaoLoaded(true);
-            setIsLoading(false);
-          }
-        }, 100);
-
-        // 10초 후 타임아웃
-        setTimeout(() => {
-          clearInterval(waitForKakao);
-          if (!window.kakao || !window.kakao.maps) {
-            console.error('Kakao Maps API load timeout');
-            setIsLoading(false);
-          }
-        }, 10000);
-        
-        return;
-      }
-
-      // 3. 새로 스크립트 로드
+    const loadKakaoMap = async () => {
       try {
-        // Supabase에서 API 키 가져오기
-        const { data: secretData, error: secretError } = await supabase.functions.invoke('test-api-key', {
-          body: { key: 'KAKAO_JS_KEY' }
-        });
-
-        const apiKey = secretData?.value || 'c7cf9e7ecec81ad0090f5b7881b89e97';
-
-        const script = document.createElement('script');
-        script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&autoload=false`;
-        script.async = true;
-        
-        script.onload = () => {
-          if (window.kakao && window.kakao.maps) {
-            window.kakao.maps.load(() => {
+        // Kakao Maps API가 이미 로드되어 있는지 확인
+        if (window.kakao && window.kakao.maps) {
+          console.log("카카오 지도가 이미 로드되어 있습니다. (Travel Records Map)");
+          window.kakao.maps.load(() => {
+            if (isMounted) {
               setIsKakaoLoaded(true);
               setIsLoading(false);
+            }
+          });
+          return;
+        }
+
+        console.log("카카오 API 키 가져오는 중... (Travel Records Map)");
+        const { data, error } = await supabase.functions.invoke("test-api-key");
+
+        if (error || !data?.kakaoJsKey) {
+          console.error("카카오 API 키 조회 실패:", error);
+          toast.error("카카오 지도 API 키를 가져올 수 없습니다.");
+          setIsLoading(false);
+          return;
+        }
+
+        const KAKAO_JS_KEY = data.kakaoJsKey;
+        console.log("카카오 지도 스크립트 로딩 시작... (Travel Records Map)");
+
+        // 기존 스크립트가 있으면 사용, 없으면 새로 생성
+        const existingScript = document.querySelector('script[src*="dapi.kakao.com"]');
+        
+        if (existingScript) {
+          console.log("기존 카카오 스크립트 발견, 재사용 (Travel Records Map)");
+          // 스크립트가 로드될 때까지 대기
+          const waitForKakao = setInterval(() => {
+            if (window.kakao && window.kakao.maps) {
+              clearInterval(waitForKakao);
+              window.kakao.maps.load(() => {
+                if (isMounted) {
+                  console.log("✅ 카카오 지도 API 로드 완료 (Travel Records Map)");
+                  setIsKakaoLoaded(true);
+                  setIsLoading(false);
+                }
+              });
+            }
+          }, 100);
+
+          // 10초 후 타임아웃
+          setTimeout(() => {
+            clearInterval(waitForKakao);
+            if (isMounted && (!window.kakao || !window.kakao.maps)) {
+              console.error("❌ 카카오 지도 로드 타임아웃 (Travel Records Map)");
+              toast.error("지도 로드에 실패했습니다.");
+              setIsLoading(false);
+            }
+          }, 10000);
+          
+          return;
+        }
+
+        // 새 스크립트 생성
+        const script = document.createElement("script");
+        script.type = "text/javascript";
+        script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JS_KEY}&autoload=false&libraries=services,clusterer`;
+
+        document.head.appendChild(script);
+
+        script.onload = () => {
+          console.log("✅ 카카오 지도 스크립트 로드 성공 (Travel Records Map)");
+
+          if (window.kakao && window.kakao.maps) {
+            window.kakao.maps.load(() => {
+              if (isMounted) {
+                console.log("✅ 카카오 지도 API 로드 완료 (Travel Records Map)");
+                setIsKakaoLoaded(true);
+                setIsLoading(false);
+              }
             });
           } else {
-            console.error('Kakao object not found after script load');
+            console.error("❌ 카카오 지도 객체를 찾을 수 없습니다 (Travel Records Map)");
             setIsLoading(false);
           }
         };
-        
+
         script.onerror = () => {
-          console.error('Failed to load Kakao Maps API script');
+          console.error("❌ 카카오 지도 스크립트 로드 실패 (Travel Records Map)");
+          toast.error("지도를 불러올 수 없습니다.");
           setIsLoading(false);
         };
-        
-        document.head.appendChild(script);
+
       } catch (error) {
-        console.error('Error loading Kakao Maps API:', error);
+        console.error("지도 초기화 중 오류 발생:", error);
+        toast.error("지도 로드 중 오류가 발생했습니다.");
         setIsLoading(false);
       }
     };
 
-    loadKakaoMaps();
+    loadKakaoMap();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // 지도 초기화
