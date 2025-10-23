@@ -1017,9 +1017,6 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
             ) : (
               petTourPlaces.length > 0 ? (
                 <>
-                  <div className="text-sm text-gray-600 mb-4">
-                    총 {petTotalCount.toLocaleString()}개의 반려동물 동반 여행지
-                  </div>
                   {petTourPlaces.map((place, index) => {
                     console.log(`반려동물 장소 ${index}:`, place);
                     return renderTourPlace(place, index);
