@@ -44,7 +44,7 @@ const Travel = () => {
   }, [searchParams, user, petTourismData.length, isBackFromMap]);
 
   const showMap = (tab: "general" | "pet") => {
-    setActiveTab(tab);
+    setActiveTab('pet'); // 항상 반려동물 동반 지도 표시
     setCurrentView('map');
     setIsBackFromMap(false); // 직접 지도로 갈 때는 뒤로가기 플래그 리셋
   };
