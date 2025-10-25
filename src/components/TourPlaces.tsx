@@ -537,8 +537,9 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
         console.log('반려동물 탭 검색 시작:', petSearchKeyword);
         
         if (petCacheLoaded && allPetPlacesCache.length > 0) {
-          // 캐시가 있으면 바로 검색
+          // 캐시가 있으면 바로 검색 (최소 로딩 시간 추가로 시각적 피드백 제공)
           console.log('캐시된 데이터로 검색 실행');
+          await new Promise(resolve => setTimeout(resolve, 300));
           processCachedPetPlaces(allPetPlacesCache, petSearchKeyword, 1);
         } else {
           // 캐시가 없으면 데이터를 로드 (loadAllPetPlaces 내부에서 검색도 처리됨)
