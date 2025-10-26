@@ -438,6 +438,7 @@ const MbtiTest = () => {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isClosingByPopstate, setIsClosingByPopstate] = useState(false);
 
   // 기존 MBTI 결과 불러오기
   useEffect(() => {
@@ -471,6 +472,7 @@ const MbtiTest = () => {
   useEffect(() => {
     const handlePopState = () => {
       if (window.history.state?.mbtiDialog === true) {
+        setIsClosingByPopstate(true);
         setDialogOpen(false);
       }
     };
@@ -849,9 +851,12 @@ const MbtiTest = () => {
         {/* 여행 성향 설명 다이얼로그 */}
         <Dialog open={dialogOpen} onOpenChange={(open) => {
           setDialogOpen(open);
-          // Dialog가 닫힐 때 history에서 제거
-          if (!open && window.history.state?.mbtiDialog === true) {
+          // Dialog가 닫힐 때 history에서 제거 (popstate로 닫힌 경우 제외)
+          if (!open && window.history.state?.mbtiDialog === true && !isClosingByPopstate) {
             window.history.back();
+          }
+          if (!open) {
+            setIsClosingByPopstate(false);
           }
         }}>
           <DialogContent className="max-w-sm mx-auto">
@@ -1134,9 +1139,12 @@ const MbtiTest = () => {
         {/* Dialog for type details */}
         <Dialog open={dialogOpen} onOpenChange={(open) => {
           setDialogOpen(open);
-          // Dialog가 닫힐 때 history에서 제거
-          if (!open && window.history.state?.mbtiDialog === true) {
+          // Dialog가 닫힐 때 history에서 제거 (popstate로 닫힌 경우 제외)
+          if (!open && window.history.state?.mbtiDialog === true && !isClosingByPopstate) {
             window.history.back();
+          }
+          if (!open) {
+            setIsClosingByPopstate(false);
           }
         }}>
           <DialogContent className="w-[95%] max-w-md mx-auto rounded-2xl">
