@@ -892,10 +892,7 @@ const Records = () => {
                 <Dialog 
                   open={isAddingRecord} 
                   onOpenChange={(open) => {
-                    if (open) {
-                      // 다이얼로그 열 때 히스토리에 상태 추가
-                      window.history.pushState({ dialog: 'addRecord' }, '', window.location.pathname);
-                    } else if (window.history.state?.dialog === 'addRecord') {
+                    if (!open && window.history.state?.dialog === 'addRecord') {
                       // 다이얼로그 닫을 때 히스토리 뒤로가기
                       window.history.back();
                     }
@@ -903,7 +900,14 @@ const Records = () => {
                   }}
                 >
                   <DialogTrigger asChild>
-                    <Button size="sm" className="button-primary">
+                    <Button 
+                      size="sm" 
+                      className="button-primary"
+                      onClick={() => {
+                        // 다이얼로그 열 때 히스토리에 상태 추가
+                        window.history.pushState({ dialog: 'addRecord' }, '', window.location.pathname);
+                      }}
+                    >
                       <Plus className="w-4 h-4 mr-2" />
                       새 기록 추가
                     </Button>

@@ -258,10 +258,8 @@ const News = () => {
   const handleViewModeChange = (mode: 'all' | 'events' | 'sales' | 'travel' | 'community') => {
     setViewMode(mode);
     window.scrollTo(0, 0);
-    // 히스토리에 상태 추가
-    if (mode !== 'all') {
-      window.history.pushState({ viewMode: mode }, '', window.location.pathname);
-    }
+    // 히스토리에 상태 추가 (all 모드를 포함한 모든 모드)
+    window.history.pushState({ viewMode: mode }, '', window.location.pathname);
   };
 
   const handlePostClick = (post: CommunityPost) => {
@@ -334,7 +332,15 @@ const News = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => viewMode === 'all' ? navigate("/") : setViewMode('all')}
+              onClick={() => {
+                if (viewMode === 'all') {
+                  navigate("/");
+                } else {
+                  // all 모드로 돌아갈 때도 히스토리에 추가
+                  window.history.pushState({ viewMode: 'all' }, '', window.location.pathname);
+                  setViewMode('all');
+                }
+              }}
               className="text-foreground hover:bg-muted p-2"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -407,7 +413,11 @@ const News = () => {
                   {events.slice(0, 3).map((event) => (
                     <div 
                       key={event.id}
-                      onClick={() => navigate(`/news/${event.id}`)}
+                      onClick={() => {
+                        // 현재 viewMode 저장하고 이동
+                        window.history.replaceState({ viewMode }, '', window.location.pathname);
+                        navigate(`/news/${event.id}`);
+                      }}
                       className="flex items-start p-3 bg-muted/30 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer"
                     >
                       {event.image_url && (
@@ -471,7 +481,11 @@ const News = () => {
                   {sales.slice(0, 3).map((sale) => (
                     <div 
                       key={sale.id}
-                      onClick={() => navigate(`/news/${sale.id}`)}
+                      onClick={() => {
+                        // 현재 viewMode 저장하고 이동
+                        window.history.replaceState({ viewMode }, '', window.location.pathname);
+                        navigate(`/news/${sale.id}`);
+                      }}
                       className="flex items-start p-3 bg-muted/30 rounded-xl hover:bg-red-50 transition-colors cursor-pointer"
                     >
                       {sale.image_url && (
@@ -822,7 +836,15 @@ const News = () => {
               </div>
             ) : events.length > 0 ? (
               events.map((event) => (
-                <Card key={event.id} className="p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/news/${event.id}`)}>
+                <Card 
+                  key={event.id} 
+                  className="p-4 hover:shadow-md transition-shadow cursor-pointer" 
+                  onClick={() => {
+                    // 현재 viewMode 저장하고 이동
+                    window.history.replaceState({ viewMode }, '', window.location.pathname);
+                    navigate(`/news/${event.id}`);
+                  }}
+                >
                   <div className="flex items-start space-x-4">
                     {event.image_url && (
                       <img 
@@ -869,7 +891,15 @@ const News = () => {
               </div>
             ) : sales.length > 0 ? (
               sales.map((sale) => (
-                <Card key={sale.id} className="p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/news/${sale.id}`)}>
+                <Card 
+                  key={sale.id} 
+                  className="p-4 hover:shadow-md transition-shadow cursor-pointer" 
+                  onClick={() => {
+                    // 현재 viewMode 저장하고 이동
+                    window.history.replaceState({ viewMode }, '', window.location.pathname);
+                    navigate(`/news/${sale.id}`);
+                  }}
+                >
                   <div className="flex items-start space-x-4">
                     {sale.image_url && (
                       <img 
