@@ -43,7 +43,27 @@ const AnimalHospitals = () => {
 
   useEffect(() => {
     fetchHospitals();
-  }, []);
+
+    // 브라우저 뒤로가기 처리
+    const handlePopState = (event: PopStateEvent) => {
+      const state = event.state;
+      
+      // 지도 뷰에서 뒤로가기
+      if (currentView === 'map') {
+        setCurrentView('list');
+        return;
+      }
+      
+      if (state?.view === 'map') {
+        setCurrentView('map');
+      } else if (state?.view === 'list') {
+        setCurrentView('list');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [currentView]);
 
   // 병원 데이터가 로드되면 초기 필터링 적용
   useEffect(() => {
@@ -161,7 +181,13 @@ const AnimalHospitals = () => {
             <div className="flex items-center justify-between mb-4">
               <h1 className="text-xl font-bold text-foreground">부산 동물병원</h1>
               <Button
-                onClick={() => setCurrentView('list')}
+                onClick={() => {
+                  setCurrentView('list');
+                  // 히스토리 뒤로가기
+                  if (window.history.state?.view === 'map') {
+                    window.history.back();
+                  }
+                }}
                 variant="outline"
                 size="sm"
               >
@@ -233,6 +259,8 @@ const AnimalHospitals = () => {
                 );
                 setFilteredHospitals(filtered);
                 setCurrentPage(1);
+                // 히스토리에 상태 추가
+                window.history.pushState({ view: 'map' }, '', window.location.pathname);
               }}
               variant="outline"
               size="sm"

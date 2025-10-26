@@ -102,6 +102,12 @@ const Records = () => {
     const handlePopState = (event: PopStateEvent) => {
       const state = event.state;
       
+      // 새 기록 추가 다이얼로그가 열려있는 경우
+      if (isAddingRecord) {
+        setIsAddingRecord(false);
+        return;
+      }
+      
       // 모달이 열려있는 경우
       if (showDetailModal || showEditModal) {
         setShowDetailModal(false);
@@ -125,7 +131,7 @@ const Records = () => {
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [user, showDetailModal, showEditModal, travelViewMode]);
+  }, [user, showDetailModal, showEditModal, travelViewMode, isAddingRecord]);
 
   const fetchUserProfile = async () => {
     if (!user) return;
@@ -883,7 +889,19 @@ const Records = () => {
                     </Button>
                   </div>
                 )}
-                <Dialog open={isAddingRecord} onOpenChange={setIsAddingRecord}>
+                <Dialog 
+                  open={isAddingRecord} 
+                  onOpenChange={(open) => {
+                    if (open) {
+                      // 다이얼로그 열 때 히스토리에 상태 추가
+                      window.history.pushState({ dialog: 'addRecord' }, '', window.location.pathname);
+                    } else if (window.history.state?.dialog === 'addRecord') {
+                      // 다이얼로그 닫을 때 히스토리 뒤로가기
+                      window.history.back();
+                    }
+                    setIsAddingRecord(open);
+                  }}
+                >
                   <DialogTrigger asChild>
                     <Button size="sm" className="button-primary">
                       <Plus className="w-4 h-4 mr-2" />
