@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Calendar, Tag, Plus, Settings, Users, PenTool, Heart, MessageCircle, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -66,6 +66,7 @@ interface CommunityPost {
 
 const News = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("news");
   const [events, setEvents] = useState<NewsPost[]>([]);
@@ -88,9 +89,10 @@ const News = () => {
       checkAdminRole();
     }
 
-    // 페이지 로드 시 history.state 확인하여 viewMode 복원
-    if (window.history.state?.viewMode) {
-      setViewMode(window.history.state.viewMode);
+    // 페이지 로드 시 location.state 또는 history.state 확인하여 viewMode 복원
+    const stateViewMode = (location.state as any)?.viewMode || window.history.state?.viewMode;
+    if (stateViewMode) {
+      setViewMode(stateViewMode);
     }
 
     // 브라우저 뒤로가기 처리
