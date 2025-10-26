@@ -97,7 +97,35 @@ const Records = () => {
       fetchTravelRecords();
       fetchUserProfile();
     }
-  }, [user]);
+
+    // 브라우저 뒤로가기 처리
+    const handlePopState = (event: PopStateEvent) => {
+      const state = event.state;
+      
+      // 모달이 열려있는 경우
+      if (showDetailModal || showEditModal) {
+        setShowDetailModal(false);
+        setShowEditModal(false);
+        setSelectedRecord(null);
+        return;
+      }
+      
+      // 지도 뷰에서 뒤로가기
+      if (travelViewMode === 'map') {
+        setTravelViewMode('list');
+        return;
+      }
+      
+      if (state?.travelViewMode) {
+        setTravelViewMode(state.travelViewMode);
+      } else if (state?.activeTab) {
+        setActiveTab(state.activeTab);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [user, showDetailModal, showEditModal, travelViewMode]);
 
   const fetchUserProfile = async () => {
     if (!user) return;
@@ -318,6 +346,8 @@ const Records = () => {
   const handleRecordClick = (record: TravelRecord) => {
     setSelectedRecord(record);
     setShowDetailModal(true);
+    // 히스토리에 상태 추가
+    window.history.pushState({ modal: 'recordDetail' }, '', window.location.pathname);
   };
 
   const handleEditClick = (record: TravelRecord) => {
@@ -328,6 +358,10 @@ const Records = () => {
   const closeDetailModal = () => {
     setShowDetailModal(false);
     setSelectedRecord(null);
+    // 모달 닫을 때 히스토리 뒤로가기
+    if (window.history.state?.modal === 'recordDetail') {
+      window.history.back();
+    }
   };
 
   const closeEditModal = () => {
@@ -838,7 +872,11 @@ const Records = () => {
                     <Button 
                       size="sm"
                       variant={travelViewMode === "map" ? "default" : "ghost"}
-                      onClick={() => setTravelViewMode("map")}
+                      onClick={() => {
+                        setTravelViewMode("map");
+                        // 히스토리에 상태 추가
+                        window.history.pushState({ travelViewMode: 'map' }, '', window.location.pathname);
+                      }}
                       className="rounded-l-none h-8 px-3"
                     >
                       <Map className="w-4 h-4" />
