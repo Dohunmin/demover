@@ -794,7 +794,7 @@ const Admin = () => {
             {/* Events List */}
             <div className="space-y-4">
               {posts.filter(post => post.category === 'event').map((post) => (
-                <Card key={post.id} className="p-4 bg-white rounded-2xl shadow-lg">
+                <Card key={post.id} className="p-4 bg-white rounded-2xl shadow-lg overflow-hidden">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center space-x-2">
                       <Calendar className="w-4 h-4 text-blue-600" />
@@ -820,7 +820,7 @@ const Admin = () => {
                     </div>
                   </div>
                   
-                  <div className="flex space-x-3">
+                  <div className="flex space-x-3 overflow-hidden">
                     {post.image_url && (
                       <div className="flex-shrink-0">
                         <img 
@@ -830,9 +830,9 @@ const Admin = () => {
                         />
                       </div>
                     )}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 mb-2 break-words line-clamp-2">{post.title}</h3>
-                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{post.content}</p>
+                     <div className="flex-1 min-w-0 overflow-hidden">
+                      <h3 className="font-semibold text-gray-900 mb-2 break-words line-clamp-2 overflow-hidden">{post.title}</h3>
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2 overflow-hidden">{post.content}</p>
                       
                       <div className="text-xs text-gray-400">
                         {new Date(post.created_at).toLocaleDateString('ko-KR')}
@@ -869,7 +869,7 @@ const Admin = () => {
             {/* Sales List */}
             <div className="space-y-4">
               {posts.filter(post => post.category === 'sale').map((post) => (
-                <Card key={post.id} className="p-4 bg-white rounded-2xl shadow-lg">
+                <Card key={post.id} className="p-4 bg-white rounded-2xl shadow-lg overflow-hidden">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center space-x-2">
                       <Tag className="w-4 h-4 text-red-600" />
@@ -895,7 +895,7 @@ const Admin = () => {
                     </div>
                   </div>
                   
-                  <div className="flex space-x-3">
+                  <div className="flex space-x-3 overflow-hidden">
                     {post.image_url && (
                       <div className="flex-shrink-0">
                         <img 
@@ -905,9 +905,9 @@ const Admin = () => {
                         />
                       </div>
                     )}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 mb-2 break-words line-clamp-2">{post.title}</h3>
-                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{post.content}</p>
+                     <div className="flex-1 min-w-0 overflow-hidden">
+                      <h3 className="font-semibold text-gray-900 mb-2 break-words line-clamp-2 overflow-hidden">{post.title}</h3>
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2 overflow-hidden">{post.content}</p>
                       
                       <div className="text-xs text-gray-400">
                         {new Date(post.created_at).toLocaleDateString('ko-KR')}
@@ -935,7 +935,7 @@ const Admin = () => {
             ) : (
               <div className="space-y-4">
                 {travelRecords.map((record) => (
-                  <Card key={record.id} className="p-4 bg-white rounded-2xl shadow-lg">
+                  <Card key={record.id} className="p-4 bg-white rounded-2xl shadow-lg overflow-hidden">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-2">
                         <MapPin className="w-4 h-4 text-green-600" />
@@ -956,7 +956,7 @@ const Admin = () => {
                       </div>
                     </div>
                     
-                    <div className="flex space-x-3">
+                    <div className="flex space-x-3 overflow-hidden">
                       <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
                         {record.profiles?.pet_image_url ? (
                           <img 
@@ -970,9 +970,9 @@ const Admin = () => {
                           </div>
                         )}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <h3 className="font-semibold text-gray-900 break-words">{record.location_name}</h3>
+                       <div className="flex-1 min-w-0 overflow-hidden">
+                         <div className="flex items-center space-x-2 mb-1 overflow-hidden">
+                           <h3 className="font-semibold text-gray-900 break-words line-clamp-1 overflow-hidden">{record.location_name}</h3>
                           <span className="text-xs text-gray-500 flex-shrink-0">by {record.profiles?.pet_name || "익명"}</span>
                         </div>
                         {record.memo && (
@@ -1005,7 +1005,7 @@ const Admin = () => {
             ) : (
               <div className="space-y-4">
                 {communityPosts.map((post) => (
-                  <Card key={post.id} className="p-4 bg-white rounded-2xl shadow-lg">
+                  <Card key={post.id} className="p-4 bg-white rounded-2xl shadow-lg overflow-hidden">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-2">
                         <MessageCircle className="w-4 h-4 text-purple-600" />
@@ -1029,7 +1029,7 @@ const Admin = () => {
                        </div>
                      </div>
                      
-                     <div className="flex space-x-3">
+                     <div className="flex space-x-3 overflow-hidden">
                       {!post.is_anonymous && (
                         <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
                           {post.profiles?.pet_image_url ? (
@@ -1045,9 +1045,9 @@ const Admin = () => {
                           )}
                         </div>
                       )}
-                       <div className="flex-1 min-w-0">
-                         <div className="flex items-center space-x-2 mb-1">
-                           <h3 className="font-semibold text-gray-900 break-words line-clamp-2">{post.title}</h3>
+                       <div className="flex-1 min-w-0 overflow-hidden">
+                         <div className="flex items-center space-x-2 mb-1 overflow-hidden">
+                           <h3 className="font-semibold text-gray-900 break-words line-clamp-2 overflow-hidden">{post.title}</h3>
                            {!post.is_anonymous && (
                              <span className="text-xs text-gray-500 flex-shrink-0">by {post.profiles?.pet_name || "익명"}</span>
                            )}
