@@ -46,6 +46,20 @@ const PlaceReviewModal: React.FC<PlaceReviewModalProps> = ({ isOpen, onClose, on
   const [averageRating, setAverageRating] = useState(0);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
+  // 브라우저 뒤로가기 처리
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      if (isOpen) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      window.addEventListener('popstate', handlePopState);
+      return () => window.removeEventListener('popstate', handlePopState);
+    }
+  }, [isOpen, onClose]);
+
   useEffect(() => {
     if (isOpen) {
       fetchReviews();

@@ -39,6 +39,20 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
   const [mapError, setMapError] = useState<string | null>(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
 
+  // 브라우저 뒤로가기 처리
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      // 리뷰 모달이 열려있는 경우
+      if (showReviewModal) {
+        setShowReviewModal(false);
+        return;
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [showReviewModal]);
+
   useEffect(() => {
     console.log('🔄 PlaceLocationModal useEffect 실행:', { 
       isOpen, 
@@ -347,7 +361,11 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setShowReviewModal(true)}
+                onClick={() => {
+                  setShowReviewModal(true);
+                  // 히스토리에 상태 추가
+                  window.history.pushState({ modal: 'placeReviewFromLocation' }, '', window.location.pathname);
+                }}
                 className="flex items-center gap-2 text-sm"
               >
                 <Star className="h-4 w-4" />
@@ -362,7 +380,13 @@ const PlaceLocationModal: React.FC<PlaceLocationModalProps> = ({
       {showReviewModal && (
         <PlaceReviewModal
           isOpen={showReviewModal}
-          onClose={() => setShowReviewModal(false)}
+          onClose={() => {
+            setShowReviewModal(false);
+            // 히스토리 뒤로가기
+            if (window.history.state?.modal === 'placeReviewFromLocation') {
+              window.history.back();
+            }
+          }}
           place={{
             contentid: contentId,
             title: place.title

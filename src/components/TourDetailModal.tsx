@@ -35,6 +35,22 @@ const TourDetailModal: React.FC<TourDetailModalProps> = ({
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [showReviewsModal, setShowReviewsModal] = useState(false);
 
+  // 브라우저 뒤로가기 처리
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      // 리뷰 모달이 열려있는 경우
+      if (showReviewsModal) {
+        setShowReviewsModal(false);
+        return;
+      }
+    };
+
+    if (isOpen) {
+      window.addEventListener('popstate', handlePopState);
+      return () => window.removeEventListener('popstate', handlePopState);
+    }
+  }, [isOpen, showReviewsModal]);
+
   useEffect(() => {
     if (isOpen && contentId) {
       fetchDetailData();
@@ -298,7 +314,11 @@ const TourDetailModal: React.FC<TourDetailModalProps> = ({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setShowReviewsModal(true)}
+                onClick={() => {
+                  setShowReviewsModal(true);
+                  // 히스토리에 상태 추가
+                  window.history.pushState({ modal: 'placeReviewsFromDetail' }, '', window.location.pathname);
+                }}
                 className="flex items-center gap-2 text-sm"
               >
                 <Star className="h-4 w-4" />
@@ -312,7 +332,13 @@ const TourDetailModal: React.FC<TourDetailModalProps> = ({
       {/* 리뷰 모달 */}
       <PlaceReviewsModal
         isOpen={showReviewsModal}
-        onClose={() => setShowReviewsModal(false)}
+        onClose={() => {
+          setShowReviewsModal(false);
+          // 히스토리 뒤로가기
+          if (window.history.state?.modal === 'placeReviewsFromDetail') {
+            window.history.back();
+          }
+        }}
         placeName={title}
         placeAddress={commonInfo?.addr1}
       />

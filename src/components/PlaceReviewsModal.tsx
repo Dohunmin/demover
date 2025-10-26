@@ -40,6 +40,27 @@ const PlaceReviewsModal: React.FC<PlaceReviewsModalProps> = ({
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [selectedReviewImages, setSelectedReviewImages] = useState<string[]>([]);
 
+  // 브라우저 뒤로가기 처리
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      // 이미지 갤러리가 열려있는 경우
+      if (selectedImageIndex !== null) {
+        closeImageGallery();
+        return;
+      }
+      
+      // 모달이 열려있는 경우
+      if (isOpen) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      window.addEventListener('popstate', handlePopState);
+      return () => window.removeEventListener('popstate', handlePopState);
+    }
+  }, [isOpen, selectedImageIndex, onClose]);
+
   useEffect(() => {
     if (isOpen && placeName) {
       fetchReviews();
@@ -151,11 +172,17 @@ const PlaceReviewsModal: React.FC<PlaceReviewsModalProps> = ({
   const openImageGallery = (images: string[], startIndex: number = 0) => {
     setSelectedReviewImages(images);
     setSelectedImageIndex(startIndex);
+    // 히스토리에 상태 추가
+    window.history.pushState({ modal: 'imageGallery' }, '', window.location.pathname);
   };
 
   const closeImageGallery = () => {
     setSelectedImageIndex(null);
     setSelectedReviewImages([]);
+    // 히스토리 뒤로가기
+    if (window.history.state?.modal === 'imageGallery') {
+      window.history.back();
+    }
   };
 
   const formatDate = (dateString: string) => {

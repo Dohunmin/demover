@@ -87,6 +87,30 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
   const [petCacheLoaded, setPetCacheLoaded] = useState(false);
   const [petDataLoading, setPetDataLoading] = useState(false);
 
+  // 브라우저 뒤로가기 처리
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      const state = event.state;
+      
+      // 리뷰 모달이 열려있는 경우
+      if (isReviewModalOpen) {
+        setIsReviewModalOpen(false);
+        setSelectedPlaceForReview(null);
+        return;
+      }
+      
+      // 위치 모달이 열려있는 경우
+      if (isLocationModalOpen) {
+        setIsLocationModalOpen(false);
+        setSelectedPlaceForLocation(null);
+        return;
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [isReviewModalOpen, isLocationModalOpen]);
+
   // 장소별 리뷰 통계 로드 (place_reviews + travel_records)
   const loadPlaceReviews = async (places: any[]) => {
     if (!places || places.length === 0) return;
@@ -727,6 +751,8 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
       
       setSelectedPlaceForLocation(locationData);
       setIsLocationModalOpen(true);
+      // 히스토리에 상태 추가
+      window.history.pushState({ modal: 'placeLocation' }, '', window.location.pathname);
     };
 
     const handleReviewUpdate = (stats: {averageRating: number, totalReviews: number}) => {
@@ -877,6 +903,8 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
                       title: place.title
                     });
                     setIsReviewModalOpen(true);
+                    // 히스토리에 상태 추가
+                    window.history.pushState({ modal: 'placeReview' }, '', window.location.pathname);
                   }}
                 >
                   <Star className="w-3 h-3 mr-1" />
@@ -1120,6 +1148,10 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
           onClose={() => {
             setIsReviewModalOpen(false);
             setSelectedPlaceForReview(null);
+            // 히스토리 뒤로가기
+            if (window.history.state?.modal === 'placeReview') {
+              window.history.back();
+            }
           }}
           onReviewUpdate={(stats) => {
             setPlaceReviews(prev => ({
@@ -1141,6 +1173,10 @@ const TourPlaces: React.FC<TourPlacesProps> = ({ onShowMap, onPetDataLoaded }) =
         onClose={() => {
           setIsLocationModalOpen(false);
           setSelectedPlaceForLocation(null);
+          // 히스토리 뒤로가기
+          if (window.history.state?.modal === 'placeLocation') {
+            window.history.back();
+          }
         }}
       />
     </div>
