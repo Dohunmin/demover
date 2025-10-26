@@ -830,8 +830,8 @@ const Admin = () => {
                         />
                       </div>
                     )}
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-2">{post.title}</h3>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-gray-900 mb-2 break-words line-clamp-2">{post.title}</h3>
                       <p className="text-sm text-gray-600 mb-3 line-clamp-2">{post.content}</p>
                       
                       <div className="text-xs text-gray-400">
@@ -905,8 +905,8 @@ const Admin = () => {
                         />
                       </div>
                     )}
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 mb-2">{post.title}</h3>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-gray-900 mb-2 break-words line-clamp-2">{post.title}</h3>
                       <p className="text-sm text-gray-600 mb-3 line-clamp-2">{post.content}</p>
                       
                       <div className="text-xs text-gray-400">
@@ -970,10 +970,10 @@ const Admin = () => {
                           </div>
                         )}
                       </div>
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-2 mb-1">
-                          <h3 className="font-semibold text-gray-900">{record.location_name}</h3>
-                          <span className="text-xs text-gray-500">by {record.profiles?.pet_name || "익명"}</span>
+                          <h3 className="font-semibold text-gray-900 break-words">{record.location_name}</h3>
+                          <span className="text-xs text-gray-500 flex-shrink-0">by {record.profiles?.pet_name || "익명"}</span>
                         </div>
                         {record.memo && (
                           <p className="text-sm text-gray-600 mb-2 line-clamp-2">{record.memo}</p>
@@ -1045,13 +1045,13 @@ const Admin = () => {
                           )}
                         </div>
                       )}
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <h3 className="font-semibold text-gray-900">{post.title}</h3>
-                          {!post.is_anonymous && (
-                            <span className="text-xs text-gray-500">by {post.profiles?.pet_name || "익명"}</span>
-                          )}
-                        </div>
+                       <div className="flex-1 min-w-0">
+                         <div className="flex items-center space-x-2 mb-1">
+                           <h3 className="font-semibold text-gray-900 break-words line-clamp-2">{post.title}</h3>
+                           {!post.is_anonymous && (
+                             <span className="text-xs text-gray-500 flex-shrink-0">by {post.profiles?.pet_name || "익명"}</span>
+                           )}
+                         </div>
                         <p className="text-sm text-gray-600 mb-2 line-clamp-2">{post.content}</p>
                         {post.location_name && (
                           <div className="text-xs text-gray-400 flex items-center space-x-1">
