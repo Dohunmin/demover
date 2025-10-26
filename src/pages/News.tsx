@@ -92,7 +92,19 @@ const News = () => {
     const handlePopState = (event: PopStateEvent) => {
       const state = event.state;
       
-      // 모달이 열려있는 상태에서 뒤로가기
+      // 커뮤니티 글 작성/수정 모달이 열려있는 경우
+      if (showPostModal) {
+        setShowPostModal(false);
+        return;
+      }
+      
+      if (showEditModal) {
+        setShowEditModal(false);
+        setSelectedPost(null);
+        return;
+      }
+      
+      // 게시글 상세 모달이 열려있는 상태에서 뒤로가기
       if (showPostDetail || showTravelRecordDetail) {
         setShowPostDetail(false);
         setShowTravelRecordDetail(false);
@@ -112,7 +124,7 @@ const News = () => {
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [user, showPostDetail, showTravelRecordDetail]);
+  }, [user, showPostDetail, showTravelRecordDetail, showPostModal, showEditModal]);
 
   const fetchAllData = async () => {
     setLoading(true);
@@ -338,7 +350,11 @@ const News = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowPostModal(true)}
+                onClick={() => {
+                  setShowPostModal(true);
+                  // 히스토리에 상태 추가
+                  window.history.pushState({ modal: 'communityPost' }, '', window.location.pathname);
+                }}
                 className="text-primary hover:bg-primary/10 p-2"
               >
                 <PenTool className="w-5 h-5" />
@@ -897,7 +913,13 @@ const News = () => {
       {/* Modals */}
       <CommunityPostModal
         isOpen={showPostModal}
-        onClose={() => setShowPostModal(false)}
+        onClose={() => {
+          setShowPostModal(false);
+          // 히스토리 뒤로가기
+          if (window.history.state?.modal === 'communityPost') {
+            window.history.back();
+          }
+        }}
         onPostCreated={() => {
           fetchAllData();
           // 모바일 캐시 문제 해결을 위한 강제 새로고침
@@ -915,6 +937,8 @@ const News = () => {
           setSelectedPost(post);
           setShowPostDetail(false);
           setShowEditModal(true);
+          // 히스토리에 상태 추가
+          window.history.pushState({ modal: 'communityPostEdit' }, '', window.location.pathname);
         }}
         onDelete={fetchAllData}
       />
@@ -924,6 +948,10 @@ const News = () => {
         onClose={() => {
           setShowEditModal(false);
           setSelectedPost(null);
+          // 히스토리 뒤로가기
+          if (window.history.state?.modal === 'communityPostEdit') {
+            window.history.back();
+          }
         }}
         onPostUpdated={fetchAllData}
         post={selectedPost}

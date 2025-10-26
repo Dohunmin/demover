@@ -42,6 +42,20 @@ const CommunityPostEditModal = ({ isOpen, onClose, onPostUpdated, post }: Commun
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAnonymous, setIsAnonymous] = useState(false);
 
+  // 브라우저 뒤로가기 처리
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      if (isOpen) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      window.addEventListener('popstate', handlePopState);
+      return () => window.removeEventListener('popstate', handlePopState);
+    }
+  }, [isOpen, onClose]);
+
   useEffect(() => {
     if (post) {
       setTitle(post.title);
