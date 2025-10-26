@@ -467,6 +467,18 @@ const MbtiTest = () => {
     fetchExistingResult();
   }, [user]);
 
+  // 브라우저 뒤로가기 처리 (Dialog)
+  useEffect(() => {
+    const handlePopState = () => {
+      if (window.history.state?.mbtiDialog === true) {
+        setDialogOpen(false);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   // 멍BTI 결과 저장 함수
   const saveMbtiResult = async (mbtiResult: string) => {
     if (!user) return;
@@ -502,6 +514,8 @@ const MbtiTest = () => {
   const handleTypeClick = (typeCode: string) => {
     setSelectedType(typeCode);
     setDialogOpen(true);
+    // Dialog 열 때 history에 추가
+    window.history.pushState({ mbtiDialog: true }, '', window.location.pathname);
   };
 
   const selectedTypeData = travelTypes.find(type => type.code === selectedType);
@@ -833,7 +847,13 @@ const MbtiTest = () => {
         
 
         {/* 여행 성향 설명 다이얼로그 */}
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <Dialog open={dialogOpen} onOpenChange={(open) => {
+          setDialogOpen(open);
+          // Dialog가 닫힐 때 history에서 제거
+          if (!open && window.history.state?.mbtiDialog === true) {
+            window.history.back();
+          }
+        }}>
           <DialogContent className="max-w-sm mx-auto">
             <DialogHeader>
               <DialogTitle className="text-lg font-bold text-center">
@@ -1112,7 +1132,13 @@ const MbtiTest = () => {
         </div>
 
         {/* Dialog for type details */}
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <Dialog open={dialogOpen} onOpenChange={(open) => {
+          setDialogOpen(open);
+          // Dialog가 닫힐 때 history에서 제거
+          if (!open && window.history.state?.mbtiDialog === true) {
+            window.history.back();
+          }
+        }}>
           <DialogContent className="w-[95%] max-w-md mx-auto rounded-2xl">
             <DialogHeader>
               <DialogTitle className="text-center">
