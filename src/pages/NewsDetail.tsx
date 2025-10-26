@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { ArrowLeft, Calendar, Tag, Share2, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -19,12 +19,15 @@ interface NewsPost {
 
 const NewsDetail = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { id } = useParams<{ id: string }>();
   const [post, setPost] = useState<NewsPost | null>(null);
   const [loading, setLoading] = useState(true);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
+  
+  const viewMode = (location.state as any)?.viewMode;
 
   useEffect(() => {
     if (id) {
@@ -187,7 +190,13 @@ const NewsDetail = () => {
         <div className="flex items-center justify-center h-screen">
           <div className="text-center">
             <p className="text-gray-500 mb-4">게시물을 찾을 수 없습니다.</p>
-            <Button onClick={() => navigate('/news')}>
+            <Button onClick={() => {
+              if (viewMode) {
+                navigate('/news', { state: { viewMode } });
+              } else {
+                navigate('/news');
+              }
+            }}>
               소식으로 돌아가기
             </Button>
           </div>
@@ -228,7 +237,13 @@ const NewsDetail = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate('/news')}
+              onClick={() => {
+                if (viewMode) {
+                  navigate('/news', { state: { viewMode } });
+                } else {
+                  window.history.back();
+                }
+              }}
               className="text-gray-700 hover:bg-gray-100 p-2"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -318,7 +333,13 @@ const NewsDetail = () => {
           </Button>
           <Button
             variant="outline"
-            onClick={() => navigate('/news')}
+            onClick={() => {
+              if (viewMode) {
+                navigate('/news', { state: { viewMode } });
+              } else {
+                window.history.back();
+              }
+            }}
             className="flex items-center justify-center py-3"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />

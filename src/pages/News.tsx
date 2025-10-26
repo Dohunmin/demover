@@ -88,6 +88,11 @@ const News = () => {
       checkAdminRole();
     }
 
+    // 페이지 로드 시 history.state 확인하여 viewMode 복원
+    if (window.history.state?.viewMode) {
+      setViewMode(window.history.state.viewMode);
+    }
+
     // 브라우저 뒤로가기 처리
     const handlePopState = (event: PopStateEvent) => {
       const state = event.state;
@@ -414,9 +419,7 @@ const News = () => {
                     <div 
                       key={event.id}
                       onClick={() => {
-                        // 현재 viewMode 저장하고 이동
-                        window.history.replaceState({ viewMode }, '', window.location.pathname);
-                        navigate(`/news/${event.id}`);
+                        navigate(`/news/${event.id}`, { state: { viewMode } });
                       }}
                       className="flex items-start p-3 bg-muted/30 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer"
                     >
@@ -482,9 +485,7 @@ const News = () => {
                     <div 
                       key={sale.id}
                       onClick={() => {
-                        // 현재 viewMode 저장하고 이동
-                        window.history.replaceState({ viewMode }, '', window.location.pathname);
-                        navigate(`/news/${sale.id}`);
+                        navigate(`/news/${sale.id}`, { state: { viewMode } });
                       }}
                       className="flex items-start p-3 bg-muted/30 rounded-xl hover:bg-red-50 transition-colors cursor-pointer"
                     >
@@ -840,9 +841,7 @@ const News = () => {
                   key={event.id} 
                   className="p-4 hover:shadow-md transition-shadow cursor-pointer" 
                   onClick={() => {
-                    // 현재 viewMode 저장하고 이동
-                    window.history.replaceState({ viewMode }, '', window.location.pathname);
-                    navigate(`/news/${event.id}`);
+                    navigate(`/news/${event.id}`, { state: { viewMode } });
                   }}
                 >
                   <div className="flex items-start space-x-4">
@@ -895,9 +894,7 @@ const News = () => {
                   key={sale.id} 
                   className="p-4 hover:shadow-md transition-shadow cursor-pointer" 
                   onClick={() => {
-                    // 현재 viewMode 저장하고 이동
-                    window.history.replaceState({ viewMode }, '', window.location.pathname);
-                    navigate(`/news/${sale.id}`);
+                    navigate(`/news/${sale.id}`, { state: { viewMode } });
                   }}
                 >
                   <div className="flex items-start space-x-4">

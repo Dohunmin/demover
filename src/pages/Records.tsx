@@ -98,6 +98,14 @@ const Records = () => {
       fetchUserProfile();
     }
 
+    // 페이지 로드 시 history.state 확인하여 상태 복원
+    if (window.history.state?.activeTab) {
+      setActiveTab(window.history.state.activeTab);
+    }
+    if (window.history.state?.travelViewMode) {
+      setTravelViewMode(window.history.state.travelViewMode);
+    }
+
     // 브라우저 뒤로가기 처리
     const handlePopState = (event: PopStateEvent) => {
       const state = event.state;
@@ -618,7 +626,15 @@ const Records = () => {
 
       {/* Main Content */}
       <main className="p-5">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs 
+          value={activeTab} 
+          onValueChange={(value) => {
+            setActiveTab(value);
+            // 탭 변경 시 히스토리에 상태 추가
+            window.history.pushState({ activeTab: value }, '', window.location.pathname);
+          }} 
+          className="w-full"
+        >
           <TabsList className="grid w-full grid-cols-2 mb-6">
             <TabsTrigger value="bookmarks" className="flex items-center gap-2">
               <Heart className="w-4 h-4" />
@@ -870,7 +886,13 @@ const Records = () => {
                     <Button 
                       size="sm"
                       variant={travelViewMode === "list" ? "default" : "ghost"}
-                      onClick={() => setTravelViewMode("list")}
+                      onClick={() => {
+                        setTravelViewMode("list");
+                        // 지도 뷰에서 리스트로 돌아갈 때 히스토리 뒤로가기
+                        if (window.history.state?.travelViewMode === 'map') {
+                          window.history.back();
+                        }
+                      }}
                       className="rounded-r-none h-8 px-3"
                     >
                       <MapPin className="w-4 h-4" />
