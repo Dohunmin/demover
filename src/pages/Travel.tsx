@@ -41,12 +41,30 @@ const Travel = () => {
         setCurrentView('map');
       }
     }
+
+    // 브라우저 뒤로가기 처리
+    const handlePopState = (event: PopStateEvent) => {
+      const state = event.state;
+      if (state?.view === 'map') {
+        // 지도 뷰로 복원
+        setCurrentView('map');
+      } else {
+        // 목록 뷰로 복원
+        setCurrentView('places');
+        setIsBackFromMap(true);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, [searchParams, user, petTourismData.length, isBackFromMap]);
 
   const showMap = (tab: "general" | "pet") => {
     setActiveTab('pet'); // 항상 반려동물 동반 지도 표시
     setCurrentView('map');
     setIsBackFromMap(false); // 직접 지도로 갈 때는 뒤로가기 플래그 리셋
+    // 히스토리에 상태 추가
+    window.history.pushState({ view: 'map' }, '', window.location.pathname);
   };
   const showPlaces = () => {
     setCurrentView('places');

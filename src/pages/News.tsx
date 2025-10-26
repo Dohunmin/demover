@@ -87,7 +87,32 @@ const News = () => {
     if (user) {
       checkAdminRole();
     }
-  }, [user]);
+
+    // 브라우저 뒤로가기 처리
+    const handlePopState = (event: PopStateEvent) => {
+      const state = event.state;
+      
+      // 모달이 열려있는 상태에서 뒤로가기
+      if (showPostDetail || showTravelRecordDetail) {
+        setShowPostDetail(false);
+        setShowTravelRecordDetail(false);
+        setSelectedPost(null);
+        setSelectedTravelRecord(null);
+        return;
+      }
+      
+      if (state?.viewMode) {
+        // 특정 뷰 모드로 복원
+        setViewMode(state.viewMode);
+      } else {
+        // 상태가 없으면 전체보기로
+        setViewMode('all');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [user, showPostDetail, showTravelRecordDetail]);
 
   const fetchAllData = async () => {
     setLoading(true);
@@ -221,16 +246,24 @@ const News = () => {
   const handleViewModeChange = (mode: 'all' | 'events' | 'sales' | 'travel' | 'community') => {
     setViewMode(mode);
     window.scrollTo(0, 0);
+    // 히스토리에 상태 추가
+    if (mode !== 'all') {
+      window.history.pushState({ viewMode: mode }, '', window.location.pathname);
+    }
   };
 
   const handlePostClick = (post: CommunityPost) => {
     setSelectedPost(post);
     setShowPostDetail(true);
+    // 히스토리에 상태 추가
+    window.history.pushState({ modal: 'postDetail' }, '', window.location.pathname);
   };
 
   const handleTravelRecordClick = (record: TravelRecord) => {
     setSelectedTravelRecord(record);
     setShowTravelRecordDetail(true);
+    // 히스토리에 상태 추가
+    window.history.pushState({ modal: 'travelDetail' }, '', window.location.pathname);
   };
 
   const getPostTypeLabel = (type: string) => {
@@ -259,6 +292,24 @@ const News = () => {
       case 'travel': return '공개된 여행 기록들';
       case 'community': return '커뮤니티 게시글';
       default: return '최신 소식과 커뮤니티';
+    }
+  };
+
+  const handleClosePostDetail = () => {
+    setShowPostDetail(false);
+    setSelectedPost(null);
+    // 모달 닫을 때 히스토리 뒤로가기
+    if (window.history.state?.modal === 'postDetail') {
+      window.history.back();
+    }
+  };
+
+  const handleCloseTravelDetail = () => {
+    setShowTravelRecordDetail(false);
+    setSelectedTravelRecord(null);
+    // 모달 닫을 때 히스토리 뒤로가기
+    if (window.history.state?.modal === 'travelDetail') {
+      window.history.back();
     }
   };
 
@@ -859,10 +910,7 @@ const News = () => {
       <CommunityPostDetailModal
         post={selectedPost}
         isOpen={showPostDetail}
-        onClose={() => {
-          setShowPostDetail(false);
-          setSelectedPost(null);
-        }}
+        onClose={handleClosePostDetail}
         onEdit={(post) => {
           setSelectedPost(post);
           setShowPostDetail(false);
@@ -884,10 +932,7 @@ const News = () => {
       <TravelRecordDetailModal
         record={selectedTravelRecord}
         isOpen={showTravelRecordDetail}
-        onClose={() => {
-          setShowTravelRecordDetail(false);
-          setSelectedTravelRecord(null);
-        }}
+        onClose={handleCloseTravelDetail}
       />
 
       <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
