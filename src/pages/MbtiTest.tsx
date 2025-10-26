@@ -438,7 +438,6 @@ const MbtiTest = () => {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isClosingByPopstate, setIsClosingByPopstate] = useState(false);
 
   // 기존 MBTI 결과 불러오기
   useEffect(() => {
@@ -471,15 +470,16 @@ const MbtiTest = () => {
   // 브라우저 뒤로가기 처리 (Dialog)
   useEffect(() => {
     const handlePopState = () => {
-      if (window.history.state?.mbtiDialog === true) {
-        setIsClosingByPopstate(true);
+      // 다이얼로그가 열려있는 경우
+      if (dialogOpen) {
         setDialogOpen(false);
+        return;
       }
     };
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
+  }, [dialogOpen]);
 
   // 멍BTI 결과 저장 함수
   const saveMbtiResult = async (mbtiResult: string) => {
@@ -850,14 +850,10 @@ const MbtiTest = () => {
 
         {/* 여행 성향 설명 다이얼로그 */}
         <Dialog open={dialogOpen} onOpenChange={(open) => {
-          setDialogOpen(open);
-          // Dialog가 닫힐 때 history에서 제거 (popstate로 닫힌 경우 제외)
-          if (!open && window.history.state?.mbtiDialog === true && !isClosingByPopstate) {
+          if (!open && window.history.state?.mbtiDialog) {
             window.history.back();
           }
-          if (!open) {
-            setIsClosingByPopstate(false);
-          }
+          setDialogOpen(open);
         }}>
           <DialogContent className="max-w-sm mx-auto">
             <DialogHeader>
@@ -1138,14 +1134,10 @@ const MbtiTest = () => {
 
         {/* Dialog for type details */}
         <Dialog open={dialogOpen} onOpenChange={(open) => {
-          setDialogOpen(open);
-          // Dialog가 닫힐 때 history에서 제거 (popstate로 닫힌 경우 제외)
-          if (!open && window.history.state?.mbtiDialog === true && !isClosingByPopstate) {
+          if (!open && window.history.state?.mbtiDialog) {
             window.history.back();
           }
-          if (!open) {
-            setIsClosingByPopstate(false);
-          }
+          setDialogOpen(open);
         }}>
           <DialogContent className="w-[95%] max-w-md mx-auto rounded-2xl">
             <DialogHeader>
