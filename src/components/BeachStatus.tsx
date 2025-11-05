@@ -248,6 +248,11 @@ const BeachStatus = () => {
                 <div className="font-semibold text-gray-700 text-sm">{selectedBeach.sunset}</div>
               </div>
             </div>
+            
+            {/* 일출일몰 안내 문구 */}
+            <p className="text-xs text-gray-400 text-right mt-3">
+              일출일몰 정보는 6~8월에만 제공됩니다.
+            </p>
           </Card>
         </div>
       ) : (
